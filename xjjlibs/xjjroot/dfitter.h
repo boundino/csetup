@@ -49,8 +49,6 @@ namespace xjjroot
     Double_t GetMassH() const {return max_hist_dzero;}
 
   private:
-    Int_t npar;
-    
     Double_t S;
     Double_t B;
     Double_t Sig;
