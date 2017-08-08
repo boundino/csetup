@@ -12,6 +12,7 @@
 #include "TLegend.h"
 #include "TLatex.h"
 #include "TMath.h"
+#include "TFitResult.h"
 
 namespace xjjroot
 {
@@ -65,7 +66,7 @@ namespace xjjroot
     TF1* fun_background;
     TF1* fun_not_mass;
 
-    TFitResultPtr r;    
+    TFitResultPtr r;
 
     TString foption;
     Bool_t fparamfun_f;
@@ -251,7 +252,7 @@ TF1* xjjroot::dfitter::fit(const TH1* hmass, const TH1* hmassMCSignal, const TH1
   if(fdrawchi2) 
     {
       drawtex(texxpos, texypos=(texypos-texdypos), Form("#chi^{2} / ndf = %.1f / %.0f",Chi2,NDF));
-      drawtex(texxpos, texypos=(texypos-texdypos), Form("Prob = %.2f%s",Chi2Prob*100,texper.Data()));
+      drawtex(texxpos, texypos=(texypos-texdypos), Form("Prob = %.2f%s",Chi2Prob*100,"%"));
     }
   if(fdrawdetail)
     {
@@ -339,7 +340,7 @@ void xjjroot::dfitter::createfun()
     "[0]*([7]*([9]*TMath::Gaus(x,[1],[2]*(1+[11]))/(sqrt(2*3.14159)*[2]*(1+[11]))+(1-[9])*([12]*TMath::Gaus(x,[1],[10]*(1+[11]))/(sqrt(2*3.14159)*[10]*(1+[11]))+(1-[12])*TMath::Gaus(x,[1],[13]*(1+[11]))/(sqrt(2*3.14159)*[13]*(1+[11]))))+(1-[7])*TMath::Gaus(x,[1],[8]*(1+[11]))/(sqrt(2*3.14159)*[8]*(1+[11])))+[3]+[4]*x+[5]*x*x+[6]*x*x*x":
     "[0]*([7]*([9]*TMath::Gaus(x,[1],[2]*(1+[11]))/(sqrt(2*3.14159)*[2]*(1+[11]))+(1-[9])*TMath::Gaus(x,[1],[10]*(1+[11]))/(sqrt(2*3.14159)*[10]*(1+[11])))+(1-[7])*TMath::Gaus(x,[1],[8]*(1+[11]))/(sqrt(2*3.14159)*[8]*(1+[11])))+[3]+[4]*x+[5]*x*x+[6]*x*x*x";
   TString str_fun_mass = f3gaus?
-    "[0]*([3]*([4]*TMath::Gaus(x,[1],[2]*(1+[6]))/(sqrt(2*3.14159)*[2]*(1+[6]))+(1-[4])*([7]*TMath::Gaus(x,[1],[5]*(1+[6]))/(sqrt(2*3.14159)*[5]*(1+[6]))+(1-[7])*TMath::Gaus(x,[1],[8]*(1+[6]))/(sqrt(2*3.14159)*[8]*(1+[6])))))"?
+    "[0]*([3]*([4]*TMath::Gaus(x,[1],[2]*(1+[6]))/(sqrt(2*3.14159)*[2]*(1+[6]))+(1-[4])*([7]*TMath::Gaus(x,[1],[5]*(1+[6]))/(sqrt(2*3.14159)*[5]*(1+[6]))+(1-[7])*TMath::Gaus(x,[1],[8]*(1+[6]))/(sqrt(2*3.14159)*[8]*(1+[6])))))":
     "[0]*([3]*([4]*TMath::Gaus(x,[1],[2]*(1+[6]))/(sqrt(2*3.14159)*[2]*(1+[6]))+(1-[4])*TMath::Gaus(x,[1],[5]*(1+[6]))/(sqrt(2*3.14159)*[5]*(1+[6]))))";
   fun_f = new TF1("fun_f", str_fun_f.Data(), min_hist_dzero, max_hist_dzero);  
   fun_mass = new TF1("fun_mass", str_fun_mass.Data(), min_hist_dzero, max_hist_dzero);
