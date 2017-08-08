@@ -44,6 +44,7 @@ namespace xjjroot
     void SetSignalregion(Double_t d_mass_signal_) {d_mass_signal =  d_mass_signal_; calvar();}
     void SetSidebandL(Double_t d_mass_sideband_l_) {d_mass_sideband_l = d_mass_sideband_l_; calvar();}
     void SetSidebandH(Double_t d_mass_sideband_h_) {d_mass_sideband_h = d_mass_sideband_h_; calvar();}
+    void SetTexLinespc(Double_t linespc=0) {texlinespc = linespc;}
     
     Double_t GetMassL() const {return min_hist_dzero;}
     Double_t GetMassH() const {return max_hist_dzero;}
@@ -104,6 +105,8 @@ namespace xjjroot
     const Double_t min_hist_dzero = 1.7;
     const Double_t max_hist_dzero = 2.0;
     const Double_t binwid_hist_dzero = (max_hist_dzero-min_hist_dzero)/n_hist_dzero;
+
+    Double_t texlinespc = 0;
 
     void init();
     void reset();
@@ -243,8 +246,9 @@ TF1* xjjroot::dfitter::fit(const TH1* hmass, const TH1* hmassMCSignal, const TH1
   Float_t texxpos = 0.22, texypos = 0.90, texdypos = 0.053;
   if(!vtex.empty())
     {
+      texypos+=texlinespc;
       for(std::vector<TString>::const_iterator it=vtex.begin(); it!=vtex.end(); it++) 
-        drawtex(texxpos, texypos=(texypos-texdypos), *it);
+        drawtex(texxpos, texypos=(texypos-texdypos-texlinespc), *it);
     }
   if(fdrawyield) drawtex(texxpos, texypos=(texypos-texdypos), Form("N = %.0f #pm %.0f",yield,yieldErr));
   if(fdrawchi2) 
