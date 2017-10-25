@@ -14,6 +14,10 @@
 
 namespace xjjc
 {
+  const std::string nc("\033[0m");
+  const std::string red("\033[0;31m");
+  const std::string green("\033[0;32m");
+
   template<size_t N, typename T> void initarray(T (*array_)[N], T initval_=0);
   template<size_t N, typename T> int findibin(const T (*array_)[N], T element_);
   template<typename T> int findibin(const std::vector<T> array_, T element_);
