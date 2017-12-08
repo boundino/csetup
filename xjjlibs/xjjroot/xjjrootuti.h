@@ -21,13 +21,16 @@ namespace xjjroot
   template <class T> void sethempty(T* hempty, Float_t xoffset=0, Float_t yoffset=0);
   template <class T> void setthgr(T* hempty, Float_t xoffset=0, Float_t yoffset=0);
   template <class T> void setthgrstyle(T* h, Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1, Color_t fcolor=-1, Float_t falpha=-1, Style_t fstyle=-1);
-  void drawCMS(Bool_t drawenergy=false, TString collision="", TString snn="5.02");
+  void drawCMS(TString collision="", TString snn="5.02", Bool_t drawenergy=true);
   void settex(TLatex* tex, Float_t tsize=0.04, Short_t align=12);
   void drawtex(Double_t x, Double_t y, const char *text, Float_t tsize=0.04, Short_t align=12);
   void setleg(TLegend* leg, Float_t tsize=0.04);
   void setlegndraw(TLegend* leg, Float_t tsize=0.04);
   void setline(TLine* l, Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=2);
   void drawline(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=2);
+  void drawbox(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color_t fcolor=kGray, Float_t falpha=0.4, Style_t fstyle=1001, Color_t lcolor=0, Style_t lstyle=1, Width_t lwidth=0);
+
+  void dividebinwid(TH1* h);
 
   void setbranchaddress(TTree* nt, const char* bname, void* addr);
   template <class T> T* copyobject(const T* obj, TString objname);
@@ -103,7 +106,7 @@ void xjjroot::setthgrstyle(T* h, Color_t mcolor/*=-1*/, Style_t mstyle/*=-1*/, S
   if(fstyle>=0) h->SetFillStyle(fstyle);
 }
 
-void xjjroot::drawCMS(Bool_t drawenergy/*=false*/, TString collision/*=""*/, TString snn/*="5.02"*/)
+void xjjroot::drawCMS(TString collision/*=""*/, TString snn/*="5.02"*/, Bool_t drawenergy/*=true*/)
 {
   TLatex* texCms = new TLatex(0.18,0.93, "#scale[1.25]{CMS} Preliminary");
   texCms->SetNDC();
@@ -163,6 +166,18 @@ void xjjroot::drawline(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color
   l->Draw();
 }
 
+void xjjroot::drawbox(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color_t fcolor/*=kGray*/, Float_t falpha/*=0.4*/, Style_t fstyle/*=1001*/, Color_t lcolor/*=0*/, Style_t lstyle/*=1*/, Width_t lwidth/*=0*/)
+{
+  TBox* b = new TBox(x1, y1, x2, y2);
+  b->SetFillColor(fcolor);
+  b->SetFillColorAlpha(fcolor, falpha);
+  b->SetFillStyle(fstyle);
+  b->SetLineColor(lcolor);
+  b->SetLineStyle(lstyle);
+  b->SetLineWidth(lwidth);
+  b->Draw();
+}
+
 /* ----- */
 
 void xjjroot::setbranchaddress(TTree* nt, const char* bname, void* addr)
@@ -179,5 +194,15 @@ T* xjjroot::copyobject(const T* obj, TString objname)
   return newobj;
 }
 
+void xjjroot::dividebinwid(TH1* h)
+{
+  for(int i=0;i<h->GetNbinsX();i++)
+    {
+      Float_t val = h->GetBinContent(i+1)/h->GetBinWidth(i+1);
+      Float_t valErr = h->GetBinError(i+1)/h->GetBinWidth(i+1);
+      h->SetBinContent(i+1,val);
+      h->SetBinError(i+1,valErr);
+    }
+}
 
 #endif
