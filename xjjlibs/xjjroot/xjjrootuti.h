@@ -17,13 +17,13 @@ namespace xjjroot
   const float margin_pad_bottom = 0.145;
   const float margin_pad_top = 0.1;
 
-  void setgstyle();
+  void setgstyle(Int_t padtick=0);
   template <class T> void sethempty(T* hempty, Float_t xoffset=0, Float_t yoffset=0);
   template <class T> void setthgr(T* hempty, Float_t xoffset=0, Float_t yoffset=0);
   template <class T> void setthgrstyle(T* h, Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1, Color_t fcolor=-1, Float_t falpha=-1, Style_t fstyle=-1);
-  void drawCMS(TString collision="", TString snn="5.02", Bool_t drawenergy=true);
-  void settex(TLatex* tex, Float_t tsize=0.04, Short_t align=12);
-  void drawtex(Double_t x, Double_t y, const char *text, Float_t tsize=0.04, Short_t align=12);
+  void drawCMS(TString collision="", TString snn="5.02", Float_t xpos=0, Float_t ypos=0, Bool_t drawenergy=true);
+  void settex(TLatex* tex, Float_t tsize=0.04, Short_t align=12, Style_t font=42);
+  void drawtex(Double_t x, Double_t y, const char *text, Float_t tsize=0.04, Short_t align=12, Style_t font=42);
   void setleg(TLegend* leg, Float_t tsize=0.04);
   void setlegndraw(TLegend* leg, Float_t tsize=0.04);
   void setline(TLine* l, Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=2);
@@ -38,7 +38,7 @@ namespace xjjroot
 
 /* ---------- */
 
-void xjjroot::setgstyle()
+void xjjroot::setgstyle(Int_t padtick/*=0*/)
 {
   gStyle->SetOptTitle(0);
   gStyle->SetOptStat(0);
@@ -50,6 +50,11 @@ void xjjroot::setgstyle()
   gStyle->SetPadTopMargin(xjjroot::margin_pad_top);
   gStyle->SetPadBottomMargin(xjjroot::margin_pad_bottom);
   gStyle->SetTitleX(.0f);
+  if(padtick)
+    {
+      gStyle->SetPadTickX(1);
+      gStyle->SetPadTickY(1);
+    }
 }
 
 template <class T>
@@ -106,16 +111,16 @@ void xjjroot::setthgrstyle(T* h, Color_t mcolor/*=-1*/, Style_t mstyle/*=-1*/, S
   if(fstyle>=0) h->SetFillStyle(fstyle);
 }
 
-void xjjroot::drawCMS(TString collision/*=""*/, TString snn/*="5.02"*/, Bool_t drawenergy/*=true*/)
+void xjjroot::drawCMS(TString collision/*=""*/, TString snn/*="5.02"*/, Float_t xpos/*=0*/, Float_t ypos/*=0*/, Bool_t drawenergy/*=true*/)
 {
-  TLatex* texCms = new TLatex(0.18,0.93, "#scale[1.25]{CMS} Preliminary");
+  TLatex* texCms = new TLatex(0.18+xpos,0.93+ypos, "#scale[1.25]{CMS} Preliminary");
   texCms->SetNDC();
   texCms->SetTextAlign(12);
   texCms->SetTextSize(0.04);
   texCms->SetTextFont(42);
   texCms->Draw();
   if(!drawenergy) return;
-  TLatex* texCol = new TLatex(0.96,0.93, Form("%s #sqrt{s_{NN}} = %s TeV", collision.Data(), snn.Data()));
+  TLatex* texCol = new TLatex(0.96+xpos,0.93+ypos, Form("%s #sqrt{s_{NN}} = %s TeV", collision.Data(), snn.Data()));
   texCol->SetNDC();
   texCol->SetTextAlign(32);
   texCol->SetTextSize(0.04);
@@ -123,18 +128,18 @@ void xjjroot::drawCMS(TString collision/*=""*/, TString snn/*="5.02"*/, Bool_t d
   texCol->Draw();
 }
 
-void xjjroot::settex(TLatex* tex, Float_t tsize/*=0.04*/, Short_t align/*=12*/)
+void xjjroot::settex(TLatex* tex, Float_t tsize/*=0.04*/, Short_t align/*=12*/, Style_t font/*=42*/)
 {
   tex->SetNDC();
-  tex->SetTextFont(42);
+  tex->SetTextFont(font);
   tex->SetTextAlign(align);
   tex->SetTextSize(tsize);
 }
 
-void xjjroot::drawtex(Double_t x, Double_t y, const char* text, Float_t tsize/*=0.04*/, Short_t align/*=12*/)
+void xjjroot::drawtex(Double_t x, Double_t y, const char* text, Float_t tsize/*=0.04*/, Short_t align/*=12*/, Style_t font/*=42*/)
 {
   TLatex* tex = new TLatex(x, y, text);
-  xjjroot::settex(tex, tsize, align);
+  xjjroot::settex(tex, tsize, align, font);
   tex->Draw();
 }
 
