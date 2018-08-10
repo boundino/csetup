@@ -20,7 +20,7 @@ namespace xjjroot
   const Color_t colorlist_light[]  = {kRed-9, kOrange-4, kGreen-8, kAzure-9, kMagenta-8, kCyan-10, kViolet+6};
   const Color_t colorlist_middle[] = {kRed-3, kOrange-3, kGreen+2, kAzure-3, kMagenta-5, kCyan-6,  kViolet+7};
   const Color_t colorlist_dark[]   = {kRed+2, kOrange+5, kGreen+3, kAzure-6, kMagenta-1, kCyan+3,  kViolet+9};
-  const ncolor = sizeof(colorlist_light)/sizeof(colorlist_light[0])
+  const int ncolor = sizeof(colorlist_light)/sizeof(colorlist_light[0]);
 
   void setgstyle(Int_t padtick=0);
   template <class T> void sethempty(T* hempty, Float_t xoffset=0, Float_t yoffset=0);
