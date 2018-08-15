@@ -11,23 +11,35 @@
 #include <cmath>
 #include <vector>
 #include <cxxabi.h>
+#include <algorithm>
+#include <pair>
 
 namespace xjjc
 {
   const std::string nc("\033[0m");
   const std::string red("\033[0;31m");
   const std::string green("\033[0;32m");
+  const std::string yellow("\033[0;33m");
 
   template<size_t N, typename T> void initarray(T (*array_)[N], T initval_=0);
   template<size_t N, typename T> int findibin(const T (*array_)[N], T element_);
   template<typename T> int findibin(const std::vector<T> array_, T element_);
   template<size_t N, typename T> int findiedge(const T (*array_)[N], T element_);
   template<typename T> int findiedge(const std::vector<T> array_, T element_);
+
   template<typename T> std::string number_to_string(T param_);
   template<typename T> std::string number_remove_zero(T param_);
+
   void progressbar(int index_, int total_, int morespace_=0);
   void progressbar_summary(int total_);
+
   template<typename T> char* gettype(T exp, int& status);
+
+  template<class T> bool sortbydes(const T &a, const T &b) const { return a > b; }
+  template<class T1, class T2> bool sortbyfirst_des(const std::pair<T1,T2> &a, const std::pair<T1,T2> &b) const { return a.first > b.first; }
+  template<class T1, class T2> bool sortbyfirst_as(const std::pair<T1,T2> &a, const std::pair<T1,T2> &b) const { return a.first < b.first; }
+  template<class T1, class T2> bool sortbysecond_des(const std::pair<T1,T2> &a, const std::pair<T1,T2> &b) const { return a.second > b.second; }
+  template<class T1, class T2> bool sortbysecond_as(const std::pair<T1,T2> &a, const std::pair<T1,T2> &b) const { return a.second < b.second; }
 }
 
 /* ---------- */
