@@ -12,7 +12,6 @@
 #include <vector>
 #include <cxxabi.h>
 #include <algorithm>
-#include <pair>
 
 namespace xjjc
 {
@@ -35,11 +34,11 @@ namespace xjjc
 
   template<typename T> char* gettype(T exp, int& status);
 
-  template<class T> bool sortbydes(const T &a, const T &b) const { return a > b; }
-  template<class T1, class T2> bool sortbyfirst_des(const std::pair<T1,T2> &a, const std::pair<T1,T2> &b) const { return a.first > b.first; }
-  template<class T1, class T2> bool sortbyfirst_as(const std::pair<T1,T2> &a, const std::pair<T1,T2> &b) const { return a.first < b.first; }
-  template<class T1, class T2> bool sortbysecond_des(const std::pair<T1,T2> &a, const std::pair<T1,T2> &b) const { return a.second > b.second; }
-  template<class T1, class T2> bool sortbysecond_as(const std::pair<T1,T2> &a, const std::pair<T1,T2> &b) const { return a.second < b.second; }
+  template<class T> bool sortbydes(const T &a, const T &b) { return a > b; }
+  template<class T1, class T2> bool sortbyfirst_des(const std::pair<T1,T2> &a, const std::pair<T1,T2> &b) { return a.first > b.first; }
+  template<class T1, class T2> bool sortbyfirst_as(const std::pair<T1,T2> &a, const std::pair<T1,T2> &b) { return a.first < b.first; }
+  template<class T1, class T2> bool sortbysecond_des(const std::pair<T1,T2> &a, const std::pair<T1,T2> &b) { return a.second > b.second; }
+  template<class T1, class T2> bool sortbysecond_as(const std::pair<T1,T2> &a, const std::pair<T1,T2> &b) { return a.second < b.second; }
 }
 
 /* ---------- */
