@@ -17,15 +17,17 @@ namespace xjjroot
   const float margin_pad_bottom = 0.145;
   const float margin_pad_top = 0.1;
 
-  const Color_t colorlist_light[]  = {kRed-9, kOrange-4, kGreen-8, kAzure-9, kMagenta-8, kCyan-10, kViolet+6};
-  const Color_t colorlist_middle[] = {kRed-3, kOrange-3, kGreen+2, kAzure-3, kMagenta-5, kCyan-6,  kViolet+7};
-  const Color_t colorlist_dark[]   = {kRed+2, kOrange+5, kGreen+3, kAzure-6, kMagenta-1, kCyan+3,  kViolet+9};
+  const Color_t colorlist_light[]  = {kGreen-8, kOrange-4, kRed-9, kAzure-9, kMagenta-8, kCyan-10, kViolet-9, kYellow-10, kBlue-8, kPink+1};
+  const Color_t colorlist_middle[] = {kGreen+2, kOrange-3, kRed-3, kAzure-3, kMagenta-5, kCyan-6,  kViolet+7, kYellow+2,  kBlue-5, kPink+2};
+  const Color_t colorlist_dark[]   = {kGreen+3, kOrange+5, kRed+2, kAzure-6, kMagenta-1, kCyan+3,  kViolet+4, kYellow+3,  kBlue-1, kPink+3};
   const int ncolor = sizeof(colorlist_light)/sizeof(colorlist_light[0]);
 
   void setgstyle(Int_t padtick=0);
   template <class T> void sethempty(T* hempty, Float_t xoffset=0, Float_t yoffset=0);
   template <class T> void setthgr(T* hempty, Float_t xoffset=0, Float_t yoffset=0);
   template <class T> void setthgrstyle(T* h, Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1, Color_t fcolor=-1, Float_t falpha=-1, Style_t fstyle=-1);
+  template <class T> void setlinestyle(T* h, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1);
+  template <class T> void setmarkerstyle(T* h, Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1);
   void drawCMS(TString collision="", TString snn="5.02", Float_t xpos=0, Float_t ypos=0, Bool_t drawenergy=true);
   void settex(TLatex* tex, Float_t tsize=0.04, Short_t align=12, Style_t font=42);
   void drawtex(Double_t x, Double_t y, const char *text, Float_t tsize=0.04, Short_t align=12, Style_t font=42);
@@ -114,6 +116,22 @@ void xjjroot::setthgrstyle(T* h, Color_t mcolor/*=-1*/, Style_t mstyle/*=-1*/, S
   if(fcolor>=0) h->SetFillColor(fcolor);
   if(falpha>=0) h->SetFillColorAlpha(fcolor, falpha);
   if(fstyle>=0) h->SetFillStyle(fstyle);
+}
+
+template <class T>
+void xjjroot::setlinestyle(T* h, Color_t lcolor/*=-1*/, Style_t lstyle/*=-1*/, Width_t lwidth/*=-1*/)
+{
+  if(lcolor>=0) h->SetLineColor(lcolor);
+  if(lstyle>=0) h->SetLineStyle(lstyle);
+  if(lwidth>=0) h->SetLineWidth(lwidth);
+}
+
+template <class T>
+void xjjroot::setmarkerstyle(T* h, Color_t mcolor/*=-1*/, Style_t mstyle/*=-1*/, Size_t msize/*=-1*/)
+{
+  if(mcolor>=0) h->SetMarkerColor(mcolor);
+  if(mstyle>=0) h->SetMarkerStyle(mstyle);
+  if(msize>=0)  h->SetMarkerSize(msize);
 }
 
 void xjjroot::drawCMS(TString collision/*=""*/, TString snn/*="5.02"*/, Float_t xpos/*=0*/, Float_t ypos/*=0*/, Bool_t drawenergy/*=true*/)
