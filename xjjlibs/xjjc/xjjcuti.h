@@ -7,7 +7,7 @@
 #include <iomanip>
 #include <fstream>
 #include <utility>
-#include <cstring>
+#include <string>
 #include <cmath>
 #include <vector>
 #include <cxxabi.h>
@@ -39,6 +39,9 @@ namespace xjjc
   template<class T1, class T2> bool sortbyfirst_as(const std::pair<T1,T2> &a, const std::pair<T1,T2> &b) { return a.first < b.first; }
   template<class T1, class T2> bool sortbysecond_des(const std::pair<T1,T2> &a, const std::pair<T1,T2> &b) { return a.second > b.second; }
   template<class T1, class T2> bool sortbysecond_as(const std::pair<T1,T2> &a, const std::pair<T1,T2> &b) { return a.second < b.second; }
+
+  std::string str_replaceall(std::string strs, std::string sub, std::string newsub);
+  bool str_contains(std::string str1, std::string str2) { return str1.find(str2)!=std::string::npos; }
 }
 
 /* ---------- */
@@ -142,5 +145,19 @@ char* xjjc::gettype(T exp, int& status)
   return humantypename;
 }
 
+std::string xjjc::str_replaceall(std::string strs, std::string sub, std::string newsub)
+{
+  std::string result(strs);
+  std::string str(strs);
+  size_t pos = str.find(sub, 0);
+  size_t thispos = 0;
+  while(pos != std::string::npos)
+    {
+      result.replace(pos + thispos, sub.size(), newsub);
+      thispos += (newsub.size() - sub.size());
+      pos = str.find(sub, pos+1);
+    }
+  return result;
+}
 
 #endif
