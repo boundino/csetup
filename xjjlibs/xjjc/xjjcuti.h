@@ -129,7 +129,7 @@ std::string xjjc::number_remove_zero(T param_)
 
 void xjjc::progressbar(int index_, int total_, int morespace_/*=0*/)
 {
-  std::cout<<std::setiosflags(std::ios::left)<<"  [ \033[1;36m"<<std::setw(10+morespace_)<<index_<<"\033[0m"<<" / "<<std::setw(10+morespace_)<<total_<<" ] "<<"\033[1;36m"<<std::fixed<<std::setprecision(0)<<100.*index_/total_<<"%\033[0m"<<"\r"<<std::flush;
+  std::cout<<std::setiosflags(std::ios::left)<<"  [ \033[1;36m"<<std::setw(10+morespace_)<<index_<<"\033[0m"<<" / "<<std::setw(10+morespace_)<<total_<<" ] "<<"\033[1;36m"<<(int)(100.*index_/total_)<<"%\033[0m"<<"\r"<<std::flush;
 }
 
 void xjjc::progressbar_summary(int total_)
