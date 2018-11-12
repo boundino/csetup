@@ -165,7 +165,7 @@ void xjjroot::drawCMSleft(TString content/*=""*/, Float_t xpos/*=0*/, Float_t yp
 
 void xjjroot::drawCMSright(TString content/*=""*/, Float_t xpos/*=0*/, Float_t ypos/*=0*/)
 {
-  TLatex* texCol = new TLatex(0.96+xpos,0.92+ypos, content.Data());
+  TLatex* texCol = new TLatex(0.96+xpos,0.93+ypos, content.Data());
   texCol->SetNDC();
   texCol->SetTextAlign(32);
   texCol->SetTextSize(0.04);
