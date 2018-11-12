@@ -23,12 +23,12 @@ namespace xjjroot
   const int ncolor = sizeof(colorlist_light)/sizeof(colorlist_light[0]);
 
   void setgstyle(Int_t padtick=0);
-  template <class T> void sethempty(T* hempty, Float_t xoffset=0, Float_t yoffset=0);
+  template <class T> void sethempty(T* hempty, Float_t xoffset=0, Float_t yoffset=0, Float_t xsize=0.05, Float_t ysize=0.05);
   template <class T> void setthgr(T* hempty, Float_t xoffset=0, Float_t yoffset=0);
   template <class T> void setthgrstyle(T* h, Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1, Color_t fcolor=-1, Float_t falpha=-1, Style_t fstyle=-1);
   template <class T> void setlinestyle(T* h, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1);
   template <class T> void setmarkerstyle(T* h, Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1);
-  void drawCMSleft(TString content="#scale[1.25]{CMS} Preliminary", Float_t xpos=0, Float_t ypos=0);
+  void drawCMSleft(TString content="#scale[1.25]{CMS} #bf{#it{Preliminary}}", Float_t xpos=0, Float_t ypos=0);
   void drawCMSright(TString content="", Float_t xpos=0, Float_t ypos=0);
   void drawCMS(TString collision="", TString snn="5.02", Float_t xpos=0, Float_t ypos=0, Bool_t drawenergy=true);
   void settex(TLatex* tex, Float_t tsize=0.04, Short_t align=12, Style_t font=42);
@@ -67,14 +67,14 @@ void xjjroot::setgstyle(Int_t padtick/*=0*/)
 }
 
 template <class T>
-void xjjroot::sethempty(T* hempty, Float_t xoffset/*=0*/, Float_t yoffset/*=0*/)
+void xjjroot::sethempty(T* hempty, Float_t xoffset/*=0*/, Float_t yoffset/*=0*/, Float_t xsize/*=0.05*/, Float_t ysize/*=0.05*/)
 {
   hempty->GetXaxis()->CenterTitle();
   hempty->GetYaxis()->CenterTitle();
   hempty->GetXaxis()->SetTitleOffset(1.10+xoffset);
   hempty->GetYaxis()->SetTitleOffset(1.30+yoffset);
-  hempty->GetXaxis()->SetTitleSize(0.05);
-  hempty->GetYaxis()->SetTitleSize(0.05);
+  hempty->GetXaxis()->SetTitleSize(xsize);
+  hempty->GetYaxis()->SetTitleSize(ysize);
   hempty->GetXaxis()->SetTitleFont(42);
   hempty->GetYaxis()->SetTitleFont(42);
   hempty->GetXaxis()->SetLabelFont(42);
