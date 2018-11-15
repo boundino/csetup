@@ -42,6 +42,7 @@ namespace xjjc
 
   std::string str_replaceall(std::string strs, std::string sub, std::string newsub);
   bool str_contains(std::string str1, std::string str2) { return str1.find(str2)!=std::string::npos; }
+  std::vector<std::string> str_divide(std::string str, std::string div);
 }
 
 /* ---------- */
@@ -158,6 +159,22 @@ std::string xjjc::str_replaceall(std::string strs, std::string sub, std::string 
       pos = str.find(sub, pos+1);
     }
   return result;
+}
+
+std::vector<std::string> xjjc::str_divide(std::string str, std::string div)
+{
+  std::vector<std::string> token;
+  size_t lastpos = 0;
+  size_t pos = str.find(div, 0);
+  while(pos != std::string::npos) 
+    {
+      std::string thistoken = str.substr(lastpos, pos-lastpos);
+      token.push_back(thistoken);
+      lastpos = pos+1;
+      pos = str.find(div, pos+1);
+    }
+  if(lastpos != 0) { token.push_back(str.substr(lastpos, str.size()-lastpos)); }
+  return token;
 }
 
 #endif
