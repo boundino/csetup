@@ -20,6 +20,8 @@ namespace xjjc
   const std::string green("\033[0;32m");
   const std::string yellow("\033[0;33m");
 
+  std::vector<std::string> speciallist = {" ", "/", "(", ")", "^", "#", "%", "$"};
+
   template<size_t N, typename T> void initarray(T (*array_)[N], T initval_=0);
   template<size_t N, typename T> int findibin(const T (*array_)[N], T element_);
   template<typename T> int findibin(const std::vector<T> array_, T element_);
@@ -41,6 +43,7 @@ namespace xjjc
   template<class T1, class T2> bool sortbysecond_as(const std::pair<T1,T2> &a, const std::pair<T1,T2> &b) { return a.second < b.second; }
 
   std::string str_replaceall(std::string strs, std::string sub, std::string newsub);
+  std::string str_replaceallspecial(std::string strs);
   bool str_contains(std::string str1, std::string str2) { return str1.find(str2)!=std::string::npos; }
   std::vector<std::string> str_divide(std::string str, std::string div);
 }
@@ -160,6 +163,14 @@ std::string xjjc::str_replaceall(std::string strs, std::string sub, std::string 
     }
   return result;
 }
+
+std::string xjjc::str_replaceallspecial(std::string strs)
+{
+  std::string result(strs);
+  for(auto& isp : speciallist) { result = xjjc::str_replaceall(result, isp, "_"); }
+  return result;
+}
+
 
 std::vector<std::string> xjjc::str_divide(std::string str, std::string div)
 {
