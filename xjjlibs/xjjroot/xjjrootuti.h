@@ -59,11 +59,12 @@ void xjjroot::setgstyle(Int_t padtick/*=0*/)
   gStyle->SetPadTopMargin(xjjroot::margin_pad_top);
   gStyle->SetPadBottomMargin(xjjroot::margin_pad_bottom);
   gStyle->SetTitleX(.0f);
-  if(padtick)
+  if(padtick==1 || padtick==3)
     {
       gStyle->SetPadTickX(1);
       gStyle->SetPadTickY(1);
     }
+  if(padtick==2 || padtick==3) { gStyle->SetLineWidth(2); gStyle->SetFrameLineWidth(2);}
 }
 
 template <class T>
