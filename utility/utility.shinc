@@ -22,4 +22,10 @@ function float_to_string()
 }
 
 #
-
+function end_sub_name()
+{
+    [[ $# -ne 1 ]] && { echo -e "${ERRCOLOR}error:${NC} invalid argument number - end_subname()" ; return 1 ; }
+    result=${1##*/}
+    result=${result%%.*}
+    echo $result
+}
