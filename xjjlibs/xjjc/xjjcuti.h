@@ -188,4 +188,8 @@ std::vector<std::string> xjjc::str_divide(std::string str, std::string div)
   return token;
 }
 
+#ifndef __PRMYERR
+#define __PRMYERR(info) { std::cout<<"\e[42m("<<__FUNCTION__<<")\e[0m \e[31;1merror: \e[0m"<<#info<<std::endl; }
+#endif
+
 #endif
