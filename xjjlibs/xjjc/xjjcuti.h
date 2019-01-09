@@ -30,6 +30,7 @@ namespace xjjc
 
   template<typename T> std::string number_to_string(T param_);
   template<typename T> std::string number_remove_zero(T param_);
+  template<typename T> std::string number_range(T val1_, T val2_, std::string var, std::string opt="");
 
   void progressbar(int index_, int total_, int morespace_=0);
   void progressbar_summary(int total_);
@@ -128,6 +129,18 @@ std::string xjjc::number_remove_zero(T param_)
   if(found==std::string::npos) return str;
   while(*(str.end()-1)=='0') str.erase(str.end()-1);
   if(*(str.end()-1)=='.') str.erase(str.end()-1);
+  return str;
+}
+
+template<typename T>
+std::string xjjc::number_range(T val1_, T val2_, std::string var, std::string opt/*=""*/)
+{
+  std::string str = "";
+  if(val1_ == val2_) { return str; }
+  std::string sign = val1_<val2_?"<":">";
+  if(!(val1_<val2_ && opt=="infmin") && !(val1_>val2_ && opt=="infmax") ) { str += (number_remove_zero(val1_)+" "+sign+" "); }
+  str += var;
+  if(!(val1_<val2_ && opt=="infmax") && !(val1_>val2_ && opt=="infmin") ) { str += (" "+sign+" "+number_remove_zero(val2_)); }
   return str;
 }
 
