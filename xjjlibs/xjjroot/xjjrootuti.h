@@ -28,7 +28,7 @@ namespace xjjroot
   template <class T> void setthgrstyle(T* h, Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1, Color_t fcolor=-1, Float_t falpha=-1, Style_t fstyle=-1);
   template <class T> void setlinestyle(T* h, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1);
   template <class T> void setmarkerstyle(T* h, Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1);
-  void drawCMSleft(TString content="#scale[1.25]{CMS} #bf{#it{Preliminary}}", Float_t xpos=0, Float_t ypos=0);
+  void drawCMSleft(TString content="#scale[1.25]{#bf{CMS}} #it{Preliminary}", Float_t xpos=0, Float_t ypos=0);
   void drawCMSright(TString content="", Float_t xpos=0, Float_t ypos=0);
   void drawCMS(TString collision="", TString snn="5.02", Float_t xpos=0, Float_t ypos=0, Bool_t drawenergy=true);
   void settex(TLatex* tex, Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack);
@@ -143,7 +143,7 @@ void xjjroot::setmarkerstyle(T* h, Color_t mcolor/*=-1*/, Style_t mstyle/*=-1*/,
 
 void xjjroot::drawCMS(TString collision/*=""*/, TString snn/*="5.02"*/, Float_t xpos/*=0*/, Float_t ypos/*=0*/, Bool_t drawenergy/*=true*/)
 {
-  TLatex* texCms = new TLatex(0.18+xpos,0.93+ypos, "#scale[1.25]{CMS} Preliminary");
+  TLatex* texCms = new TLatex(0.18+xpos,0.93+ypos, "#scale[1.25]{#bf{CMS}} #it{Preliminary}");
   texCms->SetNDC();
   texCms->SetTextAlign(12);
   texCms->SetTextSize(0.04);
