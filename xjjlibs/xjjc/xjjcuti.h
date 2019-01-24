@@ -20,7 +20,7 @@ namespace xjjc
   const std::string green("\033[0;32m");
   const std::string yellow("\033[0;33m");
 
-  std::vector<std::string> speciallist = {" ", "/", "(", ")", "^", "#", "%", "$", ","};
+  std::vector<std::string> speciallist = {" ", "/", "(", ")", "^", "#", "%", "$", ",", "."};
 
   template<size_t N, typename T> void initarray(T (*array_)[N], T initval_=0);
   template<size_t N, typename T> int findibin(const T (*array_)[N], T element_);

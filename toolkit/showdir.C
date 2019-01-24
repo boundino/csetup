@@ -44,7 +44,7 @@ void xjjc::showdir::enterdir(TDirectory* source)
 
       // >> print
       lastll[fll] = TIter(nextkey).Next()==0;
-      for(auto lll = lastll.begin();lll<lastll.end()-1;lll++) { std::cout<<(*lll?" ":"\u2502")<<"   "; }
+      for(std::vector<bool>::iterator lll = lastll.begin();lll<lastll.end()-1;lll++) { std::cout<<(*lll?" ":"\u2502")<<"   "; }
       std::cout<<(lastll[fll]?"\u2514":"\u251C")<<"\u2500\u2500 \e[32m("<<classname<<")\e[0m\e[2m =>\e[0m \e[1m"<<keyname<<"\e[0m";
       if(cl->InheritsFrom(TTree::Class())) { std::cout<<" \e[33m("<<((TTree*)source->Get(keyname))->GetEntries()<<")\e[0m"; }
       std::cout<<std::endl;
@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
 {
   if(argc==2)
     { 
-      auto inf = TFile::Open(argv[1]);
+      TFile* inf = TFile::Open(argv[1]);
       xjjc::showdir dirs(inf); 
       return 0;
     }
