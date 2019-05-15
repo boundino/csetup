@@ -9,6 +9,7 @@
 #include <TLine.h>
 #include <TStyle.h>
 #include <TH1.h>
+#include <TGaxis.h>
 
 namespace xjjroot
 {
@@ -27,10 +28,11 @@ namespace xjjroot
   template <class T> void setthgr(T* hempty, Float_t xoffset=0, Float_t yoffset=0);
   template <class T> void setthgrstyle(T* h, Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1, Color_t fcolor=-1, Float_t falpha=-1, Style_t fstyle=-1);
   template <class T> void setlinestyle(T* h, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1);
+  template <class T> void settfstyle(T* h, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1, Color_t fcolor=-1, Float_t falpha=-1, Style_t fstyle=-1);
   template <class T> void setmarkerstyle(T* h, Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1);
   void drawCMSleft(TString content="#scale[1.25]{#bf{CMS}} #it{Preliminary}", Float_t xpos=0, Float_t ypos=0);
-  void drawCMSright(TString content="", Float_t xpos=0, Float_t ypos=0);
-  void drawCMS(TString collision="", TString snn="5.02", Float_t xpos=0, Float_t ypos=0, Bool_t drawenergy=true);
+  void drawCMSright(TString content="PbPb #sqrt{s_{NN}} = 5.02 TeV", Float_t xpos=0, Float_t ypos=0);
+  void drawCMS(TString collsyst="PbPb", TString snn="5.02");
   void settex(TLatex* tex, Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack);
   void drawtex(Double_t x, Double_t y, const char *text, Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack);
   void setleg(TLegend* leg, Float_t tsize=0.04);
@@ -38,6 +40,11 @@ namespace xjjroot
   void setline(TLine* l, Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=2);
   void drawline(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=2);
   void drawbox(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color_t fcolor=kGray, Float_t falpha=0.4, Style_t fstyle=1001, Color_t lcolor=0, Style_t lstyle=1, Width_t lwidth=0);
+
+  void drawaxis(Double_t xmin, Double_t ymin, Double_t xmax, Double_t ymax, 
+                Double_t wmin, Double_t wmax, 
+                Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=1,
+                Option_t *chopt="", Int_t ndiv=510, Double_t gridlength=0);
 
   void dividebinwid(TH1* h);
 
@@ -134,6 +141,18 @@ void xjjroot::setlinestyle(T* h, Color_t lcolor/*=-1*/, Style_t lstyle/*=-1*/, W
 }
 
 template <class T>
+void xjjroot::settfstyle(T* h, Color_t lcolor/*=-1*/, Style_t lstyle/*=-1*/, Width_t lwidth/*=-1*/, Color_t fcolor/*=-1*/, Float_t falpha/*=-1*/, Style_t fstyle/*=-1*/)
+{
+  h->SetNpx(1000);
+  if(lcolor>=0) h->SetLineColor(lcolor);
+  if(lstyle>=0) h->SetLineStyle(lstyle);
+  if(lwidth>=0) h->SetLineWidth(lwidth);
+  if(fcolor>=0) h->SetFillColor(fcolor);
+  if(falpha>=0) h->SetFillColorAlpha(fcolor, falpha);
+  if(fstyle>=0) h->SetFillStyle(fstyle);
+}
+
+template <class T>
 void xjjroot::setmarkerstyle(T* h, Color_t mcolor/*=-1*/, Style_t mstyle/*=-1*/, Size_t msize/*=-1*/)
 {
   if(mcolor>=0) h->SetMarkerColor(mcolor);
@@ -141,38 +160,27 @@ void xjjroot::setmarkerstyle(T* h, Color_t mcolor/*=-1*/, Style_t mstyle/*=-1*/,
   if(msize>=0)  h->SetMarkerSize(msize);
 }
 
-void xjjroot::drawCMS(TString collision/*=""*/, TString snn/*="5.02"*/, Float_t xpos/*=0*/, Float_t ypos/*=0*/, Bool_t drawenergy/*=true*/)
+void xjjroot::drawCMS(TString collsyst/*="PbPb"*/, TString snn/*="5.02"*/)
 {
-  TLatex* texCms = new TLatex(0.18+xpos,0.93+ypos, "#scale[1.25]{#bf{CMS}} #it{Preliminary}");
-  texCms->SetNDC();
-  texCms->SetTextAlign(12);
-  texCms->SetTextSize(0.04);
-  texCms->SetTextFont(42);
-  texCms->Draw();
-  if(!drawenergy) return;
-  TLatex* texCol = new TLatex(0.96+xpos,0.93+ypos, Form("%s #sqrt{s_{NN}} = %s TeV", collision.Data(), snn.Data()));
-  texCol->SetNDC();
-  texCol->SetTextAlign(32);
-  texCol->SetTextSize(0.04);
-  texCol->SetTextFont(42);
-  texCol->Draw();
+  drawCMSleft();
+  drawCMSright(collsyst+" #sqrt{s_{NN}} = "+snn+" TeV");
 }
 
 void xjjroot::drawCMSleft(TString content/*=""*/, Float_t xpos/*=0*/, Float_t ypos/*=0*/)
 {
-  TLatex* texCms = new TLatex(0.18+xpos,0.93+ypos, content.Data());
+  TLatex* texCms = new TLatex(gStyle->GetPadLeftMargin()+xpos,(1-gStyle->GetPadTopMargin())*1.02+ypos, content.Data());
   texCms->SetNDC();
-  texCms->SetTextAlign(12);
+  texCms->SetTextAlign(11);
   texCms->SetTextSize(0.04);
   texCms->SetTextFont(42);
   texCms->Draw();
 }
 
-void xjjroot::drawCMSright(TString content/*=""*/, Float_t xpos/*=0*/, Float_t ypos/*=0*/)
+void xjjroot::drawCMSright(TString content/*="PbPb #sqrt{s_{NN}} = 5.02 TeV"*/, Float_t xpos/*=0*/, Float_t ypos/*=0*/)
 {
-  TLatex* texCol = new TLatex(0.96+xpos,0.93+ypos, content.Data());
+  TLatex* texCol = new TLatex((1-gStyle->GetPadRightMargin())+xpos,(1-gStyle->GetPadTopMargin())*1.02+ypos, content.Data());
   texCol->SetNDC();
-  texCol->SetTextAlign(32);
+  texCol->SetTextAlign(31);
   texCol->SetTextSize(0.04);
   texCol->SetTextFont(42);
   texCol->Draw();
@@ -232,6 +240,21 @@ void xjjroot::drawbox(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color_
   b->SetLineStyle(lstyle);
   b->SetLineWidth(lwidth);
   b->Draw();
+}
+
+void xjjroot::drawaxis(Double_t xmin, Double_t ymin, Double_t xmax, Double_t ymax, 
+                       Double_t wmin, Double_t wmax, 
+                       Color_t lcolor/*=kBlack*/, Style_t lstyle/*=1*/, Width_t lwidth/*=1*/,
+                       Option_t *chopt/*=""*/, Int_t ndiv/*=510*/, Double_t gridlength/*=0*/)
+{
+  TGaxis* g = new TGaxis(xmin, ymin, xmax, ymax,
+                         wmin, wmax, ndiv, chopt, gridlength);
+  g->SetLabelColor(lcolor);
+  g->SetTitleColor(lcolor);
+  g->SetLineColor(lcolor);
+  g->SetLineStyle(lstyle);
+  g->SetLineWidth(lwidth);
+  g->Draw();
 }
 
 /* ----- */

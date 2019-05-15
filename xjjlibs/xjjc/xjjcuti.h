@@ -30,7 +30,7 @@ namespace xjjc
 
   template<typename T> std::string number_to_string(T param_);
   template<typename T> std::string number_remove_zero(T param_);
-  template<typename T1, typename T2> std::string number_range(T1 val1_, T2 val2_, std::string var, std::string opt="");
+  template<typename T> std::string number_range(T val1_, T val2_, std::string var, std::string opt="");
 
   void progressbar(int index_, int total_, int morespace_=0);
   void progressbar_summary(int total_);
@@ -132,15 +132,17 @@ std::string xjjc::number_remove_zero(T param_)
   return str;
 }
 
-template<typename T1, typename T2>
-std::string xjjc::number_range(T1 val1_, T2 val2_, std::string var, std::string opt/*=""*/)
+template<typename T>
+std::string xjjc::number_range(T val1_, T val2_, std::string var, std::string opt/*=""*/)
 {
   std::string str = "";
   if(val1_ == val2_) { return str; }
+  if(val1_<val2_ && opt=="fmax") { T valtmp_ = val1_; val1_ = val2_; val2_ = valtmp_; }
+  if(val1_>val2_ && opt=="fmin") { T valtmp_ = val1_; val1_ = val2_; val2_ = valtmp_; }
   std::string sign = val1_<val2_?"<":">";
-  if(!(val1_<val2_ && opt=="infmin") && !(val1_>val2_ && opt=="infmax") ) { str += (number_remove_zero(val1_)+" "+sign+" "); }
+  if(opt!="fmax" && opt!="fmin" ) { str += (number_remove_zero(val1_)+" "+sign+" "); }
   str += var;
-  if(!(val1_<val2_ && opt=="infmax") && !(val1_>val2_ && opt=="infmin") ) { str += (" "+sign+" "+number_remove_zero(val2_)); }
+  str += (" "+sign+" "+number_remove_zero(val2_)); 
   return str;
 }
 
