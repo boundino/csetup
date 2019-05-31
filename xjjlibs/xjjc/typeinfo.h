@@ -4,7 +4,7 @@
 #include <string>
 #include <map>
 
-#include <RtypesCore.h>
+// #include <RtypesCore.h>
 
 namespace xjjc
 {
