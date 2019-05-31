@@ -20,7 +20,7 @@ namespace xjjc
   const std::string green("\033[0;32m");
   const std::string yellow("\033[0;33m");
 
-  std::vector<std::string> speciallist = {" ", "/", "(", ")", "^", "#", "%", "$", ",", "."};
+  std::vector<std::string> speciallist = {" ", "/", "(", ")", "^", "#", "%", "$", ",", ".", "*"};
 
   template<size_t N, typename T> void initarray(T (*array_)[N], T initval_=0);
   template<size_t N, typename T> int findibin(const T (*array_)[N], T element_);
@@ -46,6 +46,8 @@ namespace xjjc
   std::string str_replaceall(std::string strs, std::string sub, std::string newsub);
   std::string str_replaceallspecial(std::string strs);
   bool str_contains(std::string str1, std::string str2) { return str1.find(str2)!=std::string::npos; }
+  bool str_isnumber(std::string strs) { return (std::regex_match(strs, std::regex("-?[0-9]+([.][0-9]*)?")) || std::regex_match(strs, std::regex("-?[0-9]*[.][0-9]+"))); }
+  bool str_isinteger(std::string strs) { return std::regex_match(strs, std::regex("-?[0-9]+")); }
   std::vector<std::string> str_divide(std::string str, std::string div);
 }
 
