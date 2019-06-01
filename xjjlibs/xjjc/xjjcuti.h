@@ -12,6 +12,7 @@
 #include <vector>
 #include <cxxabi.h>
 #include <algorithm>
+#include <regex>
 
 namespace xjjc
 {
