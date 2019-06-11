@@ -10,6 +10,7 @@
 #include <TStyle.h>
 #include <TH1.h>
 #include <TGaxis.h>
+#include <TMath.h>
 
 namespace xjjroot
 {
@@ -47,6 +48,8 @@ namespace xjjroot
                 Option_t *chopt="", Int_t ndiv=510, Double_t gridlength=0);
 
   void dividebinwid(TH1* h);
+
+  TH1* histMinusCorr(TH1* ha, TH1* hb, std::string name);
 
   void setbranchaddress(TTree* nt, const char* bname, void* addr);
   template <class T> T* copyobject(const T* obj, TString objname);
@@ -282,6 +285,18 @@ void xjjroot::dividebinwid(TH1* h)
       h->SetBinContent(i+1,val);
       h->SetBinError(i+1,valErr);
     }
+}
+
+TH1* xjjroot::histMinusCorr(TH1* ha, TH1* hb, std::string name)
+{
+  TH1* hr = (TH1*)ha->Clone(name.c_str());
+  for(int i=0;i<ha->GetNbinsX();i++)
+    {
+      hr->SetBinContent(i+1, ha->GetBinContent(i+1)-hb->GetBinContent(i+1));
+      hr->SetBinError(i+1, TMath::Sqrt(TMath::Abs(ha->GetBinError(i+1)*ha->GetBinError(i+1) -
+                                                  hb->GetBinError(i+1)*hb->GetBinError(i+1))));
+    }
+  return hr;
 }
 
 #endif
