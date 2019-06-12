@@ -11,6 +11,9 @@
 #include <TH1.h>
 #include <TGaxis.h>
 #include <TMath.h>
+#include <TEfficiency.h>
+#include <TGraphErrors.h>
+#include <TGraphAsymmErrors.h>
 
 namespace xjjroot
 {
@@ -41,15 +44,15 @@ namespace xjjroot
   void setline(TLine* l, Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=2);
   void drawline(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=2);
   void drawbox(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color_t fcolor=kGray, Float_t falpha=0.4, Style_t fstyle=1001, Color_t lcolor=0, Style_t lstyle=1, Width_t lwidth=0);
-
   void drawaxis(Double_t xmin, Double_t ymin, Double_t xmax, Double_t ymax, 
                 Double_t wmin, Double_t wmax, 
                 Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=1,
                 Option_t *chopt="", Int_t ndiv=510, Double_t gridlength=0);
 
   void dividebinwid(TH1* h);
-
   TH1* histMinusCorr(TH1* ha, TH1* hb, std::string name);
+  TGraphErrors* shifthistcenter(TH1* hh, std::string name);
+  TGraphAsymmErrors* shifthistcenter(TEfficiency* geff, std::string name);
 
   void setbranchaddress(TTree* nt, const char* bname, void* addr);
   template <class T> T* copyobject(const T* obj, TString objname);
@@ -299,4 +302,36 @@ TH1* xjjroot::histMinusCorr(TH1* ha, TH1* hb, std::string name)
   return hr;
 }
 
+TGraphErrors* xjjroot::shifthistcenter(TH1* hh, std::string name)
+{
+  int n = hh->GetNbinsX();
+  std::vector<double> xx, yy, xxerr, yyerr;
+  for(int i=0; i<n; i++)
+    {
+      yy.push_back(hh->GetBinContent(i+1));
+      yyerr.push_back(hh->GetBinError(i+1));
+      xxerr.push_back(0);
+      xx.push_back(hh->GetBinCenter(i+1) - hh->GetBinWidth(i+1)/2.);
+    }
+  TGraphErrors* gr = new TGraphErrors(n, xx.data(), yy.data(), xxerr.data(), yyerr.data()); gr->SetName(name.c_str());
+  return gr;
+}
+
+TGraphAsymmErrors* xjjroot::shifthistcenter(TEfficiency* geff, std::string name)
+{
+  TH1* hclone = geff->GetCopyTotalHisto();
+  int n = hclone->GetNbinsX();
+  std::vector<double> xx, yy, xxel, xxeh, yyel, yyeh;
+  for(int i=0; i<n; i++)
+    {
+      xx.push_back(hclone->GetBinCenter(i+1) - hclone->GetBinWidth(i+1)/2.);
+      xxel.push_back(0);
+      xxeh.push_back(0);
+      yy.push_back(geff->GetEfficiency(i+1));
+      yyel.push_back(geff->GetEfficiencyErrorLow(i+1));
+      yyeh.push_back(geff->GetEfficiencyErrorUp(i+1));
+    }
+  TGraphAsymmErrors* gr = new TGraphAsymmErrors(n, xx.data(), yy.data(), xxel.data(), xxeh.data(), yyel.data(), yyeh.data()); gr->SetName(name.c_str());
+  return gr;
+}
 #endif
