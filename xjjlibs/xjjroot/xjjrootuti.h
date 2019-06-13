@@ -36,9 +36,10 @@ namespace xjjroot
   template <class T> void setmarkerstyle(T* h, Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1);
   void drawCMSleft(TString content="#scale[1.25]{#bf{CMS}} #it{Preliminary}", Float_t xpos=0, Float_t ypos=0);
   void drawCMSright(TString content="PbPb #sqrt{s_{NN}} = 5.02 TeV", Float_t xpos=0, Float_t ypos=0);
-  void drawCMS(TString collsyst="PbPb", TString snn="5.02");
+  void drawCMS(TString contentleft="#scale[1.25]{#bf{CMS}} #it{Preliminary}", TString contentright="PbPb #sqrt{s_{NN}} = 5.02 TeV");
   void settex(TLatex* tex, Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack);
   void drawtex(Double_t x, Double_t y, const char *text, Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack);
+  void drawtexgroup(Double_t x, Double_t y, std::vector<std::string> text, int ncol=1, Double_t colwid=0.2, Float_t tsize=0.04, Short_t align=12, Style_t font=42, std::vector<Color_t> color=std::vector<Color_t>());
   void setleg(TLegend* leg, Float_t tsize=0.04);
   void setlegndraw(TLegend* leg, Float_t tsize=0.04);
   void setline(TLine* l, Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=2);
@@ -166,14 +167,15 @@ void xjjroot::setmarkerstyle(T* h, Color_t mcolor/*=-1*/, Style_t mstyle/*=-1*/,
   if(msize>=0)  h->SetMarkerSize(msize);
 }
 
-void xjjroot::drawCMS(TString collsyst/*="PbPb"*/, TString snn/*="5.02"*/)
+void xjjroot::drawCMS(TString contentleft/*=""*/, TString contentright/*=""*/)
 {
-  drawCMSleft();
-  drawCMSright(collsyst+" #sqrt{s_{NN}} = "+snn+" TeV");
+  drawCMSleft(contentleft);
+  drawCMSright(contentright);
 }
 
-void xjjroot::drawCMSleft(TString content/*=""*/, Float_t xpos/*=0*/, Float_t ypos/*=0*/)
+void xjjroot::drawCMSleft(TString content/*="#scale[1.25]{#bf{CMS}} #it{Preliminary}"*/, Float_t xpos/*=0*/, Float_t ypos/*=0*/)
 {
+  if(content=="Simulation") content = "#scale[1.25]{#bf{CMS}} #it{Simulation}";
   TLatex* texCms = new TLatex(gStyle->GetPadLeftMargin()+xpos,(1-gStyle->GetPadTopMargin())*1.02+ypos, content.Data());
   texCms->SetNDC();
   texCms->SetTextAlign(11);
@@ -206,6 +208,23 @@ void xjjroot::drawtex(Double_t x, Double_t y, const char* text, Float_t tsize/*=
   TLatex* tex = new TLatex(x, y, text);
   xjjroot::settex(tex, tsize, align, font, color);
   tex->Draw();
+}
+
+void xjjroot::drawtexgroup(Double_t x, Double_t y, std::vector<std::string> text, int ncol/*=1*/, Double_t colwid/*=0.2*/, Float_t tsize/*=0.04*/, Short_t align/*=12*/, Style_t font/*=42*/, std::vector<Color_t> color/*=std::vector<Color_t>()*/)
+{
+  double lspace = tsize+0.005;
+  bool left = true, top = true;
+  if(align == 31 || align == 33) left = false;
+  if(align == 11 || align == 31) top = false;
+  for(int t=0; t<text.size(); t++)
+    {
+      double xx = x + colwid*(t%ncol);
+      if(!left) xx = x - colwid*(t%ncol);
+      double yy = y - lspace*(t/ncol);
+      if(!top) yy = y + lspace*(t/ncol);
+      Color_t cc = t<color.size()?color[t]:kBlack;
+      drawtex(xx, yy, text[t].c_str(), tsize, align, font, cc);
+    }
 }
 
 void xjjroot::setleg(TLegend* leg, Float_t tsize/*=0.04*/)
