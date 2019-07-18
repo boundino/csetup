@@ -50,6 +50,8 @@ namespace xjjc
   bool str_isnumber(std::string strs) { return (std::regex_match(strs, std::regex("-?[0-9]+([.][0-9]*)?")) || std::regex_match(strs, std::regex("-?[0-9]*[.][0-9]+"))); }
   bool str_isinteger(std::string strs) { return std::regex_match(strs, std::regex("-?[0-9]+")); }
   std::vector<std::string> str_divide(std::string str, std::string div);
+
+  std::string currenttime();
 }
 
 /* ---------- */
@@ -203,7 +205,18 @@ std::vector<std::string> xjjc::str_divide(std::string str, std::string div)
       pos = str.find(div, pos+1);
     }
   if(lastpos != 0) { token.push_back(str.substr(lastpos, str.size()-lastpos)); }
+  if(token.empty()) token.push_back(str);
   return token;
+}
+
+std::string xjjc::currenttime()
+{
+  std::time_t t = std::time(0);   // get time now
+  std::tm* now = std::localtime(&t);
+  char chartime[15]; // yyyymmdd-hhmmss
+  sprintf(chartime, "%d%s%d%d-%d%d%d", now->tm_year+1900, (now->tm_mon>=9?"":"0"), now->tm_mon+1, now->tm_mday,
+          now->tm_hour, now->tm_min, now->tm_sec);
+  return std::string(chartime);
 }
 
 #ifndef __PRMYERR

@@ -31,7 +31,7 @@ namespace xjjroot
   template <class T> void sethempty(T* hempty, Float_t xoffset=0, Float_t yoffset=0, Float_t xsize=0.05, Float_t ysize=0.05);
   template <class T> void setthgr(T* hempty, Float_t xoffset=0, Float_t yoffset=0);
   template <class T> void setthgrstyle(T* h, Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1, Color_t fcolor=-1, Float_t falpha=-1, Style_t fstyle=-1);
-  template <class T> void setlinestyle(T* h, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1);
+  template <class T> void setlinestyle(T* h, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1, Float_t lalpha=-1);
   template <class T> void settfstyle(T* h, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1, Color_t fcolor=-1, Float_t falpha=-1, Style_t fstyle=-1);
   template <class T> void setmarkerstyle(T* h, Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1);
   void drawCMSleft(TString content="#scale[1.25]{#bf{CMS}} #it{Preliminary}", Float_t xpos=0, Float_t ypos=0);
@@ -42,8 +42,7 @@ namespace xjjroot
   void drawtexgroup(Double_t x, Double_t y, std::vector<std::string> text, int ncol=1, Double_t colwid=0.2, Float_t tsize=0.04, Short_t align=12, Style_t font=42, std::vector<Color_t> color=std::vector<Color_t>());
   void setleg(TLegend* leg, Float_t tsize=0.04);
   void setlegndraw(TLegend* leg, Float_t tsize=0.04);
-  void setline(TLine* l, Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=2);
-  void drawline(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=2);
+  void drawline(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=2, Float_t lalpha=1);
   void drawbox(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color_t fcolor=kGray, Float_t falpha=0.4, Style_t fstyle=1001, Color_t lcolor=0, Style_t lstyle=1, Width_t lwidth=0);
   void drawaxis(Double_t xmin, Double_t ymin, Double_t xmax, Double_t ymax, 
                 Double_t wmin, Double_t wmax, 
@@ -52,8 +51,8 @@ namespace xjjroot
 
   void dividebinwid(TH1* h);
   TH1* histMinusCorr(TH1* ha, TH1* hb, std::string name);
-  TGraphErrors* shifthistcenter(TH1* hh, std::string name);
-  TGraphAsymmErrors* shifthistcenter(TEfficiency* geff, std::string name);
+  TGraphErrors* shifthistcenter(TH1* hh, std::string name, int option=-1);
+  TGraphAsymmErrors* shifthistcenter(TEfficiency* geff, std::string name, int option=-1);
 
   void setbranchaddress(TTree* nt, const char* bname, void* addr);
   template <class T> T* copyobject(const T* obj, TString objname);
@@ -140,9 +139,10 @@ void xjjroot::setthgrstyle(T* h, Color_t mcolor/*=-1*/, Style_t mstyle/*=-1*/, S
 }
 
 template <class T>
-void xjjroot::setlinestyle(T* h, Color_t lcolor/*=-1*/, Style_t lstyle/*=-1*/, Width_t lwidth/*=-1*/)
+void xjjroot::setlinestyle(T* h, Color_t lcolor/*=-1*/, Style_t lstyle/*=-1*/, Width_t lwidth/*=-1*/, Float_t lalpha/*=-1*/)
 {
   if(lcolor>=0) h->SetLineColor(lcolor);
+  if(lalpha>=0) h->SetLineColorAlpha(lcolor, lalpha);
   if(lstyle>=0) h->SetLineStyle(lstyle);
   if(lwidth>=0) h->SetLineWidth(lwidth);
 }
@@ -167,7 +167,7 @@ void xjjroot::setmarkerstyle(T* h, Color_t mcolor/*=-1*/, Style_t mstyle/*=-1*/,
   if(msize>=0)  h->SetMarkerSize(msize);
 }
 
-void xjjroot::drawCMS(TString contentleft/*=""*/, TString contentright/*=""*/)
+void xjjroot::drawCMS(TString contentleft/*="#scale[1.25]{#bf{CMS}} #it{Preliminary}"*/, TString contentright/*="PbPb #sqrt{s_{NN}} = 5.02 TeV"*/)
 {
   drawCMSleft(contentleft);
   drawCMSright(contentright);
@@ -175,6 +175,7 @@ void xjjroot::drawCMS(TString contentleft/*=""*/, TString contentright/*=""*/)
 
 void xjjroot::drawCMSleft(TString content/*="#scale[1.25]{#bf{CMS}} #it{Preliminary}"*/, Float_t xpos/*=0*/, Float_t ypos/*=0*/)
 {
+  if(content=="" || content=="Preliminary") content = "#scale[1.25]{#bf{CMS}} #it{Preliminary}";
   if(content=="Simulation") content = "#scale[1.25]{#bf{CMS}} #it{Simulation}";
   TLatex* texCms = new TLatex(gStyle->GetPadLeftMargin()+xpos,(1-gStyle->GetPadTopMargin())*1.02+ypos, content.Data());
   texCms->SetNDC();
@@ -241,17 +242,10 @@ void xjjroot::setlegndraw(TLegend* leg, Float_t tsize/*=0.04*/)
   leg->Draw();
 }
 
-void xjjroot::setline(TLine* l, Color_t lcolor/*=kBlack*/, Style_t lstyle/*=1*/, Width_t lwidth/*=2*/)
-{
-  l->SetLineColor(lcolor);
-  l->SetLineStyle(lstyle);
-  l->SetLineWidth(lwidth);
-}
-
-void xjjroot::drawline(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color_t lcolor/*=kBlack*/, Style_t lstyle/*=1*/, Width_t lwidth/*=2*/)
+void xjjroot::drawline(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color_t lcolor/*=kBlack*/, Style_t lstyle/*=1*/, Width_t lwidth/*=2*/, Float_t lalpha/*=1*/)
 {
   TLine* l = new TLine(x1, y1, x2, y2);
-  xjjroot::setline(l, lcolor, lstyle, lwidth);
+  xjjroot::setlinestyle(l, lcolor, lstyle, lwidth, lalpha);
   l->Draw();
 }
 
@@ -321,7 +315,7 @@ TH1* xjjroot::histMinusCorr(TH1* ha, TH1* hb, std::string name)
   return hr;
 }
 
-TGraphErrors* xjjroot::shifthistcenter(TH1* hh, std::string name)
+TGraphErrors* xjjroot::shifthistcenter(TH1* hh, std::string name, int option)
 {
   int n = hh->GetNbinsX();
   std::vector<double> xx, yy, xxerr, yyerr;
@@ -329,23 +323,28 @@ TGraphErrors* xjjroot::shifthistcenter(TH1* hh, std::string name)
     {
       yy.push_back(hh->GetBinContent(i+1));
       yyerr.push_back(hh->GetBinError(i+1));
-      xxerr.push_back(0);
-      xx.push_back(hh->GetBinCenter(i+1) - hh->GetBinWidth(i+1)/2.);
+      if(option == 0) xxerr.push_back(hh->GetBinWidth(i+1)/2.);
+      else xxerr.push_back(0);
+      if(option < 0) xx.push_back(hh->GetBinCenter(i+1) - hh->GetBinWidth(i+1)/2.);
+      else if(option > 0) xx.push_back(hh->GetBinCenter(i+1) + hh->GetBinWidth(i+1)/2.);
+      else xx.push_back(hh->GetBinCenter(i+1));
     }
   TGraphErrors* gr = new TGraphErrors(n, xx.data(), yy.data(), xxerr.data(), yyerr.data()); gr->SetName(name.c_str());
   return gr;
 }
 
-TGraphAsymmErrors* xjjroot::shifthistcenter(TEfficiency* geff, std::string name)
+TGraphAsymmErrors* xjjroot::shifthistcenter(TEfficiency* geff, std::string name, int option)
 {
   TH1* hclone = geff->GetCopyTotalHisto();
   int n = hclone->GetNbinsX();
   std::vector<double> xx, yy, xxel, xxeh, yyel, yyeh;
   for(int i=0; i<n; i++)
     {
-      xx.push_back(hclone->GetBinCenter(i+1) - hclone->GetBinWidth(i+1)/2.);
-      xxel.push_back(0);
-      xxeh.push_back(0);
+      if(option < 0) xx.push_back(hclone->GetBinCenter(i+1) - hclone->GetBinWidth(i+1)/2.);
+      else if(option > 0) xx.push_back(hclone->GetBinCenter(i+1) + hclone->GetBinWidth(i+1)/2.);
+      else xx.push_back(hclone->GetBinCenter(i+1));
+      if(option == 0) { xxel.push_back(hclone->GetBinWidth(i+1)/2.); xxeh.push_back(hclone->GetBinWidth(i+1)/2.); }
+      else { xxel.push_back(0); xxeh.push_back(0); }
       yy.push_back(geff->GetEfficiency(i+1));
       yyel.push_back(geff->GetEfficiencyErrorLow(i+1));
       yyeh.push_back(geff->GetEfficiencyErrorUp(i+1));
