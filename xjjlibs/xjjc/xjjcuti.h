@@ -13,6 +13,7 @@
 #include <cxxabi.h>
 #include <algorithm>
 #include <regex>
+#include <ctime>
 
 namespace xjjc
 {
@@ -153,7 +154,10 @@ std::string xjjc::number_range(T val1_, T val2_, std::string var, std::string op
 
 void xjjc::progressbar(int index_, int total_, int morespace_/*=0*/)
 {
-  std::cout<<std::setiosflags(std::ios::left)<<"  [ \033[1;36m"<<std::setw(10+morespace_)<<index_<<"\033[0m"<<" / "<<std::setw(10+morespace_)<<total_<<" ] "<<"\033[1;36m"<<(int)(100.*index_/total_)<<"%\033[0m"<<"\r"<<std::flush;
+  if(total_ > 0)
+    std::cout<<std::setiosflags(std::ios::left)<<"  [ \033[1;36m"<<std::setw(10+morespace_)<<index_<<"\033[0m"<<" / "<<std::setw(10+morespace_)<<total_<<" ] "<<"\033[1;36m"<<(int)(100.*index_/total_)<<"%\033[0m"<<"\r"<<std::flush;
+  else
+    std::cout<<std::setiosflags(std::ios::left)<<"  [ \033[1;36m"<<std::setw(10+morespace_)<<index_<<"\033[0m ]"<<"\r"<<std::flush;
 }
 
 void xjjc::progressbar_summary(int total_)
@@ -190,7 +194,6 @@ std::string xjjc::str_replaceallspecial(std::string strs)
   for(auto& isp : speciallist) { result = xjjc::str_replaceall(result, isp, "_"); }
   return result;
 }
-
 
 std::vector<std::string> xjjc::str_divide(std::string str, std::string div)
 {

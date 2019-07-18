@@ -1,3 +1,8 @@
+#ifndef _XJJC_TYPEINFO_H_
+#define _XJJC_TYPEINFO_H_
+
+/* typeinfo.h */
+
 #include <iostream>
 #include <iomanip>
 #include <cxxabi.h>
@@ -78,3 +83,5 @@ void xjjc::typeinfo<T>::printtitle()
             << std::setw(5) << "ROOT"
             << "|" <<std::endl; 
 }
+
+#endif

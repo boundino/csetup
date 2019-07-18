@@ -1,3 +1,8 @@
+#ifndef _XJJC_SHOWDIR_H_
+#define _XJJC_SHOWDIR_H_
+
+/* showdir.h */
+
 #include <TTree.h>
 #include <TKey.h>
 #include <TDirectory.h>
@@ -59,3 +64,5 @@ void xjjc::showdir::enterdir(TDirectory* source)
     }
   lastll.pop_back(); fll = lastll.size()-1;
 }
+
+#endif
