@@ -15,6 +15,8 @@
 #include <TGraphErrors.h>
 #include <TGraphAsymmErrors.h>
 
+#include <vector>
+
 namespace xjjroot
 {
   const float margin_pad_left = 0.18;
@@ -22,9 +24,9 @@ namespace xjjroot
   const float margin_pad_bottom = 0.145;
   const float margin_pad_top = 0.1;
 
-  const Color_t colorlist_light[]  = {kGreen-8, kOrange-4, kRed-9, kAzure-9, kMagenta-8, kCyan-10, kYellow-10, kBlue-8, kPink+1, kViolet-9};
-  const Color_t colorlist_middle[] = {kGreen+2, kOrange-3, kRed-3, kAzure-3, kMagenta-5, kCyan-6,  kYellow+2,  kBlue-5, kPink+2, kViolet+7};
-  const Color_t colorlist_dark[]   = {kGreen+3, kOrange+5, kRed+2, kAzure-6, kMagenta-1, kCyan+3,  kYellow+3,  kBlue-1, kPink+3, kViolet+4};
+  std::vector<Color_t> colorlist_light  = {kGreen-8, kOrange-4, kRed-9, kAzure-9, kMagenta-8, kCyan-10, kYellow-10, kBlue-8, kPink+1, kViolet-9};
+  std::vector<Color_t> colorlist_middle = {kGreen+2, kOrange-3, kRed-3, kAzure-3, kMagenta-5, kCyan-2,  kYellow+2,  kBlue-5, kPink+2, kViolet+7};
+  std::vector<Color_t> colorlist_dark   = {kGreen+3, kOrange+5, kRed+2, kAzure-6, kMagenta-1, kCyan+3,  kYellow+3,  kBlue-1, kPink+3, kViolet+4};
   const int ncolor = sizeof(colorlist_light)/sizeof(colorlist_light[0]);
 
   void setgstyle(Int_t padtick=0, Width_t lwidth=2);
@@ -39,7 +41,7 @@ namespace xjjroot
   void drawCMS(TString contentleft="#scale[1.25]{#bf{CMS}} #it{Preliminary}", TString contentright="PbPb #sqrt{s_{NN}} = 5.02 TeV");
   void settex(TLatex* tex, Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack);
   void drawtex(Double_t x, Double_t y, const char *text, Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack);
-  void drawtexgroup(Double_t x, Double_t y, std::vector<std::string> text, int ncol=1, Double_t colwid=0.2, Float_t tsize=0.04, Short_t align=12, Style_t font=42, std::vector<Color_t> color=std::vector<Color_t>());
+  void drawtexgroup(Double_t x, Double_t y, std::vector<std::string> text, int ncol=1, Double_t colwid=0.2, Float_t tsize=0.04, Short_t align=12, Style_t font=42, std::vector<Color_t> color=colorlist_middle);
   void setleg(TLegend* leg, Float_t tsize=0.04);
   void setlegndraw(TLegend* leg, Float_t tsize=0.04);
   void drawline(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=2, Float_t lalpha=1);
