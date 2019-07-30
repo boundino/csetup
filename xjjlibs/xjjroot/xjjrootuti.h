@@ -24,10 +24,10 @@ namespace xjjroot
   const float margin_pad_bottom = 0.145;
   const float margin_pad_top = 0.1;
 
-  std::vector<Color_t> colorlist_light  = {kGreen-8, kOrange-4, kRed-9, kAzure-9, kMagenta-8, kCyan-10, kYellow-10, kBlue-8, kPink+1, kViolet-9};
-  std::vector<Color_t> colorlist_middle = {kGreen+2, kOrange-3, kRed-3, kAzure-3, kMagenta-5, kCyan-2,  kYellow+2,  kBlue-5, kPink+2, kViolet+7};
-  std::vector<Color_t> colorlist_dark   = {kGreen+3, kOrange+5, kRed+2, kAzure-6, kMagenta-1, kCyan+3,  kYellow+3,  kBlue-1, kPink+3, kViolet+4};
-  const int ncolor = sizeof(colorlist_light)/sizeof(colorlist_light[0]);
+  std::vector<TString> colorlist_name   = {"kGreen", "kOrange", "kRed", "kAzure", "kMagenta", "kCyan", "kYellow", "kBlue", "kPink", "kViolet"};
+  std::vector<Color_t> colorlist_light  = {kGreen-8, kOrange-4, kRed-9, kAzure-9, kMagenta-8, kCyan-8, kYellow-6, kBlue-8, kPink+1, kViolet-9};
+  std::vector<Color_t> colorlist_middle = {kGreen+2, kOrange-3, kRed-3, kAzure-3, kMagenta-5, kCyan-2, kYellow+2, kBlue-5, kPink+2, kViolet+7};
+  std::vector<Color_t> colorlist_dark   = {kGreen+3, kOrange+5, kRed+2, kAzure-6, kMagenta-1, kCyan+3, kYellow+3, kBlue-1, kPink+3, kViolet+4};
 
   void setgstyle(Int_t padtick=0, Width_t lwidth=2);
   template <class T> void sethempty(T* hempty, Float_t xoffset=0, Float_t yoffset=0, Float_t xsize=0.05, Float_t ysize=0.05);
@@ -358,41 +358,44 @@ TGraphAsymmErrors* xjjroot::shifthistcenter(TEfficiency* geff, std::string name,
 namespace xjjroot
 {
   std::map<std::string, int> mycolor_middle = {
-    std::pair<std::string, int>("green", TColor::GetColor("#6CA892")),
+    std::pair<std::string, int>("greenblue", TColor::GetColor("#6CA892")),
     std::pair<std::string, int>("orange", TColor::GetColor("#C67D4B")),
     std::pair<std::string, int>("red", TColor::GetColor("#BA6E6E")),
     std::pair<std::string, int>("azure", TColor::GetColor("#4B6D97")),
     std::pair<std::string, int>("magenta", TColor::GetColor("#AA7799")),
+    std::pair<std::string, int>("green", TColor::GetColor("#839169")),
     std::pair<std::string, int>("cyan", TColor::GetColor("#44929b")),
-    std::pair<std::string, int>("yellow", TColor::GetColor("#eaad31")),
+    std::pair<std::string, int>("yellow", TColor::GetColor("#EAAD31")),
     std::pair<std::string, int>("blue", TColor::GetColor("#4C599C")),
-    std::pair<std::string, int>("pink", TColor::GetColor("#AB5F71")),
+    std::pair<std::string, int>("pink", TColor::GetColor("#C07A97")),
     std::pair<std::string, int>("violet", TColor::GetColor("#8473B3")),
   };
-  // std::map<std::string, int> mycolor_light = {
-  //   std::pair<std::string, int>("green", TColor::GetColor("")),
-  //   std::pair<std::string, int>("orange", TColor::GetColor("")),
-  //   std::pair<std::string, int>("red", TColor::GetColor("")),
-  //   std::pair<std::string, int>("azure", TColor::GetColor("")),
-  //   std::pair<std::string, int>("magenta", TColor::GetColor("#CCAABB")),
-  //   std::pair<std::string, int>("cyan", TColor::GetColor("")),
-  //   std::pair<std::string, int>("yellow", TColor::GetColor("")),
-  //   std::pair<std::string, int>("blue", TColor::GetColor("")),
-  //   std::pair<std::string, int>("pink", TColor::GetColor("")),
-  //   std::pair<std::string, int>("violet", TColor::GetColor("")),
-  // };
-  // std::map<std::string, int> mycolor_dark = {
-  //   std::pair<std::string, int>("green", TColor::GetColor("")),
-  //   std::pair<std::string, int>("orange", TColor::GetColor("")),
-  //   std::pair<std::string, int>("red", TColor::GetColor("")),
-  //   std::pair<std::string, int>("azure", TColor::GetColor("")),
-  //   std::pair<std::string, int>("magenta", TColor::GetColor("")),
-  //   std::pair<std::string, int>("cyan", TColor::GetColor("")),
-  //   std::pair<std::string, int>("yellow", TColor::GetColor("")),
-  //   std::pair<std::string, int>("blue", TColor::GetColor("")),
-  //   std::pair<std::string, int>("pink", TColor::GetColor("")),
-  //   std::pair<std::string, int>("violet", TColor::GetColor("")),
-  // }
+  std::map<std::string, int> mycolor_light = {
+    std::pair<std::string, int>("greenblue", TColor::GetColor("#A7C5A5")),
+    std::pair<std::string, int>("orange", TColor::GetColor("#DFB89D")),
+    std::pair<std::string, int>("red", TColor::GetColor("#D7ABAB")),
+    std::pair<std::string, int>("azure", TColor::GetColor("#96AECB")),
+    std::pair<std::string, int>("magenta", TColor::GetColor("#CCAABB")),
+    std::pair<std::string, int>("green", TColor::GetColor("#95A273")),
+    std::pair<std::string, int>("cyan", TColor::GetColor("#8EBDC3")),
+    std::pair<std::string, int>("yellow", TColor::GetColor("#F3D391")),
+    std::pair<std::string, int>("blue", TColor::GetColor("#989FC6")),
+    std::pair<std::string, int>("pink", TColor::GetColor("#DDBFC6")),
+    std::pair<std::string, int>("violet", TColor::GetColor("#C4BFD0")),
+  };
+  std::map<std::string, int> mycolor_dark = {
+    std::pair<std::string, int>("greenblue", TColor::GetColor("#406457")),
+    std::pair<std::string, int>("orange", TColor::GetColor("#8A5734")),
+    std::pair<std::string, int>("red", TColor::GetColor("#863F3F")),
+    std::pair<std::string, int>("azure", TColor::GetColor("#324864")),
+    std::pair<std::string, int>("magenta", TColor::GetColor("#754966")),
+    std::pair<std::string, int>("green", TColor::GetColor("#6D7850")),
+    std::pair<std::string, int>("cyan", TColor::GetColor("#2D6066")),
+    std::pair<std::string, int>("yellow", TColor::GetColor("#BB8413")),
+    std::pair<std::string, int>("blue", TColor::GetColor("#2D365E")),
+    std::pair<std::string, int>("pink", TColor::GetColor("#926678")),
+    std::pair<std::string, int>("violet", TColor::GetColor("#5E4D8D")),
+  };
 }
 
 #endif
