@@ -14,6 +14,7 @@
 #include <TEfficiency.h>
 #include <TGraphErrors.h>
 #include <TGraphAsymmErrors.h>
+#include <TSystem.h>
 
 #include <vector>
 
@@ -55,6 +56,8 @@ namespace xjjroot
   TH1* histMinusCorr(TH1* ha, TH1* hb, std::string name);
   TGraphErrors* shifthistcenter(TH1* hh, std::string name, int option=-1);
   TGraphAsymmErrors* shifthistcenter(TEfficiency* geff, std::string name, int option=-1);
+
+  void mkdir(std::string outputfile);
 
   void setbranchaddress(TTree* nt, const char* bname, void* addr);
   template <class T> T* copyobject(const T* obj, TString objname);
@@ -353,6 +356,22 @@ TGraphAsymmErrors* xjjroot::shifthistcenter(TEfficiency* geff, std::string name,
     }
   TGraphAsymmErrors* gr = new TGraphAsymmErrors(n, xx.data(), yy.data(), xxel.data(), xxeh.data(), yyel.data(), yyeh.data()); gr->SetName(name.c_str());
   return gr;
+}
+
+void xjjroot::mkdir(std::string outputfile)
+{
+  if(outputfile.find("/")==std::string::npos) return;
+  std::string dir("");
+  size_t lastpos = 0;
+  size_t pos = outputfile.find("/", 0);
+  while(pos != std::string::npos)
+    {
+      std::string thistoken = outputfile.substr(lastpos, pos-lastpos);
+      dir += (thistoken + "/");
+      lastpos = pos+1;
+      pos = outputfile.find("/", pos+1);
+    }
+  gSystem->Exec(Form("mkdir -p %s", dir.c_str()));
 }
 
 namespace xjjroot
