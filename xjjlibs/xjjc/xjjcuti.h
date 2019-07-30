@@ -51,6 +51,7 @@ namespace xjjc
   bool str_isnumber(std::string strs) { return (std::regex_match(strs, std::regex("-?[0-9]+([.][0-9]*)?")) || std::regex_match(strs, std::regex("-?[0-9]*[.][0-9]+"))); }
   bool str_isinteger(std::string strs) { return std::regex_match(strs, std::regex("-?[0-9]+")); }
   std::vector<std::string> str_divide(std::string str, std::string div);
+  std::string str_getdir(std::string filename);
 
   std::string currenttime();
 }
@@ -220,6 +221,12 @@ std::string xjjc::currenttime()
   sprintf(chartime, "%d%s%d%d-%d%d%d", now->tm_year+1900, (now->tm_mon>=9?"":"0"), now->tm_mon+1, now->tm_mday,
           now->tm_hour, now->tm_min, now->tm_sec);
   return std::string(chartime);
+}
+
+std::string xjjc::str_getdir(std::string filename)
+{
+  std::string dir = str_replaceall(filename, str_divide(filename, "/").back(), "");
+  return dir;
 }
 
 #ifndef __PRMYERR
