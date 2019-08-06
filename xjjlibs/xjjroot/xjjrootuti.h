@@ -25,7 +25,6 @@ namespace xjjroot
   const float margin_pad_bottom = 0.145;
   const float margin_pad_top = 0.1;
 
-  std::vector<TString> colorlist_name   = {"kGreen", "kOrange", "kRed", "kAzure", "kMagenta", "kCyan", "kYellow", "kBlue", "kPink", "kViolet"};
   std::vector<Color_t> colorlist_light  = {kGreen-8, kOrange-4, kRed-9, kAzure-9, kMagenta-8, kCyan-8, kYellow-6, kBlue-8, kPink+1, kViolet-9};
   std::vector<Color_t> colorlist_middle = {kGreen+2, kOrange-3, kRed-3, kAzure-3, kMagenta-5, kCyan-2, kYellow+2, kBlue-5, kPink+2, kViolet+7};
   std::vector<Color_t> colorlist_dark   = {kGreen+3, kOrange+5, kRed+2, kAzure-6, kMagenta-1, kCyan+3, kYellow+3, kBlue-1, kPink+3, kViolet+4};
@@ -41,16 +40,16 @@ namespace xjjroot
   void drawCMSright(TString content="PbPb #sqrt{s_{NN}} = 5.02 TeV", Float_t xpos=0, Float_t ypos=0);
   void drawCMS(TString contentleft="#scale[1.25]{#bf{CMS}} #it{Preliminary}", TString contentright="PbPb #sqrt{s_{NN}} = 5.02 TeV");
   void settex(TLatex* tex, Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack);
-  void drawtex(Double_t x, Double_t y, const char *text, Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack);
+  TLatex* drawtex(Double_t x, Double_t y, const char *text, Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack);
   void drawtexgroup(Double_t x, Double_t y, std::vector<std::string> text, int ncol=1, Double_t colwid=0.2, Float_t tsize=0.04, Short_t align=12, Style_t font=42, std::vector<Color_t> color=colorlist_middle);
   void setleg(TLegend* leg, Float_t tsize=0.04);
   void setlegndraw(TLegend* leg, Float_t tsize=0.04);
-  void drawline(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=2, Float_t lalpha=1);
-  void drawbox(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color_t fcolor=kGray, Float_t falpha=0.4, Style_t fstyle=1001, Color_t lcolor=0, Style_t lstyle=1, Width_t lwidth=0);
-  void drawaxis(Double_t xmin, Double_t ymin, Double_t xmax, Double_t ymax, 
-                Double_t wmin, Double_t wmax, 
-                Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=1,
-                Option_t *chopt="", Int_t ndiv=510, Double_t gridlength=0);
+  TLine* drawline(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=2, Float_t lalpha=1);
+  TBox* drawbox(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color_t fcolor=kGray, Float_t falpha=0.4, Style_t fstyle=1001, Color_t lcolor=0, Style_t lstyle=1, Width_t lwidth=0);
+  TGaxis* drawaxis(Double_t xmin, Double_t ymin, Double_t xmax, Double_t ymax, 
+                   Double_t wmin, Double_t wmax, 
+                   Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=1,
+                   Option_t *chopt="", Int_t ndiv=510, Double_t gridlength=0);
 
   void dividebinwid(TH1* h);
   TH1* histMinusCorr(TH1* ha, TH1* hb, std::string name);
@@ -209,7 +208,7 @@ void xjjroot::settex(TLatex* tex, Float_t tsize/*=0.04*/, Short_t align/*=12*/, 
   tex->SetTextColor(color);
 }
 
-void xjjroot::drawtex(Double_t x, Double_t y, const char* text, Float_t tsize/*=0.04*/, Short_t align/*=12*/, Style_t font/*=42*/, Color_t color/*=kBlack*/)
+TLatex* xjjroot::drawtex(Double_t x, Double_t y, const char* text, Float_t tsize/*=0.04*/, Short_t align/*=12*/, Style_t font/*=42*/, Color_t color/*=kBlack*/)
 {
   TLatex* tex = new TLatex(x, y, text);
   xjjroot::settex(tex, tsize, align, font, color);
@@ -247,14 +246,15 @@ void xjjroot::setlegndraw(TLegend* leg, Float_t tsize/*=0.04*/)
   leg->Draw();
 }
 
-void xjjroot::drawline(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color_t lcolor/*=kBlack*/, Style_t lstyle/*=1*/, Width_t lwidth/*=2*/, Float_t lalpha/*=1*/)
+TLine* xjjroot::drawline(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color_t lcolor/*=kBlack*/, Style_t lstyle/*=1*/, Width_t lwidth/*=2*/, Float_t lalpha/*=1*/)
 {
   TLine* l = new TLine(x1, y1, x2, y2);
   xjjroot::setlinestyle(l, lcolor, lstyle, lwidth, lalpha);
   l->Draw();
+  return l;
 }
 
-void xjjroot::drawbox(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color_t fcolor/*=kGray*/, Float_t falpha/*=0.4*/, Style_t fstyle/*=1001*/, Color_t lcolor/*=0*/, Style_t lstyle/*=1*/, Width_t lwidth/*=0*/)
+TBox* xjjroot::drawbox(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color_t fcolor/*=kGray*/, Float_t falpha/*=0.4*/, Style_t fstyle/*=1001*/, Color_t lcolor/*=0*/, Style_t lstyle/*=1*/, Width_t lwidth/*=0*/)
 {
   TBox* b = new TBox(x1, y1, x2, y2);
   b->SetFillColor(fcolor);
@@ -264,12 +264,13 @@ void xjjroot::drawbox(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color_
   b->SetLineStyle(lstyle);
   b->SetLineWidth(lwidth);
   b->Draw();
+  return b;
 }
 
-void xjjroot::drawaxis(Double_t xmin, Double_t ymin, Double_t xmax, Double_t ymax, 
-                       Double_t wmin, Double_t wmax, 
-                       Color_t lcolor/*=kBlack*/, Style_t lstyle/*=1*/, Width_t lwidth/*=1*/,
-                       Option_t *chopt/*=""*/, Int_t ndiv/*=510*/, Double_t gridlength/*=0*/)
+TGaxis* xjjroot::drawaxis(Double_t xmin, Double_t ymin, Double_t xmax, Double_t ymax, 
+                          Double_t wmin, Double_t wmax, 
+                          Color_t lcolor/*=kBlack*/, Style_t lstyle/*=1*/, Width_t lwidth/*=1*/,
+                          Option_t *chopt/*=""*/, Int_t ndiv/*=510*/, Double_t gridlength/*=0*/)
 {
   TGaxis* g = new TGaxis(xmin, ymin, xmax, ymax,
                          wmin, wmax, ndiv, chopt, gridlength);
@@ -279,6 +280,7 @@ void xjjroot::drawaxis(Double_t xmin, Double_t ymin, Double_t xmax, Double_t yma
   g->SetLineStyle(lstyle);
   g->SetLineWidth(lwidth);
   g->Draw();
+  return g;
 }
 
 /* ----- */
@@ -376,6 +378,7 @@ void xjjroot::mkdir(std::string outputfile)
 
 namespace xjjroot
 {
+  int dummy = (TColor::SetColorThreshold(0), 0);
   std::map<std::string, int> mycolor_middle = {
     std::pair<std::string, int>("greenblue", TColor::GetColor("#6CA892")),
     std::pair<std::string, int>("orange", TColor::GetColor("#C67D4B")),
