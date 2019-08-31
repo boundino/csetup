@@ -17,6 +17,7 @@
 #include <TSystem.h>
 
 #include <vector>
+#include <iostream>
 
 namespace xjjroot
 {
@@ -51,12 +52,14 @@ namespace xjjroot
                    Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=1,
                    Option_t *chopt="", Int_t ndiv=510, Double_t gridlength=0);
 
+  template<class T> void printhist(T* hh) { std::cout<<"\e[2m"<<hh->GetName()<<"\e[0m\e[36;1m ("<<hh->GetEntries()<<")\e[0m"<<std::endl; }
   void dividebinwid(TH1* h);
   TH1* histMinusCorr(TH1* ha, TH1* hb, std::string name);
   TGraphErrors* shifthistcenter(TH1* hh, std::string name, int option=-1);
   TGraphAsymmErrors* shifthistcenter(TEfficiency* geff, std::string name, int option=-1);
 
   void mkdir(std::string outputfile);
+  void drawcomment(std::string comment) { xjjroot::drawtex(0, 0, comment.c_str(), 0.024, 11, 42, kGray+1); }
 
   void setbranchaddress(TTree* nt, const char* bname, void* addr);
   template <class T> T* copyobject(const T* obj, TString objname);
@@ -379,6 +382,7 @@ void xjjroot::mkdir(std::string outputfile)
 namespace xjjroot
 {
   int dummy = (TColor::SetColorThreshold(0), 0);
+  std::vector<std::string> cc = {"red", "azure", "green", "magenta", "orange", "greenblue", "pink", "cyan", "yellow", "blue", "violet"};
   std::map<std::string, int> mycolor_middle = {
     std::pair<std::string, int>("greenblue", TColor::GetColor("#6CA892")),
     std::pair<std::string, int>("orange", TColor::GetColor("#C67D4B")),
