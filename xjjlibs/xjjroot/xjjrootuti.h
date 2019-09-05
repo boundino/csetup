@@ -59,7 +59,7 @@ namespace xjjroot
   TGraphAsymmErrors* shifthistcenter(TEfficiency* geff, std::string name, int option=-1);
 
   void mkdir(std::string outputfile);
-  void drawcomment(std::string comment) { xjjroot::drawtex(0, 0, comment.c_str(), 0.024, 11, 42, kGray+1); }
+  void drawcomment(std::string comment, std::string opt="lb") { xjjroot::drawtex((opt.front()=='r'?1:0), (opt.back()=='t'?1:0), comment.c_str(), 0.024, ((opt.front()=='r')*2+1)*10+((opt.back()=='t')*2+1), 42, kGray+1); }
 
   void setbranchaddress(TTree* nt, const char* bname, void* addr);
   template <class T> T* copyobject(const T* obj, TString objname);
