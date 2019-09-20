@@ -17,6 +17,7 @@
 #include <TSystem.h>
 
 #include <vector>
+#include <iostream>
 
 namespace xjjroot
 {
@@ -32,7 +33,7 @@ namespace xjjroot
   void setgstyle(Int_t padtick=0, Width_t lwidth=2);
   template <class T> void sethempty(T* hempty, Float_t xoffset=0, Float_t yoffset=0, Float_t xsize=0.05, Float_t ysize=0.05);
   template <class T> void setthgr(T* hempty, Float_t xoffset=0, Float_t yoffset=0);
-  template <class T> void setthgrstyle(T* h, Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1, Color_t fcolor=-1, Float_t falpha=-1, Style_t fstyle=-1);
+  template <class T> void setthgrstyle(T* h, Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1, Color_t fcolor=-1, Float_t falpha=-1, Style_t fstyle=-1, Float_t lalpha=-1);
   template <class T> void setlinestyle(T* h, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1, Float_t lalpha=-1);
   template <class T> void settfstyle(T* h, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1, Color_t fcolor=-1, Float_t falpha=-1, Style_t fstyle=-1);
   template <class T> void setmarkerstyle(T* h, Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1);
@@ -51,12 +52,15 @@ namespace xjjroot
                    Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=1,
                    Option_t *chopt="", Int_t ndiv=510, Double_t gridlength=0);
 
+  template<class T> void printhist(T* hh) { std::cout<<"\e[2m"<<hh->GetName()<<"\e[0m\e[36;1m ("<<hh->GetEntries()<<")\e[0m"<<std::endl; }
   void dividebinwid(TH1* h);
   TH1* histMinusCorr(TH1* ha, TH1* hb, std::string name);
   TGraphErrors* shifthistcenter(TH1* hh, std::string name, int option=-1);
   TGraphAsymmErrors* shifthistcenter(TEfficiency* geff, std::string name, int option=-1);
+  TGraphAsymmErrors* setwcenter(TH1F* h, std::vector<double>& xw, std::string name);
 
   void mkdir(std::string outputfile);
+  void drawcomment(std::string comment, std::string opt="lb") { xjjroot::drawtex((opt.front()=='r'?1:0), (opt.back()=='t'?1:0), comment.c_str(), 0.024, ((opt.front()=='r')*2+1)*10+((opt.back()=='t')*2+1), 42, kGray+1); }
 
   void setbranchaddress(TTree* nt, const char* bname, void* addr);
   template <class T> T* copyobject(const T* obj, TString objname);
@@ -129,7 +133,7 @@ void xjjroot::setthgr(T* hempty, Float_t xoffset/*=0*/, Float_t yoffset/*=0*/)
 }
 
 template <class T>
-void xjjroot::setthgrstyle(T* h, Color_t mcolor/*=-1*/, Style_t mstyle/*=-1*/, Size_t msize/*=-1*/, Color_t lcolor/*=-1*/, Style_t lstyle/*=-1*/, Width_t lwidth/*=-1*/, Color_t fcolor/*=-1*/, Float_t falpha/*=-1*/, Style_t fstyle/*=-1*/)
+void xjjroot::setthgrstyle(T* h, Color_t mcolor/*=-1*/, Style_t mstyle/*=-1*/, Size_t msize/*=-1*/, Color_t lcolor/*=-1*/, Style_t lstyle/*=-1*/, Width_t lwidth/*=-1*/, Color_t fcolor/*=-1*/, Float_t falpha/*=-1*/, Style_t fstyle/*=-1*/, Float_t lalpha/*=-1*/)
 {
   if(mcolor>=0) h->SetMarkerColor(mcolor);
   if(mstyle>=0) h->SetMarkerStyle(mstyle);
@@ -140,6 +144,7 @@ void xjjroot::setthgrstyle(T* h, Color_t mcolor/*=-1*/, Style_t mstyle/*=-1*/, S
   if(fcolor>=0) h->SetFillColor(fcolor);
   if(falpha>=0) h->SetFillColorAlpha(fcolor, falpha);
   if(fstyle>=0) h->SetFillStyle(fstyle);
+  if(lalpha>=0) h->SetLineColorAlpha(lcolor, lalpha);
 }
 
 template <class T>
@@ -360,6 +365,22 @@ TGraphAsymmErrors* xjjroot::shifthistcenter(TEfficiency* geff, std::string name,
   return gr;
 }
 
+TGraphAsymmErrors* xjjroot::setwcenter(TH1F* h, std::vector<double>& xw, std::string name)
+{
+  int n = h->GetXaxis()->GetNbins();
+  std::vector<double> y(n), xel(n), xeh(n), ye(n);
+  for(int i=0; i<n; i++)
+    {
+      xel[i] = xw[i] - (h->GetBinCenter(i+1)-h->GetBinWidth(i+1)/2.);
+      xeh[i] = (h->GetBinCenter(i+1)+h->GetBinWidth(i+1)/2.) - xw[i];
+      y[i] = h->GetBinContent(i+1);
+      ye[i] = h->GetBinError(i+1);
+    }
+  TGraphAsymmErrors* gr = new TGraphAsymmErrors(n, xw.data(), y.data(), xel.data(), xeh.data(), ye.data(), ye.data());
+  gr->SetName(name.c_str());
+  return gr;
+}
+
 void xjjroot::mkdir(std::string outputfile)
 {
   if(outputfile.find("/")==std::string::npos) return;
@@ -379,6 +400,7 @@ void xjjroot::mkdir(std::string outputfile)
 namespace xjjroot
 {
   int dummy = (TColor::SetColorThreshold(0), 0);
+  std::vector<std::string> cc = {"red", "azure", "green", "magenta", "orange", "greenblue", "pink", "cyan", "yellow", "blue", "violet"};
   std::map<std::string, int> mycolor_middle = {
     std::pair<std::string, int>("greenblue", TColor::GetColor("#6CA892")),
     std::pair<std::string, int>("orange", TColor::GetColor("#C67D4B")),

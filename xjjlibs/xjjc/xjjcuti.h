@@ -18,11 +18,7 @@
 
 namespace xjjc
 {
-  const std::string nc("\033[0m");
-  const std::string red("\033[0;31m");
-  const std::string green("\033[0;32m");
-  const std::string yellow("\033[0;33m");
-
+  const std::string nc("\e[0m");
   std::vector<std::string> speciallist = {" ", "/", "(", ")", "^", "#", "%", "$", ",", ".", "*"};
 
   template<size_t N, typename T> void initarray(T (*array_)[N], T initval_=0);
