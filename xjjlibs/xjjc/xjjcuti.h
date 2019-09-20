@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <regex>
 #include <ctime>
+#include <cctype>
 
 namespace xjjc
 {
@@ -52,6 +53,7 @@ namespace xjjc
   bool str_isinteger(std::string strs) { return std::regex_match(strs, std::regex("-?[0-9]+")); }
   std::vector<std::string> str_divide(std::string str, std::string div);
   std::string str_getdir(std::string filename);
+  std::string str_tolower(std::string str);
 
   std::string currenttime();
 }
@@ -211,6 +213,14 @@ std::vector<std::string> xjjc::str_divide(std::string str, std::string div)
   if(lastpos != 0) { token.push_back(str.substr(lastpos, str.size()-lastpos)); }
   if(token.empty()) token.push_back(str);
   return token;
+}
+
+std::string xjjc::str_tolower(std::string str)
+{
+  std::string newstr(str);
+  std::transform(newstr.begin(), newstr.end(), newstr.begin(),
+                 [](unsigned char c){ return std::tolower(c); });
+  return newstr;
 }
 
 std::string xjjc::currenttime()
