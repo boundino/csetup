@@ -18,6 +18,7 @@
 
 #include <vector>
 #include <iostream>
+#include <iomanip>
 
 namespace xjjroot
 {
@@ -52,7 +53,7 @@ namespace xjjroot
                    Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=1,
                    Option_t *chopt="", Int_t ndiv=510, Double_t gridlength=0);
 
-  template<class T> void printhist(T* hh) { std::cout<<"\e[2m"<<hh->GetName()<<"\e[0m\e[36;1m ("<<hh->GetEntries()<<")\e[0m"<<std::endl; }
+  template<class T> void printhist(T* hh, int w=0) { std::cout<<std::left<<"\e[2m"<<std::setw(w)<<hh->GetName()<<"\e[0m\e[36;1m ("<<hh->GetEntries()<<")\e[0m"<<std::endl; }
   void dividebinwid(TH1* h);
   TH1* histMinusCorr(TH1* ha, TH1* hb, std::string name);
   TGraphErrors* shifthistcenter(TH1* hh, std::string name, int option=-1);
