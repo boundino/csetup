@@ -50,6 +50,7 @@ namespace xjjc
   std::vector<std::string> str_divide(std::string str, std::string div);
   std::string str_getdir(std::string filename);
   std::string str_tolower(std::string str);
+  std::string str_toupper(std::string str);
 
   std::string currenttime();
 }
@@ -216,6 +217,14 @@ std::string xjjc::str_tolower(std::string str)
   std::string newstr(str);
   std::transform(newstr.begin(), newstr.end(), newstr.begin(),
                  [](unsigned char c){ return std::tolower(c); });
+  return newstr;
+}
+
+std::string xjjc::str_toupper(std::string str)
+{
+  std::string newstr(str);
+  std::transform(newstr.begin(), newstr.end(), newstr.begin(),
+                 [](unsigned char c){ return std::toupper(c); });
   return newstr;
 }
 
