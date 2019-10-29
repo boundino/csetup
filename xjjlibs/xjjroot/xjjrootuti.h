@@ -10,6 +10,7 @@
 #include <TStyle.h>
 #include <TH1.h>
 #include <TGaxis.h>
+#include <TF1.h>
 #include <TMath.h>
 #include <TEfficiency.h>
 #include <TGraphErrors.h>
@@ -59,6 +60,8 @@ namespace xjjroot
   TGraphErrors* shifthistcenter(TH1* hh, std::string name, int option=-1);
   TGraphAsymmErrors* shifthistcenter(TEfficiency* geff, std::string name, int option=-1);
   TGraphAsymmErrors* setwcenter(TH1F* h, std::vector<double>& xw, std::string name);
+  void drawpull(TH1* h, TF1* f, Color_t color=0, float ymax=4);
+  std::map<std::string, double> chi2test(TH1* h1, TH1* h2, const char* opt="UW");
 
   void mkdir(std::string outputfile);
   void drawcomment(std::string comment, std::string opt="lb") { xjjroot::drawtex((opt.front()=='r'?1:0), (opt.back()=='t'?1:0), comment.c_str(), 0.024, ((opt.front()=='r')*2+1)*10+((opt.back()=='t')*2+1), 42, kGray+1); }
@@ -380,6 +383,42 @@ TGraphAsymmErrors* xjjroot::setwcenter(TH1F* h, std::vector<double>& xw, std::st
   TGraphAsymmErrors* gr = new TGraphAsymmErrors(n, xw.data(), y.data(), xel.data(), xeh.data(), ye.data(), ye.data());
   gr->SetName(name.c_str());
   return gr;
+}
+
+void xjjroot::drawpull(TH1* h, TF1* f, Color_t color, float pullmax)
+{
+  Color_t tcolor = color?color:f->GetLineColor();
+  int nbin = h->GetXaxis()->GetNbins();
+  float binmin = h->GetXaxis()->GetXmin(), binmax = h->GetXaxis()->GetXmax();
+  float yhmax = h->GetMaximum(), yhmin = h->GetMinimum();
+  // float yhmax = h->GetYaxis()->GetXmax();
+  for(int bb=0; bb<nbin; bb++)
+    {
+      float realval = h->GetBinError(bb+1)==0?0:(h->GetBinContent(bb+1)-f->Eval(h->GetBinCenter(bb+1)))/h->GetBinError(bb+1);
+      // float fillval = ((realval+pullmax)/(pullmax*2))*yhmax;
+      float fillval = ((realval+pullmax)/(pullmax*2))*(yhmax-yhmin)+yhmin;
+      xjjroot::drawbox(h->GetBinCenter(bb+1)-h->GetBinWidth(bb+1)/2., yhmax/2., h->GetBinCenter(bb+1)+h->GetBinWidth(bb+1)/2., fillval, tcolor, 0.1, 1001);
+    }
+  xjjroot::drawline(binmin, (yhmax-yhmin)/2.+yhmin, binmax, (yhmax-yhmin)/2.+yhmin, kGray, 2, gStyle->GetLineWidth(), 0.5);
+  xjjroot::drawaxis(binmax, yhmin, binmax, yhmax, -pullmax, pullmax, tcolor, 1, gStyle->GetLineWidth(), "+L");
+  xjjroot::drawtex(0.93, 0.55, "Pull", 0.04, 33, 62, tcolor);
+}
+
+std::map<std::string, double> xjjroot::chi2test(TH1* h1, TH1* h2, const char* opt)
+{
+  // double res[n];
+  std::cout<<"## Chi2 Test ("<<h1->GetName()<<", "<<h2->GetName()<<")"<<std::endl;
+  double pvalue = h1->Chi2Test(h2, opt);
+  double chi2 = h1->Chi2Test(h2, Form("%s CHI2", opt));
+  double chi2ndf = h1->Chi2Test(h2, Form("%s CHI2/NDF P", opt));
+  double ndf = chi2 / chi2ndf;
+  std::map<std::string, double> result;
+  result["chi2ndf"] = chi2ndf;
+  result["pvalue"] = pvalue;
+  result["chi2"] = chi2;
+  result["ndf"] = ndf;
+  result["chi2prob"] = TMath::Prob(chi2, ndf);
+  return result;
 }
 
 void xjjroot::mkdir(std::string outputfile)

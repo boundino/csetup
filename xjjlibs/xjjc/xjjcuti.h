@@ -129,12 +129,15 @@ std::string xjjc::number_to_string(T param_)
 template<typename T>
 std::string xjjc::number_remove_zero(T param_)
 {
-  if(param_<0) return "";
+  bool negative = param_<0;
+  // if(param_<0) return "";
+  if(negative) param_ = 0-param_;
   std::string str = std::to_string(param_);
   std::size_t found = str.find('.');
   if(found==std::string::npos) return str;
   while(*(str.end()-1)=='0') str.erase(str.end()-1);
   if(*(str.end()-1)=='.') str.erase(str.end()-1);
+  if(negative) str = "-"+str;
   return str;
 }
 
