@@ -449,7 +449,7 @@ namespace xjjroot
     std::pair<std::string, int>("magenta", TColor::GetColor("#AA7799")),
     std::pair<std::string, int>("green", TColor::GetColor("#839169")),
     std::pair<std::string, int>("cyan", TColor::GetColor("#44929b")),
-    std::pair<std::string, int>("yellow", TColor::GetColor("#EAAD31")),
+    std::pair<std::string, int>("yellow", TColor::GetColor("#DEA63B")),
     std::pair<std::string, int>("blue", TColor::GetColor("#4C599C")),
     std::pair<std::string, int>("pink", TColor::GetColor("#C07A97")),
     std::pair<std::string, int>("violet", TColor::GetColor("#8473B3")),
@@ -479,6 +479,19 @@ namespace xjjroot
     std::pair<std::string, int>("blue", TColor::GetColor("#2D365E")),
     std::pair<std::string, int>("pink", TColor::GetColor("#926678")),
     std::pair<std::string, int>("violet", TColor::GetColor("#5E4D8D")),
+  };
+  std::map<std::string, int> mycolor_satmiddle = {
+    std::pair<std::string, int>("greenblue", TColor::GetColor("#5BB997")),
+    std::pair<std::string, int>("orange", TColor::GetColor("#D77D3C")),
+    std::pair<std::string, int>("red", TColor::GetColor("#CF5959")),
+    std::pair<std::string, int>("azure", TColor::GetColor("#2D6BB4")),
+    std::pair<std::string, int>("magenta", TColor::GetColor("#BD659F")),
+    std::pair<std::string, int>("green", TColor::GetColor("#89AF4B")),
+    std::pair<std::string, int>("cyan", TColor::GetColor("#329FAE")),
+    std::pair<std::string, int>("yellow", TColor::GetColor("#EAAD31")),
+    std::pair<std::string, int>("blue", TColor::GetColor("#394CAC")),
+    std::pair<std::string, int>("pink", TColor::GetColor("#CF6E96")),
+    std::pair<std::string, int>("violet", TColor::GetColor("#7D64C4")),
   };
 }
 
