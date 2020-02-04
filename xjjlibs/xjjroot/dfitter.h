@@ -126,8 +126,8 @@ namespace xjjroot
     Double_t mass_dzero_sideband_l_n = d_mass_signal - d_mass_sideband_l;
     Double_t mass_dzero_sideband_h_n = d_mass_signal - d_mass_sideband_h;
     
-    const Double_t n_hist_dzero = 60;
-    const Double_t min_hist_dzero = 1.7;
+    const Double_t n_hist_dzero = 56;
+    const Double_t min_hist_dzero = 1.72;
     const Double_t max_hist_dzero = 2.0;
     const Double_t binwid_hist_dzero = (max_hist_dzero-min_hist_dzero)/n_hist_dzero;
 
