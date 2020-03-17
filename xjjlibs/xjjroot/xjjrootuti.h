@@ -222,6 +222,7 @@ TLatex* xjjroot::drawtex(Double_t x, Double_t y, const char* text, Float_t tsize
   TLatex* tex = new TLatex(x, y, text);
   xjjroot::settex(tex, tsize, align, font, color);
   tex->Draw();
+  return tex;
 }
 
 void xjjroot::drawtexgroup(Double_t x, Double_t y, std::vector<std::string> text, int ncol/*=1*/, Double_t colwid/*=0.2*/, Float_t tsize/*=0.04*/, Short_t align/*=12*/, Style_t font/*=42*/, std::vector<Color_t> color/*=std::vector<Color_t>()*/)
@@ -230,7 +231,7 @@ void xjjroot::drawtexgroup(Double_t x, Double_t y, std::vector<std::string> text
   bool left = true, top = true;
   if(align == 31 || align == 33) left = false;
   if(align == 11 || align == 31) top = false;
-  for(int t=0; t<text.size(); t++)
+  for(unsigned t=0; t<text.size(); t++)
     {
       double xx = x + colwid*(t%ncol);
       if(!left) xx = x - colwid*(t%ncol);
