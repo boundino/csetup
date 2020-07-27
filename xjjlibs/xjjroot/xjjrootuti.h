@@ -237,7 +237,8 @@ void xjjroot::drawtexgroup(Double_t x, Double_t y, std::vector<std::string> text
       if(!left) xx = x - colwid*(t%ncol);
       double yy = y - lspace*(t/ncol);
       if(!top) yy = y + lspace*(t/ncol);
-      Color_t cc = t<color.size()?color[t]:kBlack;
+      constexpr unsigned fallback = kBlack;
+      Color_t cc = t<color.size()?color[t]:fallback;
       drawtex(xx, yy, text[t].c_str(), tsize, align, font, cc);
     }
 }

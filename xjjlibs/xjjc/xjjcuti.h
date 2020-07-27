@@ -235,7 +235,7 @@ std::string xjjc::currenttime()
 {
   std::time_t t = std::time(0);   // get time now
   std::tm* now = std::localtime(&t);
-  char chartime[15]; // yyyymmdd-hhmmss
+  char chartime[29]; // yyyymmdd-hhmmss
   sprintf(chartime, "%d%s%d%d-%d%d%d", now->tm_year+1900, (now->tm_mon>=9?"":"0"), now->tm_mon+1, now->tm_mday,
           now->tm_hour, now->tm_min, now->tm_sec);
   return std::string(chartime);
