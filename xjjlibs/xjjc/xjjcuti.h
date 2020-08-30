@@ -48,6 +48,7 @@ namespace xjjc
   bool str_isnumber(std::string strs) { return (std::regex_match(strs, std::regex("-?[0-9]+([.][0-9]*)?")) || std::regex_match(strs, std::regex("-?[0-9]*[.][0-9]+"))); }
   bool str_isinteger(std::string strs) { return std::regex_match(strs, std::regex("-?[0-9]+")); }
   std::vector<std::string> str_divide(std::string str, std::string div);
+  std::string str_divide_lastel(std::string str, std::string div);
   std::string str_getdir(std::string filename);
   std::string str_tolower(std::string str);
   std::string str_toupper(std::string str);
@@ -213,6 +214,13 @@ std::vector<std::string> xjjc::str_divide(std::string str, std::string div)
   if(lastpos != 0) { token.push_back(str.substr(lastpos, str.size()-lastpos)); }
   if(token.empty()) token.push_back(str);
   return token;
+}
+
+std::string xjjc::str_divide_lastel(std::string str, std::string div)
+{
+  std::vector<std::string> token = str_divide(str, div);
+  if(token.empty()) return "";
+  return token[token.size()-1];
 }
 
 std::string xjjc::str_tolower(std::string str)
