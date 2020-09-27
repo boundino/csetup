@@ -34,7 +34,7 @@ namespace xjjc
   void progressbar(int index_, int total_, int morespace_=0);
   void progressbar_summary(int total_);
 
-  template<typename T> char* gettype(T exp, int& status);
+  template<typename T> char* gettype(T exp);
 
   template<class T> bool sortbydes(const T &a, const T &b) { return a > b; }
   template<class T1, class T2> bool sortbyfirst_des(const std::pair<T1,T2> &a, const std::pair<T1,T2> &b) { return a.first > b.first; }
@@ -159,7 +159,7 @@ std::string xjjc::number_range(T val1_, T val2_, std::string var, std::string op
 void xjjc::progressbar(int index_, int total_, int morespace_/*=0*/)
 {
   if(total_ > 0)
-    std::cout<<std::setiosflags(std::ios::left)<<"  [ \033[1;36m"<<std::setw(10+morespace_)<<index_<<"\033[0m"<<" / "<<std::setw(10+morespace_)<<total_<<" ] "<<"\033[1;36m"<<(int)(100.*index_/total_)<<"%\033[0m"<<"\r"<<std::flush;
+    std::cout<<std::setiosflags(std::ios::left)<<"  [ \033[1;36m"<<std::setw(10+morespace_)<<index_<<"\033[0m"<<" / "<<std::setw(10+morespace_)<<total_<<" ] "<<"\033[1;36m"<<round(100.*index_/total_)<<"%\033[0m"<<"\r"<<std::flush;
   else
     std::cout<<std::setiosflags(std::ios::left)<<"  [ \033[1;36m"<<std::setw(10+morespace_)<<index_<<"\033[0m ]"<<"\r"<<std::flush;
 }
@@ -170,9 +170,10 @@ void xjjc::progressbar_summary(int total_)
 }
 
 template<typename T>
-char* xjjc::gettype(T exp, int& status)
+char* xjjc::gettype(T exp)
 {
   const std::type_info &ti = typeid(exp);
+  int status = 0;
   char* humantypename = abi::__cxa_demangle(ti.name(), 0, 0, &status);
   return humantypename;
 }
