@@ -66,6 +66,8 @@ namespace xjjroot
 
   void mkdir(std::string outputfile);
   void drawcomment(std::string comment, std::string opt="lb") { xjjroot::drawtex((opt.front()=='r'?1:0), (opt.back()=='t'?1:0), comment.c_str(), 0.024, ((opt.front()=='r')*2+1)*10+((opt.back()=='t')*2+1), 42, kGray+1); }
+  void writetex(std::string tr, std::string br, std::string str);
+  std::string readtex(TTree* t, std::string br);
 
   void setbranchaddress(TTree* nt, const char* bname, void* addr);
   template <class T> T* copyobject(const T* obj, TString objname);
@@ -441,9 +443,27 @@ void xjjroot::mkdir(std::string outputfile)
   gSystem->Exec(Form("mkdir -p %s", dir.c_str()));
 }
 
+void xjjroot::writetex(std::string tr, std::string br, std::string str)
+{
+  std::string s(str);
+  TTree* t = new TTree(tr.c_str(), "info");
+  t->Branch(br.c_str(), &s);
+  t->Fill();
+  t->Write();
+}
+
+std::string xjjroot::readtex(TTree* t, std::string br)
+{
+  std::string *s = 0;
+  t->SetBranchAddress(br.c_str(), &s);
+  t->GetEntry(0);
+  std::string ss(*s);
+  return ss;
+}
+
 namespace xjjroot
 {
-  int dummy = (TColor::SetColorThreshold(0), 0);
+  // int dummy = (TColor::SetColorThreshold(0), 0);
   std::vector<std::string> cc = {"red", "azure", "green", "magenta", "orange", "greenblue", "pink", "cyan", "yellow", "blue", "violet"};
   std::map<std::string, int> mycolor_middle = {
     std::pair<std::string, int>("greenblue", TColor::GetColor("#6CA892")),
