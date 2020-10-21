@@ -42,8 +42,8 @@ namespace xjjroot
   void drawCMSleft(TString content="#scale[1.25]{#bf{CMS}} #it{Preliminary}", Float_t xpos=0, Float_t ypos=0);
   void drawCMSright(TString content="PbPb #sqrt{s_{NN}} = 5.02 TeV", Float_t xpos=0, Float_t ypos=0);
   void drawCMS(TString contentleft="#scale[1.25]{#bf{CMS}} #it{Preliminary}", TString contentright="PbPb #sqrt{s_{NN}} = 5.02 TeV");
-  void settex(TLatex* tex, Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack);
-  TLatex* drawtex(Double_t x, Double_t y, const char *text, Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack);
+  void settex(TLatex* tex, Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack, Float_t tangle=0);
+  TLatex* drawtex(Double_t x, Double_t y, const char *text, Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack, Float_t tangle=0);
   void drawtexgroup(Double_t x, Double_t y, std::vector<std::string> text, int ncol=1, Double_t colwid=0.2, Float_t tsize=0.04, Short_t align=12, Style_t font=42, std::vector<Color_t> color=colorlist_middle);
   void setleg(TLegend* leg, Float_t tsize=0.04);
   void setlegndraw(TLegend* leg, Float_t tsize=0.04);
@@ -209,19 +209,20 @@ void xjjroot::drawCMSright(TString content/*="PbPb #sqrt{s_{NN}} = 5.02 TeV"*/, 
   texCol->Draw();
 }
 
-void xjjroot::settex(TLatex* tex, Float_t tsize/*=0.04*/, Short_t align/*=12*/, Style_t font/*=42*/, Color_t color/*=kBlack*/)
+void xjjroot::settex(TLatex* tex, Float_t tsize/*=0.04*/, Short_t align/*=12*/, Style_t font/*=42*/, Color_t color/*=kBlack*/, Float_t tangle/*=0*/)
 {
   tex->SetNDC();
   tex->SetTextFont(font);
   tex->SetTextAlign(align);
   tex->SetTextSize(tsize);
   tex->SetTextColor(color);
+  tex->SetTextAngle(tangle);
 }
 
-TLatex* xjjroot::drawtex(Double_t x, Double_t y, const char* text, Float_t tsize/*=0.04*/, Short_t align/*=12*/, Style_t font/*=42*/, Color_t color/*=kBlack*/)
+TLatex* xjjroot::drawtex(Double_t x, Double_t y, const char* text, Float_t tsize/*=0.04*/, Short_t align/*=12*/, Style_t font/*=42*/, Color_t color/*=kBlack*/, Float_t tangle/*=0*/)
 {
   TLatex* tex = new TLatex(x, y, text);
-  xjjroot::settex(tex, tsize, align, font, color);
+  xjjroot::settex(tex, tsize, align, font, color, tangle);
   tex->Draw();
   return tex;
 }
