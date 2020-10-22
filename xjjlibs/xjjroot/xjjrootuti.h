@@ -52,7 +52,9 @@ namespace xjjroot
   TGaxis* drawaxis(Double_t xmin, Double_t ymin, Double_t xmax, Double_t ymax, 
                    Double_t wmin, Double_t wmax, 
                    Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=1,
-                   Option_t *chopt="", Int_t ndiv=510, Double_t gridlength=0);
+                   Option_t *chopt="", 
+                   Float_t labelsize=gStyle->GetLabelSize("Y"), Style_t labelfont=gStyle->GetLabelFont("Y"),
+                   Int_t ndiv=510, Double_t gridlength=0);
 
   template<class T> void printhist(T* hh, int w=10) { std::cout<<std::left<<"\e[2m"<<std::setw(w)<<hh->GetName()<<"\e[0m\e[36;1m ("<<hh->GetEntries()<<")\e[0m"<<std::endl; }
   template<class T> void writehist(T* hh, int w=10) { printhist(hh, w); hh->Write(); }
@@ -285,11 +287,15 @@ TBox* xjjroot::drawbox(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color
 TGaxis* xjjroot::drawaxis(Double_t xmin, Double_t ymin, Double_t xmax, Double_t ymax, 
                           Double_t wmin, Double_t wmax, 
                           Color_t lcolor/*=kBlack*/, Style_t lstyle/*=1*/, Width_t lwidth/*=1*/,
-                          Option_t *chopt/*=""*/, Int_t ndiv/*=510*/, Double_t gridlength/*=0*/)
+                          Option_t *chopt/*=""*/, 
+                          Float_t labelsize/*=gStyle->GetLabelSize("Y")*/, Style_t labelfont/*=gStyle->GetLabelFont("Y")*/, 
+                          Int_t ndiv/*=510*/, Double_t gridlength/*=0*/)
 {
   TGaxis* g = new TGaxis(xmin, ymin, xmax, ymax,
                          wmin, wmax, ndiv, chopt, gridlength);
   g->SetLabelColor(lcolor);
+  g->SetLabelSize(labelsize);
+  g->SetLabelFont(labelfont);
   g->SetTitleColor(lcolor);
   g->SetLineColor(lcolor);
   g->SetLineStyle(lstyle);
@@ -406,7 +412,7 @@ void xjjroot::drawpull(TH1* h, TF1* f, Color_t color, float pullmax)
       xjjroot::drawbox(h->GetBinCenter(bb+1)-h->GetBinWidth(bb+1)/2., (yhmax-yhmin)/2.+yhmin, h->GetBinCenter(bb+1)+h->GetBinWidth(bb+1)/2., fillval, tcolor, 0.1, 1001);
     }
   xjjroot::drawline(binmin, (yhmax-yhmin)/2.+yhmin, binmax, (yhmax-yhmin)/2.+yhmin, kGray, 2, gStyle->GetLineWidth(), 0.5);
-  xjjroot::drawaxis(binmax, yhmin, binmax, yhmax, -pullmax, pullmax, tcolor, 1, gStyle->GetLineWidth(), "+L");
+  xjjroot::drawaxis(binmax, yhmin, binmax, yhmax, -pullmax, pullmax, tcolor, 1, gStyle->GetLineWidth(), "+L", h->GetYaxis()->GetLabelSize()*0.9);
   xjjroot::drawtex(0.93, 0.55, "Pull", 0.04, 33, 62, tcolor);
 }
 
