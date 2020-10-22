@@ -403,7 +403,7 @@ void xjjroot::drawpull(TH1* h, TF1* f, Color_t color, float pullmax)
       float realval = h->GetBinError(bb+1)==0?0:(h->GetBinContent(bb+1)-f->Eval(h->GetBinCenter(bb+1)))/h->GetBinError(bb+1);
       // float fillval = ((realval+pullmax)/(pullmax*2))*yhmax;
       float fillval = ((realval+pullmax)/(pullmax*2))*(yhmax-yhmin)+yhmin;
-      xjjroot::drawbox(h->GetBinCenter(bb+1)-h->GetBinWidth(bb+1)/2., yhmax/2., h->GetBinCenter(bb+1)+h->GetBinWidth(bb+1)/2., fillval, tcolor, 0.1, 1001);
+      xjjroot::drawbox(h->GetBinCenter(bb+1)-h->GetBinWidth(bb+1)/2., (yhmax-yhmin)/2.+yhmin, h->GetBinCenter(bb+1)+h->GetBinWidth(bb+1)/2., fillval, tcolor, 0.1, 1001);
     }
   xjjroot::drawline(binmin, (yhmax-yhmin)/2.+yhmin, binmax, (yhmax-yhmin)/2.+yhmin, kGray, 2, gStyle->GetLineWidth(), 0.5);
   xjjroot::drawaxis(binmax, yhmin, binmax, yhmax, -pullmax, pullmax, tcolor, 1, gStyle->GetLineWidth(), "+L");
