@@ -67,7 +67,7 @@ namespace xjjroot
   std::map<std::string, double> chi2test(TH1* h1, TH1* h2, const char* opt="UW");
 
   void mkdir(std::string outputfile);
-  void drawcomment(std::string comment, std::string opt="lb") { xjjroot::drawtex((opt.front()=='r'?1:0), (opt.back()=='t'?1:0), comment.c_str(), 0.024, ((opt.front()=='r')*2+1)*10+((opt.back()=='t')*2+1), 42, kGray+1); }
+  void drawcomment(std::string comment, std::string opt="lb") { xjjroot::drawtex((opt.front()=='r'?1:0), (opt.back()=='t'?1:0), comment.c_str(), 0.024, ((opt.front()=='r')*2+1)*10+((opt.back()=='t')*2+1), 42, kGray); }
   void writetex(std::string tr, std::string br, std::string str);
   std::string readtex(TTree* t, std::string br);
 

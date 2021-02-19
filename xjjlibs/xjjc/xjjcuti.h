@@ -22,8 +22,8 @@ namespace xjjc
   std::vector<std::string> speciallist = {" ", "/", "(", ")", "^", "#", "%", "$", ",", ".", "*"};
 
   template<size_t N, typename T> void initarray(T (*array_)[N], T initval_=0);
-  template<size_t N, typename T> int findibin(const T (*array_)[N], T element_);
-  template<typename T> int findibin(const std::vector<T> array_, T element_);
+  template<size_t N, typename T> int findibin(const T (*array_)[N], T element_); // overflow: -1
+  template<typename T> int findibin(const std::vector<T> array_, T element_); // overflow: -1
   template<size_t N, typename T> int findiedge(const T (*array_)[N], T element_);
   template<typename T> int findiedge(const std::vector<T> array_, T element_);
 
