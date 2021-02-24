@@ -54,7 +54,7 @@ namespace xjjc
   std::string str_toupper(std::string str);
 
   std::string currenttime();
-  std::string prt_divider(std::string color="\e[0m", int len=35) { std::cout<<color<<std::string(len, '-')<<"\e[0m"<<std::endl;
+  void prt_divider(std::string color="\e[0m", int len=35) { std::cout<<color<<std::string(len, '-')<<"\e[0m"<<std::endl; }
 }
 
 /* ---------- */
