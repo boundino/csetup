@@ -30,6 +30,7 @@ namespace xjjc
   template<typename T> std::string number_to_string(T param_);
   template<typename T> std::string number_remove_zero(T param_);
   template<typename T> std::string number_range(T val1_, T val2_, std::string var, std::string opt="");
+  int number_digit(int i);
 
   void progressbar(int index_, int total_, int morespace_=0);
   void progressbar_summary(int total_);
@@ -155,6 +156,15 @@ std::string xjjc::number_range(T val1_, T val2_, std::string var, std::string op
   str += var;
   str += (" "+sign+" "+number_remove_zero(val2_)); 
   return str;
+}
+
+int xjjc::number_digit(int i, int n)
+{
+  if(n < 0) return 0;
+  int i1 = i%std::pow(10, n+1);
+  if(n==0) return i1;
+  int i2 = std::floor(float(i1/std::pow(10, n-1)));
+  return i2;
 }
 
 void xjjc::progressbar(int index_, int total_, int morespace_/*=0*/)
