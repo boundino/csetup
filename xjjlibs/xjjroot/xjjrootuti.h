@@ -58,10 +58,12 @@ namespace xjjroot
 
   template<class T> void printhist(T* hh, int w=10) { std::cout<<std::left<<"\e[2m"<<std::setw(w)<<hh->GetName()<<"\e[0m\e[36;1m ("<<hh->GetEntries()<<")\e[0m"<<std::endl; }
   template<class T> void writehist(T* hh, int w=10) { printhist(hh, w); hh->Write(); }
+  template<class T> T* gethist(TFile* inf, std::string name, int w=10);
   void dividebinwid(TH1* h);
   TH1* histMinusCorr(TH1* ha, TH1* hb, std::string name);
   TGraphErrors* shifthistcenter(TH1* hh, std::string name, int option=-1);
   TGraphAsymmErrors* shifthistcenter(TEfficiency* geff, std::string name, int option=-1);
+  TGraphAsymmErrors* shifthistcenter(TH1* hh, std::string name, float offset, std::string option=""); // opt ["X0": zero x err]
   TGraphAsymmErrors* setwcenter(TH1F* h, std::vector<double>& xw, std::string name);
   void drawpull(TH1* h, TF1* f, Color_t color=0, float ymax=4);
   std::map<std::string, double> chi2test(TH1* h1, TH1* h2, const char* opt="UW");
@@ -195,6 +197,7 @@ void xjjroot::drawCMSleft(TString content/*="#scale[1.25]{#bf{CMS}} #it{Prelimin
 {
   if(content=="" || content=="Preliminary") content = "#scale[1.25]{#bf{CMS}} #it{Preliminary}";
   if(content=="Simulation") content = "#scale[1.25]{#bf{CMS}} #it{Simulation}";
+  if(content=="Projection") content = "#scale[1.25]{#bf{CMS}} #it{Projection}";
   TLatex* texCms = new TLatex(gStyle->GetPadLeftMargin()+xpos,(1-gStyle->GetPadTopMargin())*1.02+ypos, content.Data());
   texCms->SetNDC();
   texCms->SetTextAlign(11);
@@ -320,6 +323,14 @@ T* xjjroot::copyobject(const T* obj, TString objname)
   return newobj;
 }
 
+template<class T> 
+T* xjjroot::gethist(TFile* inf, std::string name, int w)
+{ 
+  T* hh = (T*)inf->Get(name.c_str());
+  printhist(hh, w); 
+  return hh;
+}
+
 void xjjroot::dividebinwid(TH1* h)
 {
   for(int i=0;i<h->GetNbinsX();i++)
@@ -358,6 +369,30 @@ TGraphErrors* xjjroot::shifthistcenter(TH1* hh, std::string name, int option)
       else xx.push_back(hh->GetBinCenter(i+1));
     }
   TGraphErrors* gr = new TGraphErrors(n, xx.data(), yy.data(), xxerr.data(), yyerr.data()); gr->SetName(name.c_str());
+  return gr;
+}
+
+TGraphAsymmErrors* xjjroot::shifthistcenter(TH1* hh, std::string name, float offset, std::string option)
+{
+  int n = hh->GetNbinsX();
+  std::vector<double> xx, yy, xxel, xxeh, yyerr;
+  for(int i=0; i<n; i++)
+    {
+      yy.push_back(hh->GetBinContent(i+1));
+      yyerr.push_back(hh->GetBinError(i+1));
+      xx.push_back(hh->GetBinCenter(i+1) + offset);
+      if(option == "X0")
+        {
+          xxel.push_back(0);
+          xxeh.push_back(0);
+        }
+      else
+        {
+          xxel.push_back(std::max(hh->GetBinWidth(i+1)/2. + offset, (double)0));
+          xxeh.push_back(std::max(hh->GetBinWidth(i+1)/2. - offset, (double)0));
+        }
+    }
+  TGraphAsymmErrors* gr = new TGraphAsymmErrors(n, xx.data(), yy.data(), xxel.data(), xxeh.data(), yyerr.data(), yyerr.data()); gr->SetName(name.c_str());
   return gr;
 }
 
