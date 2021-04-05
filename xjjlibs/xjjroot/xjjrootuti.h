@@ -16,6 +16,7 @@
 #include <TGraphErrors.h>
 #include <TGraphAsymmErrors.h>
 #include <TSystem.h>
+#include <TFile.h>
 
 #include <vector>
 #include <iostream>
@@ -56,24 +57,20 @@ namespace xjjroot
                    Float_t labelsize=gStyle->GetLabelSize("Y"), Style_t labelfont=gStyle->GetLabelFont("Y"),
                    Int_t ndiv=510, Double_t gridlength=0);
 
-  template<class T> void printhist(T* hh, int w=10) { std::cout<<std::left<<"\e[2m"<<std::setw(w)<<hh->GetName()<<"\e[0m\e[36;1m ("<<hh->GetEntries()<<")\e[0m"<<std::endl; }
+  template<class T> void printhist(T* hh, int w=10);
   template<class T> void writehist(T* hh, int w=10) { printhist(hh, w); hh->Write(); }
   template<class T> T* gethist(TFile* inf, std::string name, int w=10);
-  void dividebinwid(TH1* h);
-  TH1* histMinusCorr(TH1* ha, TH1* hb, std::string name);
   TGraphErrors* shifthistcenter(TH1* hh, std::string name, int option=-1);
   TGraphAsymmErrors* shifthistcenter(TEfficiency* geff, std::string name, int option=-1);
   TGraphAsymmErrors* shifthistcenter(TH1* hh, std::string name, float offset, std::string option=""); // opt ["X0": zero x err]
   TGraphAsymmErrors* setwcenter(TH1F* h, std::vector<double>& xw, std::string name);
-  void drawpull(TH1* h, TF1* f, Color_t color=0, float ymax=4);
-  std::map<std::string, double> chi2test(TH1* h1, TH1* h2, const char* opt="UW");
+  std::vector<double> gethXaxis(TH1* h);
 
   void mkdir(std::string outputfile);
   void drawcomment(std::string comment, std::string opt="lb") { xjjroot::drawtex((opt.front()=='r'?1:0), (opt.back()=='t'?1:0), comment.c_str(), 0.024, ((opt.front()=='r')*2+1)*10+((opt.back()=='t')*2+1), 42, kGray); }
   void writetex(std::string tr, std::string br, std::string str);
   std::string readtex(TTree* t, std::string br);
 
-  void setbranchaddress(TTree* nt, const char* bname, void* addr);
   template <class T> T* copyobject(const T* obj, TString objname);
 }
 
@@ -309,12 +306,6 @@ TGaxis* xjjroot::drawaxis(Double_t xmin, Double_t ymin, Double_t xmax, Double_t 
 
 /* ----- */
 
-void xjjroot::setbranchaddress(TTree* nt, const char* bname, void* addr)
-{
-  nt->SetBranchStatus(bname, 1);
-  nt->SetBranchAddress(bname, addr);
-}
-
 template <class T>
 T* xjjroot::copyobject(const T* obj, TString objname)
 {
@@ -324,34 +315,20 @@ T* xjjroot::copyobject(const T* obj, TString objname)
 }
 
 template<class T> 
+void xjjroot::printhist(T* hh, int w)
+{ 
+  std::cout<<std::left<<"\e[2m"<<std::setw(w)<<hh->GetName()<<"\e[0m\e[36;1m ("<<hh->GetEntries()<<")\e[0m"<<std::endl; 
+}
+
+template<class T> 
 T* xjjroot::gethist(TFile* inf, std::string name, int w)
 { 
   T* hh = (T*)inf->Get(name.c_str());
-  printhist(hh, w); 
+  if(hh)
+    printhist(hh, w); 
+  else
+    std::cout<<std::left<<"\e[31m"<<std::setw(w)<<name<<" (x)\e[0m"<<std::endl;
   return hh;
-}
-
-void xjjroot::dividebinwid(TH1* h)
-{
-  for(int i=0;i<h->GetNbinsX();i++)
-    {
-      Float_t val = h->GetBinContent(i+1)/h->GetBinWidth(i+1);
-      Float_t valErr = h->GetBinError(i+1)/h->GetBinWidth(i+1);
-      h->SetBinContent(i+1,val);
-      h->SetBinError(i+1,valErr);
-    }
-}
-
-TH1* xjjroot::histMinusCorr(TH1* ha, TH1* hb, std::string name)
-{
-  TH1* hr = (TH1*)ha->Clone(name.c_str());
-  for(int i=0;i<ha->GetNbinsX();i++)
-    {
-      hr->SetBinContent(i+1, ha->GetBinContent(i+1)-hb->GetBinContent(i+1));
-      hr->SetBinError(i+1, TMath::Sqrt(TMath::Abs(ha->GetBinError(i+1)*ha->GetBinError(i+1) -
-                                                  hb->GetBinError(i+1)*hb->GetBinError(i+1))));
-    }
-  return hr;
 }
 
 TGraphErrors* xjjroot::shifthistcenter(TH1* hh, std::string name, int option)
@@ -432,40 +409,13 @@ TGraphAsymmErrors* xjjroot::setwcenter(TH1F* h, std::vector<double>& xw, std::st
   return gr;
 }
 
-void xjjroot::drawpull(TH1* h, TF1* f, Color_t color, float pullmax)
+std::vector<double> xjjroot::gethXaxis(TH1* h)
 {
-  Color_t tcolor = color?color:f->GetLineColor();
-  int nbin = h->GetXaxis()->GetNbins();
-  float binmin = h->GetXaxis()->GetXmin(), binmax = h->GetXaxis()->GetXmax();
-  float yhmax = h->GetMaximum(), yhmin = h->GetMinimum();
-  // float yhmax = h->GetYaxis()->GetXmax();
-  for(int bb=0; bb<nbin; bb++)
-    {
-      float realval = h->GetBinError(bb+1)==0?0:(h->GetBinContent(bb+1)-f->Eval(h->GetBinCenter(bb+1)))/h->GetBinError(bb+1);
-      // float fillval = ((realval+pullmax)/(pullmax*2))*yhmax;
-      float fillval = ((realval+pullmax)/(pullmax*2))*(yhmax-yhmin)+yhmin;
-      xjjroot::drawbox(h->GetBinCenter(bb+1)-h->GetBinWidth(bb+1)/2., (yhmax-yhmin)/2.+yhmin, h->GetBinCenter(bb+1)+h->GetBinWidth(bb+1)/2., fillval, tcolor, 0.1, 1001);
-    }
-  xjjroot::drawline(binmin, (yhmax-yhmin)/2.+yhmin, binmax, (yhmax-yhmin)/2.+yhmin, kGray, 2, gStyle->GetLineWidth(), 0.5);
-  xjjroot::drawaxis(binmax, yhmin, binmax, yhmax, -pullmax, pullmax, tcolor, 1, gStyle->GetLineWidth(), "+L", h->GetYaxis()->GetLabelSize()*0.9);
-  xjjroot::drawtex(0.93, 0.55, "Pull", 0.04, 33, 62, tcolor);
-}
-
-std::map<std::string, double> xjjroot::chi2test(TH1* h1, TH1* h2, const char* opt)
-{
-  // double res[n];
-  std::cout<<"## Chi2 Test ("<<h1->GetName()<<", "<<h2->GetName()<<")"<<std::endl;
-  double pvalue = h1->Chi2Test(h2, opt);
-  double chi2 = h1->Chi2Test(h2, Form("%s CHI2", opt));
-  double chi2ndf = h1->Chi2Test(h2, Form("%s CHI2/NDF P", opt));
-  double ndf = chi2 / chi2ndf;
-  std::map<std::string, double> result;
-  result["chi2ndf"] = chi2ndf;
-  result["pvalue"] = pvalue;
-  result["chi2"] = chi2;
-  result["ndf"] = ndf;
-  result["chi2prob"] = TMath::Prob(chi2, ndf);
-  return result;
+  const double* vx = h->GetXaxis()->GetXbins()->GetArray();
+  int nx = h->GetXaxis()->GetNbins();
+  std::vector<double> vvx({vx, vx+nx});
+  vvx.push_back(h->GetXaxis()->GetXmax());
+  return vvx;
 }
 
 void xjjroot::mkdir(std::string outputfile)
