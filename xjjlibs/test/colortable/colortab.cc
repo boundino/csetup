@@ -32,6 +32,7 @@ void colortab()
       ncol++;
     }
   c1->SaveAs("colorchart/ccolorlist1.pdf");
+  c1->SaveAs("colorchart/ccolorlist1.png");
 
   std::vector<std::map<std::string, int>> mycolor({xjjroot::mycolor_middle, xjjroot::mycolor_light, xjjroot::mycolor_dark, xjjroot::mycolor_satmiddle});
   width = 1./mycolor.size(); height = 1./mycolor[0].size(); dheight = height/5.; 
@@ -57,6 +58,7 @@ void colortab()
       ncol++;
     }
   c2->SaveAs("colorchart/ccolorlist2.pdf");
+  c2->SaveAs("colorchart/ccolorlist2.png");
 
 }
 
