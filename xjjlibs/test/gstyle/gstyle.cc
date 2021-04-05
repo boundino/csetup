@@ -8,7 +8,17 @@ void gstyle()
   TH2F* h = new TH2F("h", ";X Axis;Y Axis", 10, 0, 10, 10, 0, 10);
   xjjroot::sethempty(h);
   xjjroot::setgstyle();
-  TCanvas* c = new TCanvas("c", "", 600, 600);
+  TCanvas* c;
+
+  //
+  c = new TCanvas("c", "", 600, 600);
+  h->Draw("AXIS");
+  xjjroot::drawCMS();
+  c->SaveAs("ccms.png");
+  delete c;
+
+  //
+  c = new TCanvas("c", "", 600, 600);
   c->Divide(2, 2);
 
   TPad* p0 = (TPad*)c->cd(1);
