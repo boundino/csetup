@@ -32,7 +32,14 @@ namespace xjjana
   double gethminimum(TH1* h);
   double gethmaximum(TH1* h);
 
+  TGraphErrors* shifthistcenter(TH1* hh, std::string name, int option=-1);
+  TGraphAsymmErrors* shifthistcenter(TEfficiency* geff, std::string name, int option=-1);
+  TGraphAsymmErrors* shifthistcenter(TH1* hh, std::string name, float offset, std::string option=""); // opt ["X0": zero x err]
+  TGraphAsymmErrors* setwcenter(TH1F* h, std::vector<double>& xw, std::string name);
+  std::vector<double> gethXaxis(TH1* h);
+
   void setbranchaddress(TTree* nt, const char* bname, void* addr);
+  template <class T> T* copyobject(const T* obj, TString objname);
 }
 
 /* ---------- */
@@ -116,6 +123,101 @@ double xjjana::gethmaximum(TH1* h)
   for(int i=0; i<h->GetXaxis()->GetNbins(); i++)
       ymax = std::max(ymax, h->GetBinContent(i+1));
   return ymax;
+}
+
+TGraphErrors* xjjroot::shifthistcenter(TH1* hh, std::string name, int option)
+{
+  int n = hh->GetNbinsX();
+  std::vector<double> xx, yy, xxerr, yyerr;
+  for(int i=0; i<n; i++)
+    {
+      yy.push_back(hh->GetBinContent(i+1));
+      yyerr.push_back(hh->GetBinError(i+1));
+      if(option == 0) xxerr.push_back(hh->GetBinWidth(i+1)/2.);
+      else xxerr.push_back(0);
+      if(option < 0) xx.push_back(hh->GetBinCenter(i+1) - hh->GetBinWidth(i+1)/2.);
+      else if(option > 0) xx.push_back(hh->GetBinCenter(i+1) + hh->GetBinWidth(i+1)/2.);
+      else xx.push_back(hh->GetBinCenter(i+1));
+    }
+  TGraphErrors* gr = new TGraphErrors(n, xx.data(), yy.data(), xxerr.data(), yyerr.data()); gr->SetName(name.c_str());
+  return gr;
+}
+
+TGraphAsymmErrors* xjjroot::shifthistcenter(TH1* hh, std::string name, float offset, std::string option)
+{
+  int n = hh->GetNbinsX();
+  std::vector<double> xx, yy, xxel, xxeh, yyerr;
+  for(int i=0; i<n; i++)
+    {
+      yy.push_back(hh->GetBinContent(i+1));
+      yyerr.push_back(hh->GetBinError(i+1));
+      xx.push_back(hh->GetBinCenter(i+1) + offset);
+      if(option == "X0")
+        {
+          xxel.push_back(0);
+          xxeh.push_back(0);
+        }
+      else
+        {
+          xxel.push_back(std::max(hh->GetBinWidth(i+1)/2. + offset, (double)0));
+          xxeh.push_back(std::max(hh->GetBinWidth(i+1)/2. - offset, (double)0));
+        }
+    }
+  TGraphAsymmErrors* gr = new TGraphAsymmErrors(n, xx.data(), yy.data(), xxel.data(), xxeh.data(), yyerr.data(), yyerr.data()); gr->SetName(name.c_str());
+  return gr;
+}
+
+TGraphAsymmErrors* xjjroot::shifthistcenter(TEfficiency* geff, std::string name, int option)
+{
+  TH1* hclone = geff->GetCopyTotalHisto();
+  int n = hclone->GetNbinsX();
+  std::vector<double> xx, yy, xxel, xxeh, yyel, yyeh;
+  for(int i=0; i<n; i++)
+    {
+      if(option < 0) xx.push_back(hclone->GetBinCenter(i+1) - hclone->GetBinWidth(i+1)/2.);
+      else if(option > 0) xx.push_back(hclone->GetBinCenter(i+1) + hclone->GetBinWidth(i+1)/2.);
+      else xx.push_back(hclone->GetBinCenter(i+1));
+      if(option == 0) { xxel.push_back(hclone->GetBinWidth(i+1)/2.); xxeh.push_back(hclone->GetBinWidth(i+1)/2.); }
+      else { xxel.push_back(0); xxeh.push_back(0); }
+      yy.push_back(geff->GetEfficiency(i+1));
+      yyel.push_back(geff->GetEfficiencyErrorLow(i+1));
+      yyeh.push_back(geff->GetEfficiencyErrorUp(i+1));
+    }
+  TGraphAsymmErrors* gr = new TGraphAsymmErrors(n, xx.data(), yy.data(), xxel.data(), xxeh.data(), yyel.data(), yyeh.data()); gr->SetName(name.c_str());
+  return gr;
+}
+
+TGraphAsymmErrors* xjjroot::setwcenter(TH1F* h, std::vector<double>& xw, std::string name)
+{
+  int n = h->GetXaxis()->GetNbins();
+  std::vector<double> y(n), xel(n), xeh(n), ye(n);
+  for(int i=0; i<n; i++)
+    {
+      xel[i] = xw[i] - (h->GetBinCenter(i+1)-h->GetBinWidth(i+1)/2.);
+      xeh[i] = (h->GetBinCenter(i+1)+h->GetBinWidth(i+1)/2.) - xw[i];
+      y[i] = h->GetBinContent(i+1);
+      ye[i] = h->GetBinError(i+1);
+    }
+  TGraphAsymmErrors* gr = new TGraphAsymmErrors(n, xw.data(), y.data(), xel.data(), xeh.data(), ye.data(), ye.data());
+  gr->SetName(name.c_str());
+  return gr;
+}
+
+std::vector<double> xjjroot::gethXaxis(TH1* h)
+{
+  const double* vx = h->GetXaxis()->GetXbins()->GetArray();
+  int nx = h->GetXaxis()->GetNbins();
+  std::vector<double> vvx({vx, vx+nx});
+  vvx.push_back(h->GetXaxis()->GetXmax());
+  return vvx;
+}
+
+template <class T>
+T* xjjroot::copyobject(const T* obj, TString objname)
+{
+  T* newobj = new T(*obj);
+  newobj->SetName(objname);
+  return newobj;
 }
 
 #endif

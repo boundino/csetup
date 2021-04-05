@@ -32,6 +32,8 @@ namespace xjjroot
   std::vector<Color_t> colorlist_light  = {kGreen-8, kOrange-4, kRed-9, kAzure-9, kMagenta-8, kCyan-8, kYellow-6, kBlue-8, kPink+1, kViolet-9};
   std::vector<Color_t> colorlist_middle = {kGreen+2, kOrange-3, kRed-3, kAzure-3, kMagenta-5, kCyan-2, kYellow+2, kBlue-5, kPink+2, kViolet+7};
   std::vector<Color_t> colorlist_dark   = {kGreen+3, kOrange+5, kRed+2, kAzure-6, kMagenta-1, kCyan+3, kYellow+3, kBlue-1, kPink+3, kViolet+4};
+  // mycolor_satmiddle[cc], mycolor_light[cc], mycolor_middle[cc], mycolor_dark[cc]
+  std::vector<std::string> cc = {"red", "azure", "green", "magenta", "orange", "greenblue", "pink", "cyan", "yellow", "blue", "violet"};  
 
   void setgstyle(Int_t padtick=0, Width_t lwidth=2);
   template <class T> void sethempty(T* hempty, Float_t xoffset=0, Float_t yoffset=0, Float_t xsize=0.05, Float_t ysize=0.05);
@@ -60,18 +62,11 @@ namespace xjjroot
   template<class T> void printhist(T* hh, int w=10);
   template<class T> void writehist(T* hh, int w=10) { printhist(hh, w); hh->Write(); }
   template<class T> T* gethist(TFile* inf, std::string name, int w=10);
-  TGraphErrors* shifthistcenter(TH1* hh, std::string name, int option=-1);
-  TGraphAsymmErrors* shifthistcenter(TEfficiency* geff, std::string name, int option=-1);
-  TGraphAsymmErrors* shifthistcenter(TH1* hh, std::string name, float offset, std::string option=""); // opt ["X0": zero x err]
-  TGraphAsymmErrors* setwcenter(TH1F* h, std::vector<double>& xw, std::string name);
-  std::vector<double> gethXaxis(TH1* h);
 
   void mkdir(std::string outputfile);
   void drawcomment(std::string comment, std::string opt="lb") { xjjroot::drawtex((opt.front()=='r'?1:0), (opt.back()=='t'?1:0), comment.c_str(), 0.024, ((opt.front()=='r')*2+1)*10+((opt.back()=='t')*2+1), 42, kGray); }
   void writetex(std::string tr, std::string br, std::string str);
   std::string readtex(TTree* t, std::string br);
-
-  template <class T> T* copyobject(const T* obj, TString objname);
 }
 
 /* ---------- */
@@ -306,14 +301,6 @@ TGaxis* xjjroot::drawaxis(Double_t xmin, Double_t ymin, Double_t xmax, Double_t 
 
 /* ----- */
 
-template <class T>
-T* xjjroot::copyobject(const T* obj, TString objname)
-{
-  T* newobj = new T(*obj);
-  newobj->SetName(objname);
-  return newobj;
-}
-
 template<class T> 
 void xjjroot::printhist(T* hh, int w)
 { 
@@ -329,93 +316,6 @@ T* xjjroot::gethist(TFile* inf, std::string name, int w)
   else
     std::cout<<std::left<<"\e[31m"<<std::setw(w)<<name<<" (x)\e[0m"<<std::endl;
   return hh;
-}
-
-TGraphErrors* xjjroot::shifthistcenter(TH1* hh, std::string name, int option)
-{
-  int n = hh->GetNbinsX();
-  std::vector<double> xx, yy, xxerr, yyerr;
-  for(int i=0; i<n; i++)
-    {
-      yy.push_back(hh->GetBinContent(i+1));
-      yyerr.push_back(hh->GetBinError(i+1));
-      if(option == 0) xxerr.push_back(hh->GetBinWidth(i+1)/2.);
-      else xxerr.push_back(0);
-      if(option < 0) xx.push_back(hh->GetBinCenter(i+1) - hh->GetBinWidth(i+1)/2.);
-      else if(option > 0) xx.push_back(hh->GetBinCenter(i+1) + hh->GetBinWidth(i+1)/2.);
-      else xx.push_back(hh->GetBinCenter(i+1));
-    }
-  TGraphErrors* gr = new TGraphErrors(n, xx.data(), yy.data(), xxerr.data(), yyerr.data()); gr->SetName(name.c_str());
-  return gr;
-}
-
-TGraphAsymmErrors* xjjroot::shifthistcenter(TH1* hh, std::string name, float offset, std::string option)
-{
-  int n = hh->GetNbinsX();
-  std::vector<double> xx, yy, xxel, xxeh, yyerr;
-  for(int i=0; i<n; i++)
-    {
-      yy.push_back(hh->GetBinContent(i+1));
-      yyerr.push_back(hh->GetBinError(i+1));
-      xx.push_back(hh->GetBinCenter(i+1) + offset);
-      if(option == "X0")
-        {
-          xxel.push_back(0);
-          xxeh.push_back(0);
-        }
-      else
-        {
-          xxel.push_back(std::max(hh->GetBinWidth(i+1)/2. + offset, (double)0));
-          xxeh.push_back(std::max(hh->GetBinWidth(i+1)/2. - offset, (double)0));
-        }
-    }
-  TGraphAsymmErrors* gr = new TGraphAsymmErrors(n, xx.data(), yy.data(), xxel.data(), xxeh.data(), yyerr.data(), yyerr.data()); gr->SetName(name.c_str());
-  return gr;
-}
-
-TGraphAsymmErrors* xjjroot::shifthistcenter(TEfficiency* geff, std::string name, int option)
-{
-  TH1* hclone = geff->GetCopyTotalHisto();
-  int n = hclone->GetNbinsX();
-  std::vector<double> xx, yy, xxel, xxeh, yyel, yyeh;
-  for(int i=0; i<n; i++)
-    {
-      if(option < 0) xx.push_back(hclone->GetBinCenter(i+1) - hclone->GetBinWidth(i+1)/2.);
-      else if(option > 0) xx.push_back(hclone->GetBinCenter(i+1) + hclone->GetBinWidth(i+1)/2.);
-      else xx.push_back(hclone->GetBinCenter(i+1));
-      if(option == 0) { xxel.push_back(hclone->GetBinWidth(i+1)/2.); xxeh.push_back(hclone->GetBinWidth(i+1)/2.); }
-      else { xxel.push_back(0); xxeh.push_back(0); }
-      yy.push_back(geff->GetEfficiency(i+1));
-      yyel.push_back(geff->GetEfficiencyErrorLow(i+1));
-      yyeh.push_back(geff->GetEfficiencyErrorUp(i+1));
-    }
-  TGraphAsymmErrors* gr = new TGraphAsymmErrors(n, xx.data(), yy.data(), xxel.data(), xxeh.data(), yyel.data(), yyeh.data()); gr->SetName(name.c_str());
-  return gr;
-}
-
-TGraphAsymmErrors* xjjroot::setwcenter(TH1F* h, std::vector<double>& xw, std::string name)
-{
-  int n = h->GetXaxis()->GetNbins();
-  std::vector<double> y(n), xel(n), xeh(n), ye(n);
-  for(int i=0; i<n; i++)
-    {
-      xel[i] = xw[i] - (h->GetBinCenter(i+1)-h->GetBinWidth(i+1)/2.);
-      xeh[i] = (h->GetBinCenter(i+1)+h->GetBinWidth(i+1)/2.) - xw[i];
-      y[i] = h->GetBinContent(i+1);
-      ye[i] = h->GetBinError(i+1);
-    }
-  TGraphAsymmErrors* gr = new TGraphAsymmErrors(n, xw.data(), y.data(), xel.data(), xeh.data(), ye.data(), ye.data());
-  gr->SetName(name.c_str());
-  return gr;
-}
-
-std::vector<double> xjjroot::gethXaxis(TH1* h)
-{
-  const double* vx = h->GetXaxis()->GetXbins()->GetArray();
-  int nx = h->GetXaxis()->GetNbins();
-  std::vector<double> vvx({vx, vx+nx});
-  vvx.push_back(h->GetXaxis()->GetXmax());
-  return vvx;
 }
 
 void xjjroot::mkdir(std::string outputfile)
@@ -455,58 +355,57 @@ std::string xjjroot::readtex(TTree* t, std::string br)
 namespace xjjroot
 {
   // int dummy = (TColor::SetColorThreshold(0), 0);
-  std::vector<std::string> cc = {"red", "azure", "green", "magenta", "orange", "greenblue", "pink", "cyan", "yellow", "blue", "violet"};
   std::map<std::string, int> mycolor_middle = {
-    std::pair<std::string, int>("greenblue", TColor::GetColor("#6CA892")),
-    std::pair<std::string, int>("orange", TColor::GetColor("#C67D4B")),
-    std::pair<std::string, int>("red", TColor::GetColor("#BA6E6E")),
-    std::pair<std::string, int>("azure", TColor::GetColor("#4B6D97")),
-    std::pair<std::string, int>("magenta", TColor::GetColor("#AA7799")),
-    std::pair<std::string, int>("green", TColor::GetColor("#839169")),
-    std::pair<std::string, int>("cyan", TColor::GetColor("#44929b")),
-    std::pair<std::string, int>("yellow", TColor::GetColor("#DEA63B")),
-    std::pair<std::string, int>("blue", TColor::GetColor("#4C599C")),
-    std::pair<std::string, int>("pink", TColor::GetColor("#C07A97")),
-    std::pair<std::string, int>("violet", TColor::GetColor("#8473B3")),
+    {"greenblue", TColor::GetColor("#6CA892")},
+    {"orange",    TColor::GetColor("#C67D4B")},
+    {"red",       TColor::GetColor("#BA6E6E")},
+    {"azure",     TColor::GetColor("#4B6D97")},
+    {"magenta",   TColor::GetColor("#AA7799")},
+    {"green",     TColor::GetColor("#839169")},
+    {"cyan",      TColor::GetColor("#44929b")},
+    {"yellow",    TColor::GetColor("#DEA63B")},
+    {"blue",      TColor::GetColor("#4C599C")},
+    {"pink",      TColor::GetColor("#C07A97")},
+    {"violet",    TColor::GetColor("#8473B3")},
   };
   std::map<std::string, int> mycolor_light = {
-    std::pair<std::string, int>("greenblue", TColor::GetColor("#A7C5A5")),
-    std::pair<std::string, int>("orange", TColor::GetColor("#DFB89D")),
-    std::pair<std::string, int>("red", TColor::GetColor("#D7ABAB")),
-    std::pair<std::string, int>("azure", TColor::GetColor("#96AECB")),
-    std::pair<std::string, int>("magenta", TColor::GetColor("#CCAABB")),
-    std::pair<std::string, int>("green", TColor::GetColor("#95A273")),
-    std::pair<std::string, int>("cyan", TColor::GetColor("#8EBDC3")),
-    std::pair<std::string, int>("yellow", TColor::GetColor("#F3D391")),
-    std::pair<std::string, int>("blue", TColor::GetColor("#989FC6")),
-    std::pair<std::string, int>("pink", TColor::GetColor("#DDBFC6")),
-    std::pair<std::string, int>("violet", TColor::GetColor("#C4BFD0")),
+    {"greenblue", TColor::GetColor("#A7C5A5")},
+    {"orange",    TColor::GetColor("#DFB89D")},
+    {"red",       TColor::GetColor("#D7ABAB")},
+    {"azure",     TColor::GetColor("#96AECB")},
+    {"magenta",   TColor::GetColor("#CCAABB")},
+    {"green",     TColor::GetColor("#95A273")},
+    {"cyan",      TColor::GetColor("#8EBDC3")},
+    {"yellow",    TColor::GetColor("#F3D391")},
+    {"blue",      TColor::GetColor("#989FC6")},
+    {"pink",      TColor::GetColor("#DDBFC6")},
+    {"violet",    TColor::GetColor("#C4BFD0")},
   };
   std::map<std::string, int> mycolor_dark = {
-    std::pair<std::string, int>("greenblue", TColor::GetColor("#406457")),
-    std::pair<std::string, int>("orange", TColor::GetColor("#8A5734")),
-    std::pair<std::string, int>("red", TColor::GetColor("#863F3F")),
-    std::pair<std::string, int>("azure", TColor::GetColor("#324864")),
-    std::pair<std::string, int>("magenta", TColor::GetColor("#754966")),
-    std::pair<std::string, int>("green", TColor::GetColor("#6D7850")),
-    std::pair<std::string, int>("cyan", TColor::GetColor("#2D6066")),
-    std::pair<std::string, int>("yellow", TColor::GetColor("#BB8413")),
-    std::pair<std::string, int>("blue", TColor::GetColor("#2D365E")),
-    std::pair<std::string, int>("pink", TColor::GetColor("#926678")),
-    std::pair<std::string, int>("violet", TColor::GetColor("#5E4D8D")),
+    {"greenblue", TColor::GetColor("#406457")},
+    {"orange",    TColor::GetColor("#8A5734")},
+    {"red",       TColor::GetColor("#863F3F")},
+    {"azure",     TColor::GetColor("#324864")},
+    {"magenta",   TColor::GetColor("#754966")},
+    {"green",     TColor::GetColor("#6D7850")},
+    {"cyan",      TColor::GetColor("#2D6066")},
+    {"yellow",    TColor::GetColor("#BB8413")},
+    {"blue",      TColor::GetColor("#2D365E")},
+    {"pink",      TColor::GetColor("#926678")},
+    {"violet",    TColor::GetColor("#5E4D8D")},
   };
   std::map<std::string, int> mycolor_satmiddle = {
-    std::pair<std::string, int>("greenblue", TColor::GetColor("#5BB997")),
-    std::pair<std::string, int>("orange", TColor::GetColor("#D77D3C")),
-    std::pair<std::string, int>("red", TColor::GetColor("#CF5959")),
-    std::pair<std::string, int>("azure", TColor::GetColor("#2D6BB4")),
-    std::pair<std::string, int>("magenta", TColor::GetColor("#BD659F")),
-    std::pair<std::string, int>("green", TColor::GetColor("#89AF4B")),
-    std::pair<std::string, int>("cyan", TColor::GetColor("#329FAE")),
-    std::pair<std::string, int>("yellow", TColor::GetColor("#EAAD31")),
-    std::pair<std::string, int>("blue", TColor::GetColor("#394CAC")),
-    std::pair<std::string, int>("pink", TColor::GetColor("#CF6E96")),
-    std::pair<std::string, int>("violet", TColor::GetColor("#7D64C4")),
+    {"greenblue", TColor::GetColor("#5BB997")},
+    {"orange",    TColor::GetColor("#D77D3C")},
+    {"red",       TColor::GetColor("#CF5959")},
+    {"azure",     TColor::GetColor("#2D6BB4")},
+    {"magenta",   TColor::GetColor("#BD659F")},
+    {"green",     TColor::GetColor("#89AF4B")},
+    {"cyan",      TColor::GetColor("#329FAE")},
+    {"yellow",    TColor::GetColor("#EAAD31")},
+    {"blue",      TColor::GetColor("#394CAC")},
+    {"pink",      TColor::GetColor("#CF6E96")},
+    {"violet",    TColor::GetColor("#7D64C4")},
   };
 }
 
