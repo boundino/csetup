@@ -17,23 +17,24 @@ TCanvas* c = new TCanvas("c", "", 600, 600);
 h->Draw("AXIS");
 xjjroot::drawCMS(/*"#scale[1.25]{#bf{CMS}} #it{Preliminary}", "PbPb #sqrt{s_{NN}} = 5.02 TeV"*/);
 ```
-![Default canvas](../test/gstyle/ccms.png)
+![default canvas](../test/gstyle/ccms.png)
 
 - xjjroot::setgstyle()
 ![setgstyle](../test/gstyle/gstyle.png)
 
 ## Color Library
-
+- [colorlist](#colorlist)
+- [mycolor](#mycolor)
 ### colorlist
 std::vector<Color_t>: 
 - colorlist_light
 - colorlist_middle
-- colorlist_dark;
-e.g.
+- colorlist_dark
 ```
-xjjroot::colorlist_middle[2];
+// e.g.
+xjjroot::colorlist_middle[2]
 ```
-![colorlist](../test/colortable/ccolorlist1.png)
+![figcolorlist](../test/colortable/ccolorlist1.png)
 
 ### mycolor
 std::map<std::string, int>: 
@@ -41,10 +42,10 @@ std::map<std::string, int>:
 - mycolor_light
 - mycolor_dark
 - mycolor_satmiddle
-e.g.
 ```
-xjjroot::mycolor_satmiddle["blue"];
+// e.g.
+xjjroot::mycolor_satmiddle["blue"]
 ```
-![colorlist](../test/colortable/ccolorlist2.png)
+![figmycolor](../test/colortable/ccolorlist2.png)
 
 
