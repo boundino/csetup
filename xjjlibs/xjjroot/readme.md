@@ -1,12 +1,16 @@
 # Plot styling
 
 - [Canvas Setting](#canvas-setting)
+   - [Default canvas](#default-canvas)
+   - [setgstyle](#setgstyle)
 - [Color Library](#color-library)
-
+   - [colorlist](#colorlist)
+   - [mycolor](#mycolor)
 
 ## Canvas Setting
-
-- Default canvas
+- [Default canvas](#default-canvas)
+- [setgstyle](#setgstyle)
+### Default canvas
 ```
 #include "xjjrootuti.h"
 
@@ -19,8 +23,8 @@ xjjroot::drawCMS(/*"#scale[1.25]{#bf{CMS}} #it{Preliminary}", "PbPb #sqrt{s_{NN}
 ```
 ![default canvas](../test/gstyle/ccms.png)
 
-- xjjroot::setgstyle()
-![setgstyle](../test/gstyle/gstyle.png)
+### setgstyle()
+![figsetgstyle](../test/gstyle/gstyle.png)
 
 ## Color Library
 - [colorlist](#colorlist)
