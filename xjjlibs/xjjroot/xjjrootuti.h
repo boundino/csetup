@@ -407,6 +407,19 @@ namespace xjjroot
     {"pink",      TColor::GetColor("#CF6E96")},
     {"violet",    TColor::GetColor("#7D64C4")},
   };
+  std::map<std::string, int> mycolor_satmiddle2 = {
+    {"greenblue", TColor::GetColor("#20F3A7")},
+    {"orange",    TColor::GetColor("#F37920")},
+    {"red",       TColor::GetColor("#F43434")},
+    {"azure",     TColor::GetColor("#0B68D5")},
+    {"magenta",   TColor::GetColor("#E93AAD")},
+    {"green",     TColor::GetColor("#95E119")},
+    {"cyan",      TColor::GetColor("#16B4CA")},
+    {"yellow",    TColor::GetColor("#FEB11B")},
+    {"blue",      TColor::GetColor("#1734CF")},
+    {"pink",      TColor::GetColor("#F54790")},
+    {"violet",    TColor::GetColor("#6B3EEA")},
+  };
 }
 
 #endif
