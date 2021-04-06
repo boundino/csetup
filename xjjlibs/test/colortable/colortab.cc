@@ -38,8 +38,8 @@ void colortab()
   c1->SaveAs("ccolorlist1.pdf");
   c1->SaveAs("ccolorlist1.png");
 
-  std::vector<std::map<std::string, int>> mycolor({xjjroot::mycolor_middle, xjjroot::mycolor_light, xjjroot::mycolor_dark, xjjroot::mycolor_satmiddle});
-  std::vector<std::string> mycolor_txt = {"mycolor_middle", "mycolor_light", "mycolor_dark", "mycolor_satmiddle"};
+  std::vector<std::map<std::string, int>> mycolor({xjjroot::mycolor_middle, xjjroot::mycolor_light, xjjroot::mycolor_dark, xjjroot::mycolor_satmiddle, xjjroot::mycolor_satmiddle2});
+  std::vector<std::string> mycolor_txt = {"mycolor_middle", "mycolor_light", "mycolor_dark", "mycolor_satmiddle", "mycolor_satmiddle2"};
   width = 1./mycolor.size(); height = 1./mycolor[0].size(); dheight = height/5.; 
   TCanvas* c2 = new TCanvas("cmycolor", "", 200*mycolor.size(), 100*mycolor[0].size());
   ncol = 0;
@@ -58,7 +58,7 @@ void colortab()
           auto pos1 = strhex.find("#"), pos2 = strhex.find("\"", pos1+1);
           xjjroot::drawtex((x1+x2)/2., (y1+y2)/2., std::string(strhex, pos1+1, pos2-pos1-1).c_str(), 0.05*(11*3)/(mycolor.size()*mycolor[0].size()), 22, 62, 0);
           if(!nrow)
-            xjjroot::drawtex((x1+x2)/2., y1, mycolor_txt[ncol].c_str(), 0.025, 23, 42, 0);
+            xjjroot::drawtex((x1+x2)/2., y1, mycolor_txt[ncol].c_str(), 0.02, 23, 42, 0);
           if(!ncol) 
             xjjroot::drawtex(x1, y2, Form("%s", cc.first.c_str()), 0.03*(11*3)/(mycolor.size()*mycolor[0].size()), 11, 62, 0);
           nrow++;

@@ -408,7 +408,7 @@ namespace xjjroot
     {"violet",    TColor::GetColor("#7D64C4")},
   };
   std::map<std::string, int> mycolor_satmiddle2 = {
-    {"greenblue", TColor::GetColor("#20F3A7")},
+    {"greenblue", TColor::GetColor("#2CE8A4")},
     {"orange",    TColor::GetColor("#F37920")},
     {"red",       TColor::GetColor("#F43434")},
     {"azure",     TColor::GetColor("#0B68D5")},
