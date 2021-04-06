@@ -46,6 +46,7 @@ std::map<std::string, int>:
 - mycolor_light
 - mycolor_dark
 - mycolor_satmiddle
+- mycolor_satmiddle2
 ```
 // e.g.
 xjjroot::mycolor_satmiddle["blue"]
