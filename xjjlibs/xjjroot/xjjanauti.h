@@ -125,7 +125,7 @@ double xjjana::gethmaximum(TH1* h)
   return ymax;
 }
 
-TGraphErrors* xjjroot::shifthistcenter(TH1* hh, std::string name, int option)
+TGraphErrors* xjjana::shifthistcenter(TH1* hh, std::string name, int option)
 {
   int n = hh->GetNbinsX();
   std::vector<double> xx, yy, xxerr, yyerr;
@@ -143,7 +143,7 @@ TGraphErrors* xjjroot::shifthistcenter(TH1* hh, std::string name, int option)
   return gr;
 }
 
-TGraphAsymmErrors* xjjroot::shifthistcenter(TH1* hh, std::string name, float offset, std::string option)
+TGraphAsymmErrors* xjjana::shifthistcenter(TH1* hh, std::string name, float offset, std::string option)
 {
   int n = hh->GetNbinsX();
   std::vector<double> xx, yy, xxel, xxeh, yyerr;
@@ -167,7 +167,7 @@ TGraphAsymmErrors* xjjroot::shifthistcenter(TH1* hh, std::string name, float off
   return gr;
 }
 
-TGraphAsymmErrors* xjjroot::shifthistcenter(TEfficiency* geff, std::string name, int option)
+TGraphAsymmErrors* xjjana::shifthistcenter(TEfficiency* geff, std::string name, int option)
 {
   TH1* hclone = geff->GetCopyTotalHisto();
   int n = hclone->GetNbinsX();
@@ -187,7 +187,7 @@ TGraphAsymmErrors* xjjroot::shifthistcenter(TEfficiency* geff, std::string name,
   return gr;
 }
 
-TGraphAsymmErrors* xjjroot::setwcenter(TH1F* h, std::vector<double>& xw, std::string name)
+TGraphAsymmErrors* xjjana::setwcenter(TH1F* h, std::vector<double>& xw, std::string name)
 {
   int n = h->GetXaxis()->GetNbins();
   std::vector<double> y(n), xel(n), xeh(n), ye(n);
@@ -203,7 +203,7 @@ TGraphAsymmErrors* xjjroot::setwcenter(TH1F* h, std::vector<double>& xw, std::st
   return gr;
 }
 
-std::vector<double> xjjroot::gethXaxis(TH1* h)
+std::vector<double> xjjana::gethXaxis(TH1* h)
 {
   const double* vx = h->GetXaxis()->GetXbins()->GetArray();
   int nx = h->GetXaxis()->GetNbins();
@@ -213,7 +213,7 @@ std::vector<double> xjjroot::gethXaxis(TH1* h)
 }
 
 template <class T>
-T* xjjroot::copyobject(const T* obj, TString objname)
+T* xjjana::copyobject(const T* obj, TString objname)
 {
   T* newobj = new T(*obj);
   newobj->SetName(objname);

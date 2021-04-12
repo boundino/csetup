@@ -54,6 +54,9 @@ namespace xjjc
   std::string str_tolower(std::string str);
   std::string str_toupper(std::string str);
 
+  template<class T> std::vector<std::vector<T>> array2d(int n1, int n2);
+  template<class T> std::vector<std::vector<std::vector<T>>> array3d(int n1, int n2, int n3);
+
   std::string currenttime();
   void prt_divider(std::string color="\e[0m", int len=35) { std::cout<<color<<std::string(len, '-')<<"\e[0m"<<std::endl; }
 }
@@ -265,6 +268,26 @@ std::string xjjc::str_getdir(std::string filename)
 {
   std::string dir = str_replaceall(filename, str_divide(filename, "/").back(), "");
   return dir;
+}
+
+template<class T> std::vector<std::vector<T>> xjjc::array2d(int n1, int n2)
+{
+  std::vector<std::vector<T>> v(n1);
+  for(auto& vi : v)
+    vi.resize(n2);
+  return v;
+}
+
+template<class T> std::vector<std::vector<std::vector<T>>> xjjc::array3d(int n1, int n2, int n3)
+{
+  std::vector<std::vector<std::vector<T>>> v(n1);
+  for(auto& vi : v)
+    {
+      vi.resize(n2);
+      for(auto& vj : vi)
+        vj.resize(n3);
+    }
+  return v;
 }
 
 #ifndef __PRMYERR
