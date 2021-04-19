@@ -21,6 +21,10 @@ namespace xjjroot
     bool ismc() { return (bool)ismc_; }
     void setishi(int ishi__) { ishi_ = ishi__; parsetag(); }
     void setismc(int ismc__) { ismc_ = ismc__; parsetag(); }
+    void setobj(std::string obj__) { obj_ = obj__; parsetag(); }
+    void setpt(float ptmin, float ptmax) { val_["ptmin"] = ptmin; val_["ptmax"] = ptmax; parsetag(); }
+    void seteta(float etamin, float etamax) { val_["etamin"] = etamin; val_["etamax"] = etamax; parsetag(); }
+    void setcent(float centmin, float centmax) { val_["centmin"] = centmin; val_["centmax"] = centmax; parsetag(); }
     std::string tag(std::string var = "") { return tag_[var]; }
     void print();
     void drawtex(float xleft=0.22, float ytop=0.88, float tsize=0.038, std::string exclude="");
@@ -136,7 +140,7 @@ void xjjroot::param::drawtex(float xleft, float ytop, float tsize, std::string e
     if(std::find(ex.begin(), ex.end(), i) == ex.end())
       { xjjroot::drawtex(xleft, ytop_-=ls, tag_[i].c_str(), tsize, 13); }
 
-  std::vector<std::string> info_right = {""};
+  std::vector<std::string> info_right = {};
   ytop_ = ytop + ls;
   for(auto& i : info_right)
     if(std::find(ex.begin(), ex.end(), i) == ex.end())

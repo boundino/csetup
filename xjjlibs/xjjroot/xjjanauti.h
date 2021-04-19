@@ -31,6 +31,9 @@ namespace xjjana
   std::map<std::string, double> chi2test(TH1* h1, TH1* h2, const char* opt="UW");
   double gethminimum(TH1* h);
   double gethmaximum(TH1* h);
+  double sethsmin(std::vector<TH1F*>& h, float factor);
+  double sethsmax(std::vector<TH1F*>& h, float factor);
+  void sethsminmax(std::vector<TH1F*>& h, float factor_min, float factor_max);
 
   TGraphErrors* shifthistcenter(TH1* hh, std::string name, int option=-1);
   TGraphAsymmErrors* shifthistcenter(TEfficiency* geff, std::string name, int option=-1);
@@ -113,7 +116,7 @@ double xjjana::gethminimum(TH1* h)
 {
   double ymin = 1.e+10;
   for(int i=0; i<h->GetXaxis()->GetNbins(); i++)
-      ymin = std::min(ymin, h->GetBinContent(i+1));
+    ymin = std::min(ymin, h->GetBinContent(i+1));
   return ymin;
 }
 
@@ -121,8 +124,39 @@ double xjjana::gethmaximum(TH1* h)
 {
   double ymax = -1.e+10;
   for(int i=0; i<h->GetXaxis()->GetNbins(); i++)
-      ymax = std::max(ymax, h->GetBinContent(i+1));
+    ymax = std::max(ymax, h->GetBinContent(i+1));
   return ymax;
+}
+
+double xjjana::sethsmin(std::vector<TH1F*>& h, float factor)
+{
+  double ymin = 1.e+10;
+  for(auto& hh : h) ymin = std::min(ymin, gethminimum(hh));
+  for(auto& hh : h) hh->SetMinimum(ymin * factor);
+  return ymin;
+}
+
+double xjjana::sethsmax(std::vector<TH1F*>& h, float factor)
+{
+  double ymax = -1.e+10;
+  for(auto& hh : h) ymax = std::max(ymax, gethmaximum(hh));
+  for(auto& hh : h) hh->SetMaximum(ymax * factor);
+  return ymax;
+}
+
+void xjjana::sethsminmax(std::vector<TH1F*>& h, float factor_min, float factor_max)
+{
+  double ymax = -1.e+10, ymin = 1.e+10;
+  for(auto& hh : h)
+    {
+      ymin = std::min(ymin, gethminimum(hh));
+      ymax = std::max(ymax, gethmaximum(hh));
+    }
+  for(auto& hh : h)
+    {
+      hh->SetMinimum(ymin * factor_min);
+      hh->SetMaximum(ymax * factor_max);
+    }
 }
 
 TGraphErrors* xjjana::shifthistcenter(TH1* hh, std::string name, int option)
