@@ -32,7 +32,7 @@ namespace xjjc
   template<typename T> std::string number_range(T val1_, T val2_, std::string var, std::string opt="");
   int number_digit(int i, int n);
 
-  void progressbar(int index_, int total_, int morespace_=0);
+  void progressbar(int index_, int total_, int step=10000, int morespace_=0);
   void progressbar_summary(int total_);
 
   template<typename T> char* gettype(T exp);
@@ -170,12 +170,15 @@ int xjjc::number_digit(int i, int n)
   return i2;
 }
 
-void xjjc::progressbar(int index_, int total_, int morespace_/*=0*/)
+void xjjc::progressbar(int index_, int total_, int step, int morespace_/*=0*/)
 {
-  if(total_ > 0)
-    std::cout<<std::setiosflags(std::ios::left)<<"  [ \033[1;36m"<<std::setw(10+morespace_)<<index_<<"\033[0m"<<" / "<<std::setw(10+morespace_)<<total_<<" ] "<<"\033[1;36m"<<round(100.*index_/total_)<<"%\033[0m"<<"\r"<<std::flush;
-  else
-    std::cout<<std::setiosflags(std::ios::left)<<"  [ \033[1;36m"<<std::setw(10+morespace_)<<index_<<"\033[0m ]"<<"\r"<<std::flush;
+  if(index_%step==0 || index_ == total_-1)
+    {
+      if(total_ > 0)
+        std::cout<<std::setiosflags(std::ios::left)<<"  [ \033[1;36m"<<std::setw(10+morespace_)<<index_<<"\033[0m"<<" / "<<std::setw(10+morespace_)<<total_<<" ] "<<"\033[1;36m"<<round(100.*index_/total_)<<"%\033[0m"<<"\r"<<std::flush;
+      else
+        std::cout<<std::setiosflags(std::ios::left)<<"  [ \033[1;36m"<<std::setw(10+morespace_)<<index_<<"\033[0m ]"<<"\r"<<std::flush;
+    }
 }
 
 void xjjc::progressbar_summary(int total_)
