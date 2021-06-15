@@ -226,8 +226,8 @@ std::vector<std::string> xjjc::str_divide(std::string str, std::string div)
     {
       std::string thistoken = str.substr(lastpos, pos-lastpos);
       token.push_back(thistoken);
-      lastpos = pos+1;
-      pos = str.find(div, pos+1);
+      lastpos = pos + div.size();
+      pos = str.find(div, pos + div.size());
     }
   if(lastpos != 0) { token.push_back(str.substr(lastpos, str.size()-lastpos)); }
   if(token.empty()) token.push_back(str);
