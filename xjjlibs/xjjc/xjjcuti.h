@@ -45,6 +45,7 @@ namespace xjjc
 
   std::string str_replaceall(std::string strs, std::string sub, std::string newsub);
   std::string str_replaceallspecial(std::string strs);
+  std::string str_erasestar(std::string strs, std::string sub); // e.g. sub = */ or .*
   bool str_contains(std::string str1, std::string str2) { return str1.find(str2)!=std::string::npos; }
   bool str_isnumber(std::string strs) { return (std::regex_match(strs, std::regex("-?[0-9]+([.][0-9]*)?")) || std::regex_match(strs, std::regex("-?[0-9]*[.][0-9]+"))); }
   bool str_isinteger(std::string strs) { return std::regex_match(strs, std::regex("-?[0-9]+")); }
@@ -193,6 +194,23 @@ char* xjjc::gettype(T exp)
   int status = 0;
   char* humantypename = abi::__cxa_demangle(ti.name(), 0, 0, &status);
   return humantypename;
+}
+
+std::string xjjc::str_erasestar(std::string strs, std::string sub)
+{
+  std::string realsub = str_replaceall(sub, "*", "");
+  std::string result(strs), str(strs);
+  size_t pos = str.find(realsub, 0);
+
+  if(sub.front() == '*')
+    {
+      result.erase(0, pos+1);
+    }
+  else if(sub.back() == '*')
+    {
+      result.erase(pos, str.size() - pos);
+    }
+  return result;
 }
 
 std::string xjjc::str_replaceall(std::string strs, std::string sub, std::string newsub)
