@@ -19,7 +19,7 @@
 namespace xjjc
 {
   const std::string nc("\e[0m");
-  std::vector<std::string> speciallist = {" ", "/", "(", ")", "^", "#", "%", "$", ",", ".", "*"};
+  std::vector<std::string> speciallist = {" ", "/", "(", ")", "^", "#", "%", "$", ",", ".", "*", "&", ":", "{", "}", ";"};
 
   template<size_t N, typename T> void initarray(T (*array_)[N], T initval_=0);
   template<size_t N, typename T> int findibin(const T (*array_)[N], T element_); // overflow: -1
@@ -44,8 +44,9 @@ namespace xjjc
   template<class T1, class T2> bool sortbysecond_as(const std::pair<T1,T2> &a, const std::pair<T1,T2> &b) { return a.second < b.second; }
 
   std::string str_replaceall(std::string strs, std::string sub, std::string newsub);
-  std::string str_replaceallspecial(std::string strs);
+  std::string str_replaceallspecial(std::string strs, std::string newsub = "_");
   std::string str_erasestar(std::string strs, std::string sub); // e.g. sub = */ or .*
+  std::string str_erasetwospace(std::string strs);
   bool str_contains(std::string str1, std::string str2) { return str1.find(str2)!=std::string::npos; }
   bool str_isnumber(std::string strs) { return (std::regex_match(strs, std::regex("-?[0-9]+([.][0-9]*)?")) || std::regex_match(strs, std::regex("-?[0-9]*[.][0-9]+"))); }
   bool str_isinteger(std::string strs) { return std::regex_match(strs, std::regex("-?[0-9]+")); }
@@ -200,16 +201,30 @@ std::string xjjc::str_erasestar(std::string strs, std::string sub)
 {
   std::string realsub = str_replaceall(sub, "*", "");
   std::string result(strs), str(strs);
-  size_t pos = str.find(realsub, 0);
-
   if(sub.front() == '*')
     {
-      result.erase(0, pos+1);
+      size_t pos = str.find_first_of(realsub);
+      if(pos != std::string::npos)
+        result.erase(0, pos+1);
     }
   else if(sub.back() == '*')
-    {
-      result.erase(pos, str.size() - pos);
+    { 
+      size_t pos = str.find_last_of(realsub); 
+      if(pos != std::string::npos)
+        result.erase(pos, str.size() - pos);
     }
+  return result;
+}
+
+std::string xjjc::str_erasetwospace(std::string strs)
+{
+  std::string result(strs), str(strs);
+  size_t pos_front = str.find_first_not_of(" ");
+  if(pos_front != std::string::npos && pos_front != 0)
+      result.erase(0, pos_front-1);
+  size_t pos_back = result.find_last_not_of(" ");
+  if(pos_back != std::string::npos && pos_back != result.size()-1)
+    result.erase(pos_back+1, str.size() - (pos_back+1));
   return result;
 }
 
@@ -228,10 +243,10 @@ std::string xjjc::str_replaceall(std::string strs, std::string sub, std::string 
   return result;
 }
 
-std::string xjjc::str_replaceallspecial(std::string strs)
+std::string xjjc::str_replaceallspecial(std::string strs, std::string newsub)
 {
   std::string result(strs);
-  for(auto& isp : speciallist) { result = xjjc::str_replaceall(result, isp, "_"); }
+  for(auto& isp : speciallist) { result = xjjc::str_replaceall(result, isp, newsub); }
   return result;
 }
 
