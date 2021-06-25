@@ -19,7 +19,7 @@
 namespace xjjc
 {
   const std::string nc("\e[0m");
-  std::vector<std::string> speciallist = {" ", "/", "(", ")", "^", "#", "%", "$", ",", ".", "*"};
+  std::vector<std::string> speciallist = {" ", "/", "(", ")", "^", "#", "%", "$", ",", ".", "*", "&", ":", "{", "}", ";", "|"};
 
   template<size_t N, typename T> void initarray(T (*array_)[N], T initval_=0);
   template<size_t N, typename T> int findibin(const T (*array_)[N], T element_); // overflow: -1
@@ -28,6 +28,7 @@ namespace xjjc
   template<typename T> int findiedge(const std::vector<T> array_, T element_);
 
   template<typename T> std::string number_to_string(T param_);
+  float string_to_number(std::string param_);
   template<typename T> std::string number_remove_zero(T param_);
   template<typename T> std::string number_range(T val1_, T val2_, std::string var, std::string opt="");
   int number_digit(int i, int n);
@@ -42,11 +43,15 @@ namespace xjjc
   template<class T1, class T2> bool sortbyfirst_as(const std::pair<T1,T2> &a, const std::pair<T1,T2> &b) { return a.first < b.first; }
   template<class T1, class T2> bool sortbysecond_des(const std::pair<T1,T2> &a, const std::pair<T1,T2> &b) { return a.second > b.second; }
   template<class T1, class T2> bool sortbysecond_as(const std::pair<T1,T2> &a, const std::pair<T1,T2> &b) { return a.second < b.second; }
+  // template<class T1, class T2> std::map<T1, T2>::iterator findbysecond(std::map<T1, T2>& map_, T2 value_);
 
   std::string str_replaceall(std::string strs, std::string sub, std::string newsub);
-  std::string str_replaceallspecial(std::string strs);
+  std::string str_replaceallspecial(std::string strs, std::string newsub = "_");
   std::string str_erasestar(std::string strs, std::string sub); // e.g. sub = */ or .*
-  bool str_contains(std::string str1, std::string str2) { return str1.find(str2)!=std::string::npos; }
+  std::string str_erasetwospace(std::string strs);
+  bool str_contains(std::string str1, std::string str2) { return str1.find(str2) != std::string::npos; }
+  bool str_startsby(std::string str1, std::string str2) { return str1.find_first_of(str2) == 0; }
+  bool str_endsby(std::string str1, std::string str2) { return str1.find_last_of(str2) == str1.size()-str2.size(); }
   bool str_isnumber(std::string strs) { return (std::regex_match(strs, std::regex("-?[0-9]+([.][0-9]*)?")) || std::regex_match(strs, std::regex("-?[0-9]*[.][0-9]+"))); }
   bool str_isinteger(std::string strs) { return std::regex_match(strs, std::regex("-?[0-9]+")); }
   std::vector<std::string> str_divide(std::string str, std::string div);
@@ -120,24 +125,32 @@ int xjjc::findiedge(const std::vector<T> array_, T element_)
 template<typename T>
 std::string xjjc::number_to_string(T param_)
 {
-  if(param_<0) return "";
-  std::string str = std::to_string(param_);
+  std::string str;
+  if(param_<0) { str += "M"; param_ = std::abs(param_); }
+  str += std::to_string(param_);
   std::size_t found = str.find('.');
   if(found==std::string::npos)
-    {
-      str+="p0";
       return str;
-    }
-  str.replace(found,1,"p");
+  str.replace(found, 1, "p");
   while(*(str.end()-1)=='0' && *(str.end()-2)!='p' && !str.empty()) str.erase(str.end()-1);
+  if(*(str.end()-1)=='0' && *(str.end()-2)=='p') str.erase(str.size()-2, 2);
   return str;
+}
+
+float xjjc::string_to_number(std::string param_)
+{
+  bool minus = false;
+  if(param_.front() == 'M')
+    { minus = true; param_.erase(0, 1); }
+  float result = atof(str_replaceall(param_, "p", ".").c_str());
+  if(minus) result = 0-result;
+  return result;
 }
 
 template<typename T>
 std::string xjjc::number_remove_zero(T param_)
 {
   bool negative = param_<0;
-  // if(param_<0) return "";
   if(negative) param_ = 0-param_;
   std::string str = std::to_string(param_);
   std::size_t found = str.find('.');
@@ -200,16 +213,32 @@ std::string xjjc::str_erasestar(std::string strs, std::string sub)
 {
   std::string realsub = str_replaceall(sub, "*", "");
   std::string result(strs), str(strs);
-  size_t pos = str.find(realsub, 0);
-
   if(sub.front() == '*')
     {
-      result.erase(0, pos+1);
+      size_t pos = str.find_first_of(realsub);
+      if(pos != std::string::npos)
+        result.erase(0, pos+1);
     }
   else if(sub.back() == '*')
-    {
-      result.erase(pos, str.size() - pos);
+    { 
+      size_t pos = str.find_last_of(realsub); 
+      if(pos != std::string::npos)
+        result.erase(pos, str.size() - pos);
     }
+  return result;
+}
+
+std::string xjjc::str_erasetwospace(std::string strs)
+{
+  std::string result(strs), str(strs);
+  size_t pos_front = str.find_first_not_of(" ");
+  if(pos_front != std::string::npos && pos_front != 0)
+      result.erase(0, pos_front-1);
+  size_t pos_back = result.find_last_not_of(" ");
+  if(pos_back != std::string::npos && pos_back != result.size()-1)
+    result.erase(pos_back+1, str.size() - (pos_back+1));
+  if(pos_front == std::string::npos && pos_back == std::string::npos)
+    result = "";
   return result;
 }
 
@@ -228,10 +257,10 @@ std::string xjjc::str_replaceall(std::string strs, std::string sub, std::string 
   return result;
 }
 
-std::string xjjc::str_replaceallspecial(std::string strs)
+std::string xjjc::str_replaceallspecial(std::string strs, std::string newsub)
 {
   std::string result(strs);
-  for(auto& isp : speciallist) { result = xjjc::str_replaceall(result, isp, "_"); }
+  for(auto& isp : speciallist) { result = xjjc::str_replaceall(result, isp, newsub); }
   return result;
 }
 
