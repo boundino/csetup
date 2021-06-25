@@ -184,9 +184,12 @@ TGraphAsymmErrors* xjjana::shifthistcenter(TH1* hh, std::string name, float offs
   for(int i=0; i<n; i++)
     {
       yy.push_back(hh->GetBinContent(i+1));
-      yyerr.push_back(hh->GetBinError(i+1));
       xx.push_back(hh->GetBinCenter(i+1) + offset);
-      if(option == "X0")
+      if(option.find("Y0") != std::string::npos)
+        yyerr.push_back(0);
+      else
+        yyerr.push_back(hh->GetBinError(i+1));
+      if(option.find("X0") != std::string::npos)
         {
           xxel.push_back(0);
           xxeh.push_back(0);
