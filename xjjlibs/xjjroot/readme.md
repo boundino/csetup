@@ -28,9 +28,9 @@ xjjroot::drawCMS(/*"#scale[1.25]{#bf{CMS}} #it{Preliminary}", "PbPb #sqrt{s_{NN}
 ![figsetgstyle](../test/gstyle/gstyle.png)
 
 ### Frame setting
-<img src="../test/frame/cframe0.png" alt="drawing" width="30%"/>
-<img src="../test/frame/cframe1.png" alt="drawing" width="30%"/>
-<img src="../test/frame/cframe2.png" alt="drawing" width="30%"/>
+<img src="../test/frame/cframe0.png" alt="drawing" width="30%"/><img src="../test/frame/cframe1.png" alt="drawing" width="30%"/><img src="../test/frame/cframe2.png" alt="drawing" width="30%"/>
+<img src="../test/frame/cframe3.png" alt="drawing" width="30%"/><img src="../test/frame/cframe4.png" alt="drawing" width="30%"/><img src="../test/frame/cframe5.png" alt="drawing" width="30%"/>
+<img src="../test/frame/cframe6.png" alt="drawing" width="30%"/><img src="../test/frame/cframe7.png" alt="drawing" width="30%"/>
 
 ## Color Library
 - [colorlist](#colorlist)
