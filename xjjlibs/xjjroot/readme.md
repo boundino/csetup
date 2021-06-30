@@ -10,6 +10,7 @@
 ## Canvas Setting
 - [Default canvas](#default-canvas)
 - [setgstyle](#setgstyle)
+- [Frame setting](#frame-setting)
 ### Default canvas
 ```
 #include "xjjrootuti.h"
@@ -25,6 +26,11 @@ xjjroot::drawCMS(/*"#scale[1.25]{#bf{CMS}} #it{Preliminary}", "PbPb #sqrt{s_{NN}
 
 ### setgstyle()
 ![figsetgstyle](../test/gstyle/gstyle.png)
+
+### Frame setting
+<img src="../test/frame/cframe0.png" alt="drawing" width="30%"/>
+<img src="../test/frame/cframe1.png" alt="drawing" width="30%"/>
+<img src="../test/frame/cframe2.png" alt="drawing" width="30%"/>
 
 ## Color Library
 - [colorlist](#colorlist)
