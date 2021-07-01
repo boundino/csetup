@@ -233,7 +233,7 @@ std::string xjjc::str_erasetwospace(std::string strs)
   std::string result(strs), str(strs);
   size_t pos_front = str.find_first_not_of(" ");
   if(pos_front != std::string::npos && pos_front != 0)
-      result.erase(0, pos_front-1);
+    result.erase(0, pos_front);
   size_t pos_back = result.find_last_not_of(" ");
   if(pos_back != std::string::npos && pos_back != result.size()-1)
     result.erase(pos_back+1, str.size() - (pos_back+1));
