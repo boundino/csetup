@@ -47,6 +47,7 @@ namespace xjjc
 
   std::string str_replaceall(std::string strs, std::string sub, std::string newsub);
   std::string str_replaceallspecial(std::string strs, std::string newsub = "_");
+  std::string str_eraseall(std::string strs, std::string sub) { return str_replaceall(strs, sub, ""); }
   std::string str_erasestar(std::string strs, std::string sub); // e.g. sub = */ or .*
   std::string str_erasetwospace(std::string strs);
   bool str_contains(std::string str1, std::string str2) { return str1.find(str2) != std::string::npos; }
