@@ -40,6 +40,9 @@ namespace xjjana
   TGraphAsymmErrors* shifthistcenter(TH1* hh, std::string name, float offset, std::string option=""); // opt ["X0": zero x err]
   TGraphAsymmErrors* setwcenter(TH1F* h, std::vector<double>& xw, std::string name);
   std::vector<double> gethXaxis(TH1* h);
+  void gScale(TGraph* g, float scale);
+  void gScale(TGraphErrors* g, float scale);
+  void gScale(TGraphAsymmErrors* g, float scale);
 
   void setbranchaddress(TTree* nt, const char* bname, void* addr);
   template <class T> T* copyobject(const T* obj, TString objname);
@@ -247,6 +250,31 @@ std::vector<double> xjjana::gethXaxis(TH1* h)
   std::vector<double> vvx({vx, vx+nx});
   vvx.push_back(h->GetXaxis()->GetXmax());
   return vvx;
+}
+
+void xjjana::gScale(TGraph* g, float scale)
+{
+  for (int i=0; i<g->GetN(); i++) 
+    g->GetY()[i] *= scale;
+}
+
+void xjjana::gScale(TGraphErrors* g, float scale)
+{
+  for (int i=0; i<g->GetN(); i++) 
+    {
+      g->GetY()[i] *= scale;
+      g->GetEY()[i] *= scale;
+    }
+}
+
+void xjjana::gScale(TGraphAsymmErrors* g, float scale)
+{
+  for (int i=0; i<g->GetN(); i++) 
+    {
+      g->GetY()[i] *= scale;
+      g->GetEYhigh()[i] *= scale;
+      g->GetEYlow()[i] *= scale;
+    }
 }
 
 template <class T>
