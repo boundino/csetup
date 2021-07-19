@@ -34,6 +34,7 @@ namespace xjjc
   int number_digit(int i, int n);
 
   void progressbar(int index_, int total_, int step=10000, int morespace_=0);
+  void progressslide(int index_, int total_, int step=10000);
   void progressbar_summary(int total_);
 
   template<typename T> char* gettype(T exp);
@@ -131,7 +132,7 @@ std::string xjjc::number_to_string(T param_)
   str += std::to_string(param_);
   std::size_t found = str.find('.');
   if(found==std::string::npos)
-      return str;
+    return str;
   str.replace(found, 1, "p");
   while(*(str.end()-1)=='0' && *(str.end()-2)!='p' && !str.empty()) str.erase(str.end()-1);
   if(*(str.end()-1)=='0' && *(str.end()-2)=='p') str.erase(str.size()-2, 2);
@@ -190,9 +191,18 @@ void xjjc::progressbar(int index_, int total_, int step, int morespace_/*=0*/)
   if(index_%step==0 || index_ == total_-1)
     {
       if(total_ > 0)
-        std::cout<<std::setiosflags(std::ios::left)<<"  [ \033[1;36m"<<std::setw(10+morespace_)<<index_<<"\033[0m"<<" / "<<std::setw(10+morespace_)<<total_<<" ] "<<"\033[1;36m"<<round(100.*index_/total_)<<"%\033[0m"<<"\r"<<std::flush;
+        std::cout<<std::setiosflags(std::ios::left)<<"  [ \033[36m"<<std::setw(10+morespace_)<<index_<<"\033[0m"<<" / "<<std::setw(10+morespace_)<<total_<<" ] "<<"\033[36m"<<round(100.*index_/total_)<<"%\033[0m"<<"\r"<<std::flush;
       else
-        std::cout<<std::setiosflags(std::ios::left)<<"  [ \033[1;36m"<<std::setw(10+morespace_)<<index_<<"\033[0m ]"<<"\r"<<std::flush;
+        std::cout<<std::setiosflags(std::ios::left)<<"  [ \033[36m"<<std::setw(10+morespace_)<<index_<<"\033[0m ]"<<"\r"<<std::flush;
+    }
+}
+
+void xjjc::progressslide(int index_, int total_, int step)
+{
+  if(index_%step==0 || index_ == total_-1)
+    {
+      if(index_ == total_-1) index_++;
+      std::cout<<std::setiosflags(std::ios::left)<<"  [ \033[36m"<<std::setw(21)<<std::string(round(20.*index_/total_), '=')+">"<<"\e[0m ] "<<"\033[36m"<<index_<<"\033[0m"<<" / "<<total_<<"\033[0m"<<"\r"<<std::flush;
     }
 }
 
