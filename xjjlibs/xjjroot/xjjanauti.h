@@ -43,6 +43,7 @@ namespace xjjana
   void gScale(TGraph* g, float scale);
   void gScale(TGraphErrors* g, float scale);
   void gScale(TGraphAsymmErrors* g, float scale);
+  int gethXn(TH1* h) { return h->GetXaxis()->GetNbins(); }
 
   void setbranchaddress(TTree* nt, const char* bname, void* addr);
   template <class T> T* copyobject(const T* obj, TString objname);
