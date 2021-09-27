@@ -202,7 +202,7 @@ void xjjc::progressslide(int index_, int total_, int step)
   if(index_%step==0 || index_ == total_-1)
     {
       if(index_ == total_-1) index_++;
-      std::cout<<std::setiosflags(std::ios::left)<<"  [ \033[36m"<<std::setw(21)<<std::string(round(20.*index_/total_), '=')+">"<<"\e[0m ] "<<"\033[36m"<<index_<<"\033[0m"<<" / "<<total_<<"\033[0m"<<"\r"<<std::flush;
+      std::cout<<std::setiosflags(std::ios::left)<<"  [ \033[36m"<<std::setw(21)<<std::string(round(20.*index_/total_), '=')+">"+std::string(20-round(20.*index_/total_), '.')<<"\e[0m ] "<<"\033[36m"<<index_<<"\033[0m"<<" / "<<total_<<"\033[0m"<<"\r"<<std::flush;
     }
 }
 
