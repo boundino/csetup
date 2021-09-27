@@ -187,9 +187,11 @@ void xjjroot::drawCMS(TString contentleft/*="#scale[1.25]{#bf{CMS}} #it{Prelimin
 
 void xjjroot::drawCMSleft(TString content/*="#scale[1.25]{#bf{CMS}} #it{Preliminary}"*/, Float_t xpos/*=0*/, Float_t ypos/*=0*/)
 {
-  if(content=="" || content=="Preliminary") content = "#scale[1.25]{#bf{CMS}} #it{Preliminary}";
-  if(content=="Simulation") content = "#scale[1.25]{#bf{CMS}} #it{Simulation}";
-  if(content=="Projection") content = "#scale[1.25]{#bf{CMS}} #it{Projection}";
+  if(content=="") content = "Internal";
+  if(content=="Preliminary" || 
+     content=="Simulation" ||
+     content=="Projection" ||
+     content=="Internal") content = Form("#scale[1.25]{#bf{CMS}} #it{%s}", content.Data());
   TLatex* texCms = new TLatex(gStyle->GetPadLeftMargin()+xpos,(1-gStyle->GetPadTopMargin())*1.02+ypos, content.Data());
   texCms->SetNDC();
   texCms->SetTextAlign(11);
@@ -200,8 +202,7 @@ void xjjroot::drawCMSleft(TString content/*="#scale[1.25]{#bf{CMS}} #it{Prelimin
 
 void xjjroot::drawCMSright(TString content/*="#sqrt{s_{NN}} = 5.02 TeV"*/, Float_t xpos/*=0*/, Float_t ypos/*=0*/)
 {
-  if(content=="pp") content = "pp #sqrt{s_{NN}} = 5.02 TeV";
-  if(content=="PbPb") content = "PbPb #sqrt{s_{NN}} = 5.02 TeV";
+  if(content=="pp" || content=="PbPb") content = Form("%s #sqrt{s_{NN}} = 5.02 TeV", content.Data());
   TLatex* texCol = new TLatex((1-gStyle->GetPadRightMargin())+xpos,(1-gStyle->GetPadTopMargin())*1.02+ypos, content.Data());
   texCol->SetNDC();
   texCol->SetTextAlign(31);
