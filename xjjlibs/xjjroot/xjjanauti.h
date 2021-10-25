@@ -31,6 +31,7 @@ namespace xjjana
   std::map<std::string, double> chi2test(TH1* h1, TH1* h2, const char* opt="UW");
   double gethminimum(TH1* h);
   double gethmaximum(TH1* h);
+  void sethabsminmax(TH1* h, float ymin, float ymax);
   double sethsmin(std::vector<TH1F*>& h, float factor);
   double sethsmax(std::vector<TH1F*>& h, float factor);
   void sethsminmax(std::vector<TH1F*>& h, float factor_min, float factor_max);
@@ -40,10 +41,12 @@ namespace xjjana
   TGraphAsymmErrors* shifthistcenter(TH1* hh, std::string name, float offset, std::string option=""); // opt ["X0": zero x err]
   TGraphAsymmErrors* setwcenter(TH1F* h, std::vector<double>& xw, std::string name);
   std::vector<double> gethXaxis(TH1* h);
+  int gethXn(TH1* h) { return h->GetXaxis()->GetNbins(); }
   void gScale(TGraph* g, float scale);
   void gScale(TGraphErrors* g, float scale);
   void gScale(TGraphAsymmErrors* g, float scale);
-  int gethXn(TH1* h) { return h->GetXaxis()->GetNbins(); }
+  template <class T> T* changeTHtype(TH1* h, std::string name);
+  template <class T> T* changebin(T* h, double xmin, double xmax, std::string name);
 
   void setbranchaddress(TTree* nt, const char* bname, void* addr);
   template <class T> T* copyobject(const T* obj, TString objname);
@@ -130,6 +133,12 @@ double xjjana::gethmaximum(TH1* h)
   for(int i=0; i<h->GetXaxis()->GetNbins(); i++)
     ymax = std::max(ymax, h->GetBinContent(i+1));
   return ymax;
+}
+
+void xjjana::sethabsminmax(TH1* h, float ymin, float ymax)
+{
+  h->SetMinimum(ymin);
+  h->SetMaximum(ymax);
 }
 
 double xjjana::sethsmin(std::vector<TH1F*>& h, float factor)
@@ -284,6 +293,32 @@ T* xjjana::copyobject(const T* obj, TString objname)
   T* newobj = new T(*obj);
   newobj->SetName(objname);
   return newobj;
+}
+
+template <class T> 
+T* xjjana::changeTHtype(TH1* h, std::string name)
+{
+  auto vx = gethXaxis(h); int nvx = vx.size() - 1;
+  T* hnew = new T(name.c_str(), h->GetTitle(), nvx, vx.data());
+  for(int i=0; i<nvx; i++)
+    {
+      hnew->SetBinContent(i+1, h->GetBinContent(i+1));
+      hnew->SetBinError(i+1, h->GetBinError(i+1));
+    }
+  return hnew;
+}
+
+template <class T>
+T* xjjana::changebin(T* h, double xmin, double xmax, std::string name)
+{
+  int n = gethXn(h);
+  T* hnew = new T(name.c_str(), h->GetTitle(), n, xmin, xmax);
+  for(int i=0; i<n; i++)
+    {
+      hnew->SetBinContent(i+1, h->GetBinContent(i+1));
+      hnew->SetBinError(i+1, h->GetBinError(i+1));
+    }
+  return hnew;
 }
 
 #endif
