@@ -62,6 +62,8 @@ namespace xjjc
   std::string str_tolower(std::string str);
   std::string str_toupper(std::string str);
 
+  template <class T> using array2D = std::vector<std::vector<T>>;
+  template <class T> using array3D = std::vector<std::vector<std::vector<T>>>;
   template<class T> std::vector<std::vector<T>> array2d(int n1, int n2);
   template<class T> std::vector<std::vector<std::vector<T>>> array3d(int n1, int n2, int n3);
 
