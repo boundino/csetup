@@ -32,6 +32,7 @@ namespace xjjroot
   std::vector<Color_t> colorlist_light  = {kGreen-8, kOrange-4, kRed-9, kAzure-9, kMagenta-8, kCyan-8, kYellow-6, kBlue-8, kPink+1, kViolet-9};
   std::vector<Color_t> colorlist_middle = {kGreen+2, kOrange-3, kRed-3, kAzure-3, kMagenta-5, kCyan-2, kYellow+2, kBlue-5, kPink+2, kViolet+7};
   std::vector<Color_t> colorlist_dark   = {kGreen+3, kOrange+5, kRed+2, kAzure-6, kMagenta-1, kCyan+3, kYellow+3, kBlue-1, kPink+3, kViolet+4};
+  std::vector<int> colorlist_bw = {TColor::GetColor("#000000"), TColor::GetColor("#191919"), TColor::GetColor("#323232"), TColor::GetColor("#4c4c4c"), TColor::GetColor("#5d5d5d"), TColor::GetColor("#666666"), TColor::GetColor("#7f7f7f"), TColor::GetColor("#999999"), TColor::GetColor("#b2b2b2"), TColor::GetColor("#cccccc"), TColor::GetColor("#d3d3d3"), TColor::GetColor("#e2e2e2")};
   // mycolor_satmiddle[cc], mycolor_light[cc], mycolor_middle[cc], mycolor_dark[cc]
   std::vector<std::string> cc = {"red", "azure", "green", "magenta", "orange", "greenblue", "pink", "cyan", "yellow", "blue", "violet"};  
 
@@ -46,7 +47,8 @@ namespace xjjroot
   void drawCMSright(TString content="#sqrt{s_{NN}} = 5.02 TeV", Float_t xpos=0, Float_t ypos=0);
   void drawCMS(TString contentleft="#scale[1.25]{#bf{CMS}} #it{Preliminary}", TString contentright="PbPb #sqrt{s_{NN}} = 5.02 TeV");
   void settex(TLatex* tex, Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack, Float_t tangle=0);
-  TLatex* drawtex(Double_t x, Double_t y, const char *text, Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack, Float_t tangle=0);
+  TLatex* drawtex(Double_t x, Double_t y, const char *text, Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack, Float_t tangle=0, bool draw = true);
+  TLatex* drawtexnum(Double_t x, Double_t y, const char *text, Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack, Float_t tangle=0);
   void drawtexgroup(Double_t x, Double_t y, std::vector<std::string> text, int ncol=1, Double_t colwid=0.2, Float_t tsize=0.04, Short_t align=12, Style_t font=42, std::vector<Color_t> color=colorlist_middle);
   void setleg(TLegend* leg, Float_t tsize=0.04);
   void setlegndraw(TLegend* leg, Float_t tsize=0.04);
@@ -221,10 +223,19 @@ void xjjroot::settex(TLatex* tex, Float_t tsize/*=0.04*/, Short_t align/*=12*/, 
   tex->SetTextAngle(tangle);
 }
 
-TLatex* xjjroot::drawtex(Double_t x, Double_t y, const char* text, Float_t tsize/*=0.04*/, Short_t align/*=12*/, Style_t font/*=42*/, Color_t color/*=kBlack*/, Float_t tangle/*=0*/)
+TLatex* xjjroot::drawtex(Double_t x, Double_t y, const char* text, Float_t tsize/*=0.04*/, Short_t align/*=12*/, Style_t font/*=42*/, Color_t color/*=kBlack*/, Float_t tangle/*=0*/, bool draw/*=true*/)
 {
   TLatex* tex = new TLatex(x, y, text);
   xjjroot::settex(tex, tsize, align, font, color, tangle);
+  if(draw) tex->Draw();
+  return tex;
+}
+
+TLatex* xjjroot::drawtexnum(Double_t x, Double_t y, const char* text, Float_t tsize/*=0.04*/, Short_t align/*=12*/, Style_t font/*=42*/, Color_t color/*=kBlack*/, Float_t tangle/*=0*/)
+{
+  TLatex* tex = new TLatex(x, y, text);
+  xjjroot::settex(tex, tsize, align, font, color, tangle);
+  tex->SetNDC(false);
   tex->Draw();
   return tex;
 }
