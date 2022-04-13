@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <map>
 #include "xjjcuti.h"
@@ -39,7 +40,7 @@ void xjjc::config::parse()
 void xjjc::config::print()
 {
   for(auto& vv : value_)
-      std::cout<<vv.first<<" ==> "<<vv.second<<std::endl;
+    std::cout<<std::left<<std::setw(40)<<vv.first<<" => "<<vv.second<<std::endl;
 }
 
 #endif
