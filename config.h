@@ -17,6 +17,7 @@ namespace xjjc
     std::string v(std::string key) { return value_[key]; }
     float vf(std::string key) { return atof(value_[key].c_str()); }
     int vi(std::string key) { return atoi(value_[key].c_str()); }
+    std::vector<float> vvf(std::string key);
     void print();
   private:
     std::string input_;
@@ -35,6 +36,15 @@ void xjjc::config::parse()
       auto vline = xjjc::str_divide(line, "=");
       value_[vline[0]] = vline[1];
     }
+}
+
+std::vector<float> vvf(std::string key)
+{
+  auto vv = xjjc::str_divide(key, ",");
+  std::vector<float> v_result;
+  for(auto& iv : vv)
+    v_result.push_back(atof(iv.c_str()));
+  return v_result;
 }
 
 void xjjc::config::print()
