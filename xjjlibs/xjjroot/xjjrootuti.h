@@ -44,7 +44,7 @@ namespace xjjroot
   template <class T> void settfstyle(T* h, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1, Color_t fcolor=-1, Float_t falpha=-1, Style_t fstyle=-1);
   template <class T> void setmarkerstyle(T* h, Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1);
   void drawCMSleft(TString content="#scale[1.25]{#bf{CMS}} #it{Preliminary}", Float_t xpos=0, Float_t ypos=0);
-  void drawCMSright(TString content="#sqrt{s_{NN}} = 5.02 TeV", Float_t xpos=0, Float_t ypos=0);
+  void drawCMSright(TString content="#sqrt{s_{NN}} = 5.02 TeV", Float_t xpos=0, Float_t ypos=0, Float_t tsize=0.04);
   void drawCMS(TString contentleft="#scale[1.25]{#bf{CMS}} #it{Preliminary}", TString contentright="PbPb #sqrt{s_{NN}} = 5.02 TeV");
   void settex(TLatex* tex, Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack, Float_t tangle=0);
   TLatex* drawtex(Double_t x, Double_t y, const char *text, Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack, Float_t tangle=0, bool draw = true);
@@ -66,6 +66,7 @@ namespace xjjroot
   template<class T> T* gethist(TFile* inf, std::string name, int w=10);
 
   void mkdir(std::string outputfile);
+  void saveas(TCanvas* c, std::string outputfile);
   void drawcomment(std::string comment, std::string opt="lb") { xjjroot::drawtex((opt.front()=='r'?1:0), (opt.back()=='t'?1:0), comment.c_str(), 0.024, ((opt.front()=='r')*2+1)*10+((opt.back()=='t')*2+1), 42, kGray); }
   void writetex(std::string tr, std::string br, std::string str);
   std::string readtex(TTree* t, std::string br);
@@ -202,13 +203,13 @@ void xjjroot::drawCMSleft(TString content/*="#scale[1.25]{#bf{CMS}} #it{Prelimin
   texCms->Draw();
 }
 
-void xjjroot::drawCMSright(TString content/*="#sqrt{s_{NN}} = 5.02 TeV"*/, Float_t xpos/*=0*/, Float_t ypos/*=0*/)
+void xjjroot::drawCMSright(TString content/*="#sqrt{s_{NN}} = 5.02 TeV"*/, Float_t xpos/*=0*/, Float_t ypos/*=0*/, Float_t tsize/*=0.04*/)
 {
   if(content=="pp" || content=="PbPb") content = Form("%s #sqrt{s_{NN}} = 5.02 TeV", content.Data());
   TLatex* texCol = new TLatex((1-gStyle->GetPadRightMargin())+xpos,(1-gStyle->GetPadTopMargin())*1.02+ypos, content.Data());
   texCol->SetNDC();
   texCol->SetTextAlign(31);
-  texCol->SetTextSize(0.04);
+  texCol->SetTextSize(tsize);
   texCol->SetTextFont(42);
   texCol->Draw();
 }
@@ -346,6 +347,14 @@ void xjjroot::mkdir(std::string outputfile)
       pos = outputfile.find("/", pos+1);
     }
   gSystem->Exec(Form("mkdir -p %s", dir.c_str()));
+}
+
+void xjjroot::saveas(TCanvas* c, std::string outputfile)
+{
+  mkdir(outputfile);
+  std::cout<<"\e[1m";
+  c->SaveAs(outputfile.c_str());
+  std::cout<<"\e[0m";
 }
 
 void xjjroot::writetex(std::string tr, std::string br, std::string str)
