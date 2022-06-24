@@ -352,9 +352,7 @@ void xjjroot::mkdir(std::string outputfile)
 void xjjroot::saveas(TCanvas* c, std::string outputfile)
 {
   mkdir(outputfile);
-  std::cout<<"\e[1m";
   c->SaveAs(outputfile.c_str());
-  std::cout<<"\e[0m";
 }
 
 void xjjroot::writetex(std::string tr, std::string br, std::string str)
