@@ -195,6 +195,7 @@ void xjjroot::drawCMSleft(TString content/*="#scale[1.25]{#bf{CMS}} #it{Prelimin
      content=="Simulation" ||
      content=="Projection" ||
      content=="Internal") content = Form("#scale[1.25]{#bf{CMS}} #it{%s}", content.Data());
+  if(content=="CMS") content = "#scale[1.25]{#bf{CMS}}";
   TLatex* texCms = new TLatex(gStyle->GetPadLeftMargin()+xpos,(1-gStyle->GetPadTopMargin())*1.02+ypos, content.Data());
   texCms->SetNDC();
   texCms->SetTextAlign(11);
