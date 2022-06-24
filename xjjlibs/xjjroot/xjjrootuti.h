@@ -43,7 +43,7 @@ namespace xjjroot
   template <class T> void setlinestyle(T* h, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1, Float_t lalpha=-1);
   template <class T> void settfstyle(T* h, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1, Color_t fcolor=-1, Float_t falpha=-1, Style_t fstyle=-1);
   template <class T> void setmarkerstyle(T* h, Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1);
-  void drawCMSleft(TString content="#scale[1.25]{#bf{CMS}} #it{Preliminary}", Float_t xpos=0, Float_t ypos=0, Float tsize=0.04);
+  void drawCMSleft(TString content="#scale[1.25]{#bf{CMS}} #it{Preliminary}", Float_t xpos=0, Float_t ypos=0, Float_t tsize=0.04);
   void drawCMSright(TString content="#sqrt{s_{NN}} = 5.02 TeV", Float_t xpos=0, Float_t ypos=0, Float_t tsize=0.04);
   void drawCMS(TString contentleft="#scale[1.25]{#bf{CMS}} #it{Preliminary}", TString contentright="PbPb #sqrt{s_{NN}} = 5.02 TeV");
   void settex(TLatex* tex, Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack, Float_t tangle=0);
@@ -188,7 +188,7 @@ void xjjroot::drawCMS(TString contentleft/*="#scale[1.25]{#bf{CMS}} #it{Prelimin
   drawCMSright(contentright);
 }
 
-void xjjroot::drawCMSleft(TString content/*="#scale[1.25]{#bf{CMS}} #it{Preliminary}"*/, Float_t xpos/*=0*/, Float_t ypos/*=0*/, Float tsize/*=0.04*/)
+void xjjroot::drawCMSleft(TString content/*="#scale[1.25]{#bf{CMS}} #it{Preliminary}"*/, Float_t xpos/*=0*/, Float_t ypos/*=0*/, Float_t tsize/*=0.04*/)
 {
   if(content=="") content = "Internal";
   if(content=="Preliminary" || 
