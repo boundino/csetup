@@ -17,6 +17,7 @@
 #include <TGraphAsymmErrors.h>
 #include <TSystem.h>
 #include <TFile.h>
+#include <TCanvas.h>
 
 #include <vector>
 #include <iostream>
