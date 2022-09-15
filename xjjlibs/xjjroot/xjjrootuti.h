@@ -64,6 +64,7 @@ namespace xjjroot
 
   template<class T> void printhist(T* hh, int w=10);
   template<class T> void writehist(T* hh, int w=10) { printhist(hh, w); hh->Write(); }
+  template<class T> void printhistvalue(T* hh);
   template<class T> T* gethist(TFile* inf, std::string name, int w=10);
 
   void mkdir(std::string outputfile);
@@ -317,6 +318,16 @@ TGaxis* xjjroot::drawaxis(Double_t xmin, Double_t ymin, Double_t xmax, Double_t 
 }
 
 /* ----- */
+
+template<class T> 
+void xjjroot::printhistvalue(T* hh)
+{ 
+  std::cout<<std::left<<"\e[2m"<<hh->GetName()<<"\e[0m\e[36;1m ("<<hh->GetEntries()<<")\e[0m"<<std::endl; 
+  for(int i=0; i<hh->GetXaxis()->GetNbins(); i++)
+    {
+      std::cout<<hh->GetBinCenter(i+1)<<" "<<hh->GetBinContent(i+1)<<"  "<<hh->GetBinError(i+1)<<std::endl;
+    }
+}
 
 template<class T> 
 void xjjroot::printhist(T* hh, int w)
