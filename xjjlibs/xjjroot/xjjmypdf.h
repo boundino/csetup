@@ -3,6 +3,15 @@
 
 #include "xjjrootuti.h"
 
+/*
+xjjroot::mypdf pdf("output.pdf");
+// --> loop
+pdf.prepare();
+// draw
+pdf.write();
+// <--
+pdf.close();
+*/
 namespace xjjroot
 {
   class mypdf

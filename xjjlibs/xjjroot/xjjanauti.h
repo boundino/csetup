@@ -32,9 +32,9 @@ namespace xjjana
   double gethminimum(TH1* h);
   double gethmaximum(TH1* h);
   void sethabsminmax(TH1* h, float ymin, float ymax);
-  double sethsmin(std::vector<TH1F*>& h, float factor);
-  double sethsmax(std::vector<TH1F*>& h, float factor);
-  void sethsminmax(std::vector<TH1F*>& h, float factor_min, float factor_max);
+  double sethsmin(std::vector<TH1*>& h, float factor=1);
+  double sethsmax(std::vector<TH1*>& h, float factor=1);
+  void sethsminmax(std::vector<TH1*>& h, float factor_min, float factor_max);
 
   TGraphErrors* shifthistcenter(TH1* hh, std::string name, int option=-1);
   TGraphAsymmErrors* shifthistcenter(TEfficiency* geff, std::string name, int option=-1);
@@ -141,7 +141,7 @@ void xjjana::sethabsminmax(TH1* h, float ymin, float ymax)
   h->SetMaximum(ymax);
 }
 
-double xjjana::sethsmin(std::vector<TH1F*>& h, float factor)
+double xjjana::sethsmin(std::vector<TH1*>& h, float factor)
 {
   double ymin = 1.e+10;
   for(auto& hh : h) ymin = std::min(ymin, gethminimum(hh));
@@ -149,7 +149,7 @@ double xjjana::sethsmin(std::vector<TH1F*>& h, float factor)
   return ymin;
 }
 
-double xjjana::sethsmax(std::vector<TH1F*>& h, float factor)
+double xjjana::sethsmax(std::vector<TH1*>& h, float factor)
 {
   double ymax = -1.e+10;
   for(auto& hh : h) ymax = std::max(ymax, gethmaximum(hh));
@@ -157,7 +157,7 @@ double xjjana::sethsmax(std::vector<TH1F*>& h, float factor)
   return ymax;
 }
 
-void xjjana::sethsminmax(std::vector<TH1F*>& h, float factor_min, float factor_max)
+void xjjana::sethsminmax(std::vector<TH1*>& h, float factor_min, float factor_max)
 {
   double ymax = -1.e+10, ymin = 1.e+10;
   for(auto& hh : h)
