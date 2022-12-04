@@ -67,3 +67,5 @@ void xjjroot::compare::draw(std::vector<const char*> dd)
   for(int i=0; i<vh.size(); i++)
     vh[i]->Draw(Form("%s same", dd[i]));
 }
+
+#endif
