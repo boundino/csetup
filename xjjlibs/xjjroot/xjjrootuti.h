@@ -66,6 +66,7 @@ namespace xjjroot
   template<class T> void writehist(T* hh, int w=10) { printhist(hh, w); hh->Write(); }
   template<class T> void printhistvalue(T* hh);
   template<class T> T* gethist(TFile* inf, std::string name, int w=10);
+  template<class T> T* gethist(std::string name, int w=10);
 
   void mkdir(std::string outputfile);
   void saveas(TCanvas* c, std::string outputfile);
@@ -339,11 +340,22 @@ void xjjroot::printhist(T* hh, int w)
 template<class T> 
 T* xjjroot::gethist(TFile* inf, std::string name, int w)
 { 
-  T* hh = (T*)inf->Get(name.c_str());
-  if(hh)
-    printhist(hh, w); 
-  else
-    std::cout<<std::left<<"\e[31m"<<std::setw(w)<<name<<" (x)\e[0m"<<std::endl;
+  T* hh = 0;
+  if(!inf) { std::cout<<std::left<<"\e[31m"<<std::setw(w)<<name<<" (x)\e[0m"<<std::endl; return hh; }
+  hh = (T*)inf->Get(name.c_str());
+  if(!hh) { std::cout<<std::left<<"\e[31m"<<std::setw(w)<<name<<" (x)\e[0m"<<std::endl; return hh; }
+  printhist(hh, w); 
+  return hh;
+}
+
+template<class T> 
+T* xjjroot::gethist(std::string name, int w)
+{ 
+  T* hh = 0;
+  auto inputname = xjjc::str_divide(name, "::");
+  auto inf = TFile::Open(inputname[0].c_str());
+  hh = gethist<T>(inf, inputname[1], w);
+
   return hh;
 }
 
