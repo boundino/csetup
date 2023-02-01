@@ -10,20 +10,22 @@
 #include <TH2.h>
 
 #include "xjjcuti.h"
+#include "xjjrootuti.h"
 
 namespace xjjroot
 {
-  enum Opt { name, type };
-  std::vector<std::string> opt_default = {"", "TH1F"};
+  enum Opt { obj, type, name };
+  std::vector<std::string> opt_default = {"", "TH1F", ""};
 
   class compare
   {
   public:
     compare(std::string input="inf::hist#,inf::hist#");
     std::vector<TH1*> vh;
-    void setcolor(std::vector<Color_t> cc = {kBlack, kAzure-3, kRed-3, kGreen+2, kOrange-3, kBlue-5, kCyan-2, kMagenta-5, kYellow+2, kPink+2, kViolet+7})
-    { for(int i=0; i<vh.size(); i++) { vh[i]->SetLineColor(cc[i]); vh[i]->SetMarkerColor(cc[i]); } }
-    void draw(std::vector<const char*> dd = {"pe", "histe", "histe", "histe", "histe", "histe", "histe", "histe", "histe", "histe", "histe"});
+    int n() { return vh.size(); }
+    void setcolor(std::vector<Color_t> cc = {kBlack, kAzure-3, kRed-3, kGreen+2, kOrange-3, kBlue-5, kCyan-2, kMagenta-5, kYellow+2, kPink+2})
+    { for(int i=0; i<vh.size(); i++) { vh[i]->SetLineColor(cc[i%cc.size()]); vh[i]->SetMarkerColor(cc[i%cc.size()]); } }
+    void draw(std::vector<const char*> dd = {"pe", "histe", "histe", "histe", "histe", "histe", "histe", "histe", "histe", "histe"});
 
   private:
     std::vector<std::vector<std::string>> opt;
@@ -44,17 +46,18 @@ xjjroot::compare::compare(std::string input)
       opt.push_back(thisopt);
 
       // pars[0]
-      auto inputname = xjjc::str_divide(pars[0], "::");
-      auto inf = TFile::Open(inputname[0].c_str());
+      TH1* hh = 0;
       if(thisopt[type]=="TH1D")
-        vh.push_back((TH1D*)inf->Get(inputname[1].c_str()));
+        hh = xjjroot::gethist<TH1D>(pars[0]);
       else if(thisopt[type]=="TH1F")
-        vh.push_back((TH1F*)inf->Get(inputname[1].c_str())); 
+        hh = xjjroot::gethist<TH1F>(pars[0]);
       else if(thisopt[type]=="TH2D")
-        vh.push_back((TH2D*)inf->Get(inputname[1].c_str()));
+        hh = xjjroot::gethist<TH2D>(pars[0]);
       else if(thisopt[type]=="TH2F")
-        vh.push_back((TH2F*)inf->Get(inputname[1].c_str())); 
-      auto hh = vh[vh.size()-1];
+        hh = xjjroot::gethist<TH2F>(pars[0]);
+      vh.push_back(hh);
+      // auto hh = vh[vh.size()-1];
+      if(thisopt[name] != "") hh->SetName(thisopt[name].c_str());
       hh->SetMarkerStyle(21);
       hh->SetMarkerSize(0.6);
       hh->SetLineWidth(1);
@@ -65,7 +68,11 @@ xjjroot::compare::compare(std::string input)
 void xjjroot::compare::draw(std::vector<const char*> dd)
 {
   for(int i=0; i<vh.size(); i++)
-    vh[i]->Draw(Form("%s same", dd[i]));
+    {
+      if(xjjc::str_contains(dd[i%dd.size()], "hist")) 
+        vh[i]->SetMarkerSize(0);
+      vh[i]->Draw(Form("%s same", dd[i%dd.size()]));
+    }
 }
 
 #endif
