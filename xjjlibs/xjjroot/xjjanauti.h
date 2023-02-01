@@ -9,6 +9,7 @@
 #include <TLine.h>
 #include <TStyle.h>
 #include <TH1.h>
+#include <TH2.h>
 #include <TGaxis.h>
 #include <TF1.h>
 #include <TMath.h>
@@ -28,6 +29,8 @@ namespace xjjana
   void dividebinwid(TH1* h);
   TH1* histMinusCorr(TH1* ha, TH1* hb, std::string name);
   void drawpull(TH1* h, TF1* f, Color_t color=0, float ymax=4);
+  void drawhoutline(TH2* h, Color_t lcolor=1, Style_t lstyle=1, Width_t lwidth=1);
+
   std::map<std::string, double> chi2test(TH1* h1, TH1* h2, const char* opt="UW");
   double gethminimum(TH1* h);
   double gethmaximum(TH1* h);
@@ -100,6 +103,31 @@ void xjjana::drawpull(TH1* h, TF1* f, Color_t color, float pullmax)
   xjjroot::drawline(binmin, (yhmax-yhmin)/2.+yhmin, binmax, (yhmax-yhmin)/2.+yhmin, kGray, 2, gStyle->GetLineWidth(), 0.5);
   xjjroot::drawaxis(binmax, yhmin, binmax, yhmax, -pullmax, pullmax, tcolor, 1, gStyle->GetLineWidth(), "+L", h->GetYaxis()->GetLabelSize()*0.9);
   xjjroot::drawtex(0.93, 0.55, "Pull", 0.04, 33, 62, tcolor);
+}
+
+void xjjana::drawhoutline(TH2* h, Color_t lcolor/*=1*/, Style_t lstyle/*=1*/, Width_t lwidth/*=1*/)
+{
+  auto xaxis = h->GetXaxis(), yaxis = h->GetYaxis();
+  auto nx = xaxis->GetNbins(), ny = yaxis->GetNbins();
+  int b[4][2] = { {0, 1}, {-1, 0}, {0, -1}, {1, 0} };
+  for(int i=0; i<nx; i++)
+    for(int j=0; j<ny; j++)
+      {
+        auto content = h->GetBinContent(i+1, j+1);
+        for(int k=0; k<4; k++)
+          {
+            auto neighbor = h->GetBinContent(i+1+b[k][0], j+1+b[k][1]);
+            if((content||neighbor) && !(content&&neighbor))
+              {
+                auto cx = xaxis->GetBinCenter(i+1), wx = xaxis->GetBinWidth(i+1),
+                  cy = yaxis->GetBinCenter(j+1), wy = yaxis->GetBinWidth(j+1),
+                  fx = (double)b[k][0], fy = (double)b[k][1];
+                xjjroot::drawline(cx+wx*(fx+fy)/2., cy+wy*(fy+fx)/2, 
+                                  cx+wx*(fx-fy)/2., cy+wy*(fy-fx)/2., 
+                                  lcolor, lstyle, lwidth);
+              }
+          }
+      }
 }
 
 std::map<std::string, double> xjjana::chi2test(TH1* h1, TH1* h2, const char* opt)
