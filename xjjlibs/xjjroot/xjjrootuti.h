@@ -35,28 +35,39 @@ namespace xjjroot
   std::vector<Color_t> colorlist_light  = {kGreen-8, kOrange-4, kRed-9, kAzure-9, kMagenta-8, kCyan-8, kYellow-6, kBlue-8, kPink+1, kViolet-9};
   std::vector<Color_t> colorlist_middle = {kGreen+2, kOrange-3, kRed-3, kAzure-3, kMagenta-5, kCyan-2, kYellow+2, kBlue-5, kPink+2, kViolet+7};
   std::vector<Color_t> colorlist_dark   = {kGreen+3, kOrange+5, kRed+2, kAzure-6, kMagenta-1, kCyan+3, kYellow+3, kBlue-1, kPink+3, kViolet+4};
-  std::vector<int> colorlist_bw = {TColor::GetColor("#000000"), TColor::GetColor("#191919"), TColor::GetColor("#323232"), TColor::GetColor("#4c4c4c"), TColor::GetColor("#5d5d5d"), TColor::GetColor("#666666"), TColor::GetColor("#7f7f7f"), TColor::GetColor("#999999"), TColor::GetColor("#b2b2b2"), TColor::GetColor("#cccccc"), TColor::GetColor("#d3d3d3"), TColor::GetColor("#e2e2e2")};
+  std::vector<int> colorlist_bw = {TColor::GetColor("#000000"), TColor::GetColor("#191919"), TColor::GetColor("#323232"), TColor::GetColor("#4c4c4c"),
+                                   TColor::GetColor("#5d5d5d"), TColor::GetColor("#666666"), TColor::GetColor("#7f7f7f"), TColor::GetColor("#999999"),
+                                   TColor::GetColor("#b2b2b2"), TColor::GetColor("#cccccc"), TColor::GetColor("#d3d3d3"), TColor::GetColor("#e2e2e2")};
   // mycolor_satmiddle[cc], mycolor_light[cc], mycolor_middle[cc], mycolor_dark[cc]
   std::vector<std::string> cc = {"red", "azure", "green", "magenta", "orange", "greenblue", "pink", "cyan", "yellow", "blue", "violet"};  
 
   void setgstyle(Int_t padtick=0, Width_t lwidth=2);
   template <class T> void sethempty(T* hempty, Float_t xoffset=0, Float_t yoffset=0, Float_t xsize=0.05, Float_t ysize=0.05);
   template <class T> void setthgr(T* hempty, Float_t xoffset=0, Float_t yoffset=0);
-  template <class T> void setthgrstyle(T* h, Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1, Color_t fcolor=-1, Float_t falpha=-1, Style_t fstyle=-1, Float_t lalpha=-1);
+  template <class T> void setthgrstyle(T* h, Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1,
+                                       Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1,
+                                       Color_t fcolor=-1, Float_t falpha=-1, Style_t fstyle=-1, Float_t lalpha=-1);
   template <class T> void setlinestyle(T* h, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1, Float_t lalpha=-1);
-  template <class T> void settfstyle(T* h, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1, Color_t fcolor=-1, Float_t falpha=-1, Style_t fstyle=-1);
+  template <class T> void settfstyle(T* h, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1,
+                                     Color_t fcolor=-1, Float_t falpha=-1, Style_t fstyle=-1);
   template <class T> void setmarkerstyle(T* h, Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1);
   void drawCMSleft(TString content="#scale[1.25]{#bf{CMS}} #it{Internal}", Float_t xpos=0, Float_t ypos=0, Float_t tsize=0.04);
   void drawCMSright(TString content="#sqrt{s_{NN}} = 5.02 TeV", Float_t xpos=0, Float_t ypos=0, Float_t tsize=0.04);
   void drawCMS(TString contentleft="#scale[1.25]{#bf{CMS}} #it{Internal}", TString contentright="PbPb #sqrt{s_{NN}} = 5.02 TeV");
   void settex(TLatex* tex, Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack, Float_t tangle=0);
-  TLatex* drawtex(Double_t x, Double_t y, const char *text, Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack, Float_t tangle=0, bool draw = true);
-  TLatex* drawtexnum(Double_t x, Double_t y, const char *text, Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack, Float_t tangle=0);
-  void drawtexgroup(Double_t x, Double_t y, std::vector<std::string> text, int ncol=1, Double_t colwid=0.2, Float_t tsize=0.04, Short_t align=12, Style_t font=42, std::vector<Color_t> color=colorlist_middle);
+  TLatex* drawtex(Double_t x, Double_t y, const char *text,
+                  Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack, Float_t tangle=0, bool draw = true);
+  TLatex* drawtexnum(Double_t x, Double_t y, const char *text,
+                     Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack, Float_t tangle=0, bool draw = true);
+  void drawtexgroup(Double_t x, Double_t y, std::vector<std::string> text, int ncol=1, Double_t colwid=0.2,
+                    Float_t tsize=0.04, Short_t align=12, Style_t font=42, std::vector<Color_t> color=colorlist_middle);
   void setleg(TLegend* leg, Float_t tsize=0.04);
   void setlegndraw(TLegend* leg, Float_t tsize=0.04);
-  TLine* drawline(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=2, Float_t lalpha=1);
-  TBox* drawbox(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color_t fcolor=kGray, Float_t falpha=0.4, Style_t fstyle=1001, Color_t lcolor=0, Style_t lstyle=1, Width_t lwidth=0);
+  TLine* drawline(Double_t x1, Double_t y1, Double_t x2, Double_t y2,
+                  Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=2, Float_t lalpha=1);
+  TBox* drawbox(Double_t x1, Double_t y1, Double_t x2, Double_t y2,
+                Color_t fcolor=kGray, Float_t falpha=0.4, Style_t fstyle=1001,
+                Color_t lcolor=0, Style_t lstyle=1, Width_t lwidth=0);
   TGaxis* drawaxis(Double_t xmin, Double_t ymin, Double_t xmax, Double_t ymax, 
                    Double_t wmin, Double_t wmax, 
                    Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=1,
@@ -74,7 +85,9 @@ namespace xjjroot
   void mkdir(std::string outputfile);
   void saveas(TCanvas* c, std::string outputfile);
   TFile* newfile(std::string outputfile);
-  void drawcomment(std::string comment, std::string opt="lb") { xjjroot::drawtex((opt.front()=='r'?1:0), (opt.back()=='t'?1:0), comment.c_str(), 0.024, ((opt.front()=='r')*2+1)*10+((opt.back()=='t')*2+1), 42, kGray); }
+  void drawcomment(std::string comment, std::string opt="lb") {
+    xjjroot::drawtex((opt.front()=='r'?1:0), (opt.back()=='t'?1:0), comment.c_str(), 0.024,
+                     ((opt.front()=='r')*2+1)*10+((opt.back()=='t')*2+1), 42, kGray); }
   void writetex(std::string tr, std::string br, std::string str);
   std::string readtex(TTree* t, std::string br);
 }
@@ -146,7 +159,9 @@ void xjjroot::setthgr(T* hempty, Float_t xoffset/*=0*/, Float_t yoffset/*=0*/)
 }
 
 template <class T>
-void xjjroot::setthgrstyle(T* h, Color_t mcolor/*=-1*/, Style_t mstyle/*=-1*/, Size_t msize/*=-1*/, Color_t lcolor/*=-1*/, Style_t lstyle/*=-1*/, Width_t lwidth/*=-1*/, Color_t fcolor/*=-1*/, Float_t falpha/*=-1*/, Style_t fstyle/*=-1*/, Float_t lalpha/*=-1*/)
+void xjjroot::setthgrstyle(T* h, Color_t mcolor/*=-1*/, Style_t mstyle/*=-1*/, Size_t msize/*=-1*/,
+                           Color_t lcolor/*=-1*/, Style_t lstyle/*=-1*/, Width_t lwidth/*=-1*/,
+                           Color_t fcolor/*=-1*/, Float_t falpha/*=-1*/, Style_t fstyle/*=-1*/, Float_t lalpha/*=-1*/)
 {
   if(mcolor>=0) h->SetMarkerColor(mcolor);
   if(mstyle>=0) h->SetMarkerStyle(mstyle);
@@ -170,7 +185,8 @@ void xjjroot::setlinestyle(T* h, Color_t lcolor/*=-1*/, Style_t lstyle/*=-1*/, W
 }
 
 template <class T>
-void xjjroot::settfstyle(T* h, Color_t lcolor/*=-1*/, Style_t lstyle/*=-1*/, Width_t lwidth/*=-1*/, Color_t fcolor/*=-1*/, Float_t falpha/*=-1*/, Style_t fstyle/*=-1*/)
+void xjjroot::settfstyle(T* h, Color_t lcolor/*=-1*/, Style_t lstyle/*=-1*/, Width_t lwidth/*=-1*/,
+                         Color_t fcolor/*=-1*/, Float_t falpha/*=-1*/, Style_t fstyle/*=-1*/)
 {
   h->SetNpx(1000);
   if(lcolor>=0) h->SetLineColor(lcolor);
@@ -189,13 +205,15 @@ void xjjroot::setmarkerstyle(T* h, Color_t mcolor/*=-1*/, Style_t mstyle/*=-1*/,
   if(msize>=0)  h->SetMarkerSize(msize);
 }
 
-void xjjroot::drawCMS(TString contentleft/*="#scale[1.25]{#bf{CMS}} #it{Internal}"*/, TString contentright/*="PbPb #sqrt{s_{NN}} = 5.02 TeV"*/)
+void xjjroot::drawCMS(TString contentleft/*="#scale[1.25]{#bf{CMS}} #it{Internal}"*/,
+                      TString contentright/*="PbPb #sqrt{s_{NN}} = 5.02 TeV"*/)
 {
   drawCMSleft(contentleft);
   drawCMSright(contentright);
 }
 
-void xjjroot::drawCMSleft(TString content/*="#scale[1.25]{#bf{CMS}} #it{Internal}"*/, Float_t xpos/*=0*/, Float_t ypos/*=0*/, Float_t tsize/*=0.04*/)
+void xjjroot::drawCMSleft(TString content/*="#scale[1.25]{#bf{CMS}} #it{Internal}"*/,
+                          Float_t xpos/*=0*/, Float_t ypos/*=0*/, Float_t tsize/*=0.04*/)
 {
   if(content=="") content = "Internal";
   if(content=="Preliminary" || 
@@ -211,7 +229,8 @@ void xjjroot::drawCMSleft(TString content/*="#scale[1.25]{#bf{CMS}} #it{Internal
   texCms->Draw();
 }
 
-void xjjroot::drawCMSright(TString content/*="#sqrt{s_{NN}} = 5.02 TeV"*/, Float_t xpos/*=0*/, Float_t ypos/*=0*/, Float_t tsize/*=0.04*/)
+void xjjroot::drawCMSright(TString content/*="#sqrt{s_{NN}} = 5.02 TeV"*/,
+                           Float_t xpos/*=0*/, Float_t ypos/*=0*/, Float_t tsize/*=0.04*/)
 {
   if(content=="pp" || content=="PbPb") content = Form("%s #sqrt{s_{NN}} = 5.02 TeV", content.Data());
   TLatex* texCol = new TLatex((1-gStyle->GetPadRightMargin())+xpos,(1-gStyle->GetPadTopMargin())*1.02+ypos, content.Data());
@@ -222,7 +241,8 @@ void xjjroot::drawCMSright(TString content/*="#sqrt{s_{NN}} = 5.02 TeV"*/, Float
   texCol->Draw();
 }
 
-void xjjroot::settex(TLatex* tex, Float_t tsize/*=0.04*/, Short_t align/*=12*/, Style_t font/*=42*/, Color_t color/*=kBlack*/, Float_t tangle/*=0*/)
+void xjjroot::settex(TLatex* tex, Float_t tsize/*=0.04*/, Short_t align/*=12*/,
+                     Style_t font/*=42*/, Color_t color/*=kBlack*/, Float_t tangle/*=0*/)
 {
   tex->SetNDC();
   tex->SetTextFont(font);
@@ -232,7 +252,9 @@ void xjjroot::settex(TLatex* tex, Float_t tsize/*=0.04*/, Short_t align/*=12*/, 
   tex->SetTextAngle(tangle);
 }
 
-TLatex* xjjroot::drawtex(Double_t x, Double_t y, const char* text, Float_t tsize/*=0.04*/, Short_t align/*=12*/, Style_t font/*=42*/, Color_t color/*=kBlack*/, Float_t tangle/*=0*/, bool draw/*=true*/)
+TLatex* xjjroot::drawtex(Double_t x, Double_t y, const char* text,
+                         Float_t tsize/*=0.04*/, Short_t align/*=12*/, Style_t font/*=42*/,
+                         Color_t color/*=kBlack*/, Float_t tangle/*=0*/, bool draw/*=true*/)
 {
   TLatex* tex = new TLatex(x, y, text);
   xjjroot::settex(tex, tsize, align, font, color, tangle);
@@ -240,16 +262,20 @@ TLatex* xjjroot::drawtex(Double_t x, Double_t y, const char* text, Float_t tsize
   return tex;
 }
 
-TLatex* xjjroot::drawtexnum(Double_t x, Double_t y, const char* text, Float_t tsize/*=0.04*/, Short_t align/*=12*/, Style_t font/*=42*/, Color_t color/*=kBlack*/, Float_t tangle/*=0*/)
+TLatex* xjjroot::drawtexnum(Double_t x, Double_t y, const char* text,
+                            Float_t tsize/*=0.04*/, Short_t align/*=12*/, Style_t font/*=42*/,
+                            Color_t color/*=kBlack*/, Float_t tangle/*=0*/, bool draw/*=true*/)
 {
   TLatex* tex = new TLatex(x, y, text);
   xjjroot::settex(tex, tsize, align, font, color, tangle);
   tex->SetNDC(false);
-  tex->Draw();
+  if(draw) tex->Draw();
   return tex;
 }
 
-void xjjroot::drawtexgroup(Double_t x, Double_t y, std::vector<std::string> text, int ncol/*=1*/, Double_t colwid/*=0.2*/, Float_t tsize/*=0.04*/, Short_t align/*=12*/, Style_t font/*=42*/, std::vector<Color_t> color/*=std::vector<Color_t>()*/)
+void xjjroot::drawtexgroup(Double_t x, Double_t y, std::vector<std::string> text,
+                           int ncol/*=1*/, Double_t colwid/*=0.2*/,
+                           Float_t tsize/*=0.04*/, Short_t align/*=12*/, Style_t font/*=42*/, std::vector<Color_t> color/*=std::vector<Color_t>()*/)
 {
   double lspace = tsize+0.005;
   bool left = true, top = true;
@@ -281,7 +307,8 @@ void xjjroot::setlegndraw(TLegend* leg, Float_t tsize/*=0.04*/)
   leg->Draw();
 }
 
-TLine* xjjroot::drawline(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color_t lcolor/*=kBlack*/, Style_t lstyle/*=1*/, Width_t lwidth/*=2*/, Float_t lalpha/*=1*/)
+TLine* xjjroot::drawline(Double_t x1, Double_t y1, Double_t x2, Double_t y2,
+                         Color_t lcolor/*=kBlack*/, Style_t lstyle/*=1*/, Width_t lwidth/*=2*/, Float_t lalpha/*=1*/)
 {
   TLine* l = new TLine(x1, y1, x2, y2);
   xjjroot::setlinestyle(l, lcolor, lstyle, lwidth, lalpha);
@@ -289,7 +316,9 @@ TLine* xjjroot::drawline(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Col
   return l;
 }
 
-TBox* xjjroot::drawbox(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color_t fcolor/*=kGray*/, Float_t falpha/*=0.4*/, Style_t fstyle/*=1001*/, Color_t lcolor/*=0*/, Style_t lstyle/*=1*/, Width_t lwidth/*=0*/)
+TBox* xjjroot::drawbox(Double_t x1, Double_t y1, Double_t x2, Double_t y2,
+                       Color_t fcolor/*=kGray*/, Float_t falpha/*=0.4*/, Style_t fstyle/*=1001*/,
+                       Color_t lcolor/*=0*/, Style_t lstyle/*=1*/, Width_t lwidth/*=0*/)
 {
   TBox* b = new TBox(x1, y1, x2, y2);
   b->SetFillColor(fcolor);
@@ -322,7 +351,8 @@ TGaxis* xjjroot::drawaxis(Double_t xmin, Double_t ymin, Double_t xmax, Double_t 
   return g;
 }
 
-TGraph* xjjroot::drawpoint(Double_t x, Double_t y, Color_t mcolor/*=-1*/, Style_t mstyle/*=-1*/, Size_t msize/*=-1*/)
+TGraph* xjjroot::drawpoint(Double_t x, Double_t y,
+                           Color_t mcolor/*=-1*/, Style_t mstyle/*=-1*/, Size_t msize/*=-1*/)
 {
   double vx[] = {x}, vy[] = {y};
   TGraph* gr = new TGraph(1, vx, vy);

@@ -98,10 +98,16 @@ void xjjana::drawpull(TH1* h, TF1* f, Color_t color, float pullmax)
       float realval = h->GetBinError(bb+1)==0?0:(h->GetBinContent(bb+1)-f->Eval(h->GetBinCenter(bb+1)))/h->GetBinError(bb+1);
       // float fillval = ((realval+pullmax)/(pullmax*2))*yhmax;
       float fillval = ((realval+pullmax)/(pullmax*2))*(yhmax-yhmin)+yhmin;
-      xjjroot::drawbox(h->GetBinCenter(bb+1)-h->GetBinWidth(bb+1)/2., (yhmax-yhmin)/2.+yhmin, h->GetBinCenter(bb+1)+h->GetBinWidth(bb+1)/2., fillval, tcolor, 0.1, 1001);
+      xjjroot::drawbox(h->GetBinCenter(bb+1)-h->GetBinWidth(bb+1)/2.,
+                       (yhmax-yhmin)/2.+yhmin,
+                       h->GetBinCenter(bb+1)+h->GetBinWidth(bb+1)/2.,
+                       fillval,
+                       tcolor, 0.1, 1001);
     }
-  xjjroot::drawline(binmin, (yhmax-yhmin)/2.+yhmin, binmax, (yhmax-yhmin)/2.+yhmin, kGray, 2, gStyle->GetLineWidth(), 0.5);
-  xjjroot::drawaxis(binmax, yhmin, binmax, yhmax, -pullmax, pullmax, tcolor, 1, gStyle->GetLineWidth(), "+L", h->GetYaxis()->GetLabelSize()*0.9);
+  xjjroot::drawline(binmin, (yhmax-yhmin)/2.+yhmin, binmax, (yhmax-yhmin)/2.+yhmin,
+                    kGray, 2, gStyle->GetLineWidth(), 0.5);
+  xjjroot::drawaxis(binmax, yhmin, binmax, yhmax, -pullmax, pullmax,
+                    tcolor, 1, gStyle->GetLineWidth(), "+L", h->GetYaxis()->GetLabelSize()*0.9);
   xjjroot::drawtex(0.93, 0.55, "Pull", 0.04, 33, 62, tcolor);
 }
 
@@ -214,7 +220,8 @@ TGraphErrors* xjjana::shifthistcenter(TH1* hh, std::string name, int option)
       else if(option > 0) xx.push_back(hh->GetBinCenter(i+1) + hh->GetBinWidth(i+1)/2.);
       else xx.push_back(hh->GetBinCenter(i+1));
     }
-  TGraphErrors* gr = new TGraphErrors(n, xx.data(), yy.data(), xxerr.data(), yyerr.data()); gr->SetName(name.c_str());
+  TGraphErrors* gr = new TGraphErrors(n, xx.data(), yy.data(), xxerr.data(), yyerr.data());
+  gr->SetName(name.c_str());
   return gr;
 }
 
@@ -241,7 +248,8 @@ TGraphAsymmErrors* xjjana::shifthistcenter(TH1* hh, std::string name, float offs
           xxeh.push_back(std::max(hh->GetBinWidth(i+1)/2. - offset, (double)0));
         }
     }
-  TGraphAsymmErrors* gr = new TGraphAsymmErrors(n, xx.data(), yy.data(), xxel.data(), xxeh.data(), yyerr.data(), yyerr.data()); gr->SetName(name.c_str());
+  TGraphAsymmErrors* gr = new TGraphAsymmErrors(n, xx.data(), yy.data(), xxel.data(), xxeh.data(), yyerr.data(), yyerr.data());
+  gr->SetName(name.c_str());
   return gr;
 }
 
@@ -261,7 +269,8 @@ TGraphAsymmErrors* xjjana::shifthistcenter(TEfficiency* geff, std::string name, 
       yyel.push_back(geff->GetEfficiencyErrorLow(i+1));
       yyeh.push_back(geff->GetEfficiencyErrorUp(i+1));
     }
-  TGraphAsymmErrors* gr = new TGraphAsymmErrors(n, xx.data(), yy.data(), xxel.data(), xxeh.data(), yyel.data(), yyeh.data()); gr->SetName(name.c_str());
+  TGraphAsymmErrors* gr = new TGraphAsymmErrors(n, xx.data(), yy.data(), xxel.data(), xxeh.data(), yyel.data(), yyeh.data());
+  gr->SetName(name.c_str());
   return gr;
 }
 
