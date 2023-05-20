@@ -18,7 +18,6 @@
 
 namespace xjjc
 {
-  const std::string nc("\e[0m");
   std::vector<std::string> speciallist = {" ", "/", "(", ")", "^", "#", "%", "$", ",", ".", "*", "&", ":", "{", "}", ";", "|"};
 
   template<size_t N, typename T> void initarray(T (*array_)[N], T initval_=0);
@@ -34,7 +33,7 @@ namespace xjjc
   int number_digit(int i, int n);
 
   void progressbar(int index_, int total_, int step=10000, int morespace_=0);
-  void progressslide(int index_, int total_, int step=10000);
+  void progressslide(int index_, int total_, int step=10000, char done='=', char yet='.', char arrow='>');
   void progressbar_summary(int total_);
 
   template<typename T> char* gettype(T exp);
@@ -193,24 +192,30 @@ void xjjc::progressbar(int index_, int total_, int step, int morespace_/*=0*/)
   if(index_%step==0 || index_ == total_-1)
     {
       if(total_ > 0)
-        std::cout<<std::setiosflags(std::ios::left)<<"  [ \033[36m"<<std::setw(10+morespace_)<<index_<<"\033[0m"<<" / "<<std::setw(10+morespace_)<<total_<<" ] "<<"\033[36m"<<round(100.*index_/total_)<<"%\033[0m"<<"\r"<<std::flush;
+        std::cout << std::setiosflags(std::ios::left)
+                  << "  [ \e[36m" << std::setw(10+morespace_) << index_ << "\e[0m"
+                  << " / " << std::setw(10+morespace_) << total_ << " ] "
+                  << "\e[36m" << round(100.*index_/total_) << "%\e[0m" << "\r" << std::flush;
       else
-        std::cout<<std::setiosflags(std::ios::left)<<"  [ \033[36m"<<std::setw(10+morespace_)<<index_<<"\033[0m ]"<<"\r"<<std::flush;
+        std::cout << std::setiosflags(std::ios::left)
+                  << "  [ \e[36m" << std::setw(10+morespace_) << index_ << "\e[0m ]" << "\r" << std::flush;
     }
 }
 
-void xjjc::progressslide(int index_, int total_, int step)
+void xjjc::progressslide(int index_, int total_, int step, char done, char yet, char arrow)
 {
   if(index_%step==0 || index_ == total_-1)
     {
       if(index_ == total_-1) index_++;
-      std::cout<<std::setiosflags(std::ios::left)<<"  [ \033[36m"<<std::setw(21)<<std::string(round(20.*index_/total_), '=')+">"+std::string(20-round(20.*index_/total_), '.')<<"\e[0m ] "<<"\033[36m"<<index_<<"\033[0m"<<" / "<<total_<<"\033[0m"<<"\r"<<std::flush;
+      std::cout << std::setiosflags(std::ios::left) << "  [ \e[36m"
+                << std::setw(21) << std::string(round(20.*index_/total_), done) + std::string(1, arrow)+std::string(20-round(20.*index_/total_), yet)
+                << "\e[0m ] " << "\e[36m" << index_ << "\e[0m" << " / " << total_ << "\r" << std::flush;
     }
 }
 
 void xjjc::progressbar_summary(int total_)
 {
-  std::cout<<std::endl<<"  Processed "<<"\033[1;31m"<<total_<<"\033[0m event(s)."<<std::endl;
+  std::cout << std::endl << "  Processed " << "\e[1;31m" << total_ << "\e[0m event(s)." << std::endl;
 }
 
 template<typename T>
