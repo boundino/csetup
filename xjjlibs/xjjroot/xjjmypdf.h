@@ -47,6 +47,7 @@ void xjjroot::mypdf::write(std::string pngname, std::string opt) {
     drawcomment(pngname);
   fc->Print(Form("%s", ffname.c_str()));
   if (pngname != "") {
+    mkdir(pngname);
     fc->SaveAs(pngname.c_str());
   }
 }
