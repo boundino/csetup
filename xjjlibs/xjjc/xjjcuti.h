@@ -233,13 +233,16 @@ std::string xjjc::str_erasestar(std::string strs, std::string sub)
   std::string result(strs), str(strs);
   if(sub.front() == '*')
     {
-      size_t pos = str.find_first_of(realsub);
+      size_t pos = str.find(realsub);
+      while (str.find(realsub, pos+1) != std::string::npos) {
+        pos = str.find(realsub, pos+1);
+      }
       if(pos != std::string::npos)
-        result.erase(0, pos+1);
+        result.erase(0, pos+realsub.size());
     }
   else if(sub.back() == '*')
     { 
-      size_t pos = str.find_last_of(realsub); 
+      size_t pos = str.find(realsub); 
       if(pos != std::string::npos)
         result.erase(pos, str.size() - pos);
     }
