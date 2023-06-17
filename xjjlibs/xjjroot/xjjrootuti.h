@@ -32,9 +32,9 @@ namespace xjjroot
   const float margin_pad_bottom = 0.145;
   const float margin_pad_top = 0.1;
 
-  std::vector<Color_t> colorlist_light  = {kGreen-8, kOrange-4, kRed-9, kAzure-9, kMagenta-8, kCyan-8, kYellow-6, kBlue-8, kPink+1, kViolet-9};
-  std::vector<Color_t> colorlist_middle = {kGreen+2, kOrange-3, kRed-3, kAzure-3, kMagenta-5, kCyan-2, kYellow+2, kBlue-5, kPink+2, kViolet+7};
-  std::vector<Color_t> colorlist_dark   = {kGreen+3, kOrange+5, kRed+2, kAzure-6, kMagenta-1, kCyan+3, kYellow+3, kBlue-1, kPink+3, kViolet+4};
+  std::vector<Color_t> colorlist_light  = {kGreen-8, kRed-9, kAzure-9, kOrange-4, kMagenta-8, kCyan-8, kYellow-6, kBlue-8, kPink+1, kViolet-9};
+  std::vector<Color_t> colorlist_middle = {kGreen+2, kRed-3, kAzure-3, kOrange-3, kMagenta-5, kCyan-2, kYellow+2, kBlue-5, kPink+2, kViolet+7};
+  std::vector<Color_t> colorlist_dark   = {kGreen+3, kRed+2, kAzure-6, kOrange+5, kMagenta-1, kCyan+3, kYellow+3, kBlue-1, kPink+3, kViolet+4};
   std::vector<int> colorlist_bw = {TColor::GetColor("#000000"), TColor::GetColor("#191919"), TColor::GetColor("#323232"), TColor::GetColor("#4c4c4c"),
                                    TColor::GetColor("#5d5d5d"), TColor::GetColor("#666666"), TColor::GetColor("#7f7f7f"), TColor::GetColor("#999999"),
                                    TColor::GetColor("#b2b2b2"), TColor::GetColor("#cccccc"), TColor::GetColor("#d3d3d3"), TColor::GetColor("#e2e2e2")};
