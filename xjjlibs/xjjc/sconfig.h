@@ -13,12 +13,14 @@ namespace xjjc
   class sconfig
   {
   public:
-    sconfig(std::string input, std::string tok1=",", std::string tok2="#") : input_(input), t1_(tok1), t2_(tok2) { parse(); }
+    sconfig(std::string input, std::string tok1=",", std::string tok2="#", std::string opt="") :
+      input_(input), t1_(tok1), t2_(tok2), opt_(opt) { parse(); }
     int n() { return value.size(); }
     std::vector<std::vector<std::string>> value;
     void print();
   private:
-    std::string input_, t1_, t2_;
+    std::string input_, t1_, t2_, opt_;
+    std::vector<size_t> size_;
     void parse();
   };
 }
@@ -30,19 +32,24 @@ void xjjc::sconfig::parse()
     {
       auto params = xjjc::str_divide(inputs[i], t2_);
       value.push_back(params);
+      if(!i) size_.resize(params.size(), 0);
+      for(int j=0; j<size_.size(); j++)
+        size_[j] = std::max(params[j].length(), size_[j]);
     }
-  print();
+  if(opt_.find('v') != std::string::npos)
+    print();
 }
 
 void xjjc::sconfig::print()
 {
   std::cout<<std::endl;
   for(auto& v : value)
-    {
-      std::cout<<"------"<<std::endl;
-      for(auto& vv : v)
-        std::cout<<std::left<<"  => "<<std::setw(40)<<vv<<std::endl;
+    {      
+      for(int j=0; j<v.size(); j++)
+        std::cout<<std::left<<" \e[38:5:255m\e[48:5:238m "<<std::setw(size_[j]+1)<<v[j]<<"\e[0m";
+      std::cout<<std::endl;
     }
+  std::cout<<std::endl;
 }
 
 #endif
