@@ -40,7 +40,8 @@ namespace xjjana
   double sethsmax(std::vector<TH1*>& h, float factor=1);
   void sethsminmax(std::vector<TH1*>& h, float factor_min, float factor_max);
 
-  TGraphErrors* shifthistcenter(TH1* hh, std::string name, int option=-1, bool zeroxerr=false);
+  TGraphErrors* shifthistcenter(TH1* hh, std::string name); // TH1 -> TGraphErrors with the original bins
+  TGraphErrors* shifthistcenter(TH1* hh, std::string name, int option); // -1: binlowedge, 0: bincenter, 1: binhighedge | zero x err
   TGraphAsymmErrors* shifthistcenter(TEfficiency* geff, std::string name, int option=-1);
   TGraphAsymmErrors* shifthistcenter(TH1* hh, std::string name, float offset, std::string option=""); // opt ["X0": zero x err]
   TGraphAsymmErrors* setwcenter(TH1F* h, std::vector<double>& xw, std::string name);
@@ -216,7 +217,7 @@ void xjjana::sethsminmax(std::vector<TH1*>& h, float factor_min, float factor_ma
     }
 }
 
-TGraphErrors* xjjana::shifthistcenter(TH1* hh, std::string name, int option, bool zeroxerr)
+TGraphErrors* xjjana::shifthistcenter(TH1* hh, std::string name)
 {
   int n = hh->GetNbinsX();
   std::vector<double> xx, yy, xxerr, yyerr;
@@ -224,11 +225,26 @@ TGraphErrors* xjjana::shifthistcenter(TH1* hh, std::string name, int option, boo
     {
       yy.push_back(hh->GetBinContent(i+1));
       yyerr.push_back(hh->GetBinError(i+1));
-      if(option == 0 && !zeroxerr) xxerr.push_back(hh->GetBinWidth(i+1)/2.);
-      else xxerr.push_back(0);
+      xx.push_back(hh->GetBinCenter(i+1));
+      xxerr.push_back(hh->GetBinWidth(i+1)/2.);
+    }
+  TGraphErrors* gr = new TGraphErrors(n, xx.data(), yy.data(), xxerr.data(), yyerr.data());
+  gr->SetName(name.c_str());
+  return gr;
+}
+
+TGraphErrors* xjjana::shifthistcenter(TH1* hh, std::string name, int option)
+{
+  int n = hh->GetNbinsX();
+  std::vector<double> xx, yy, xxerr, yyerr;
+  for(int i=0; i<n; i++)
+    {
+      yy.push_back(hh->GetBinContent(i+1));
+      yyerr.push_back(hh->GetBinError(i+1));
       if(option < 0) xx.push_back(hh->GetBinCenter(i+1) - hh->GetBinWidth(i+1)/2.);
       else if(option > 0) xx.push_back(hh->GetBinCenter(i+1) + hh->GetBinWidth(i+1)/2.);
       else xx.push_back(hh->GetBinCenter(i+1));
+      xxerr.push_back(0);
     }
   TGraphErrors* gr = new TGraphErrors(n, xx.data(), yy.data(), xxerr.data(), yyerr.data());
   gr->SetName(name.c_str());
