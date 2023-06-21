@@ -33,13 +33,14 @@ namespace xjjana
 
   std::map<std::string, double> chi2test(TH1* h1, TH1* h2, const char* opt="UW");
   double gethminimum(TH1* h);
+  double gethnonzerominimum(TH1* h);
   double gethmaximum(TH1* h);
   void sethabsminmax(TH1* h, float ymin, float ymax);
   double sethsmin(std::vector<TH1*>& h, float factor=1);
   double sethsmax(std::vector<TH1*>& h, float factor=1);
   void sethsminmax(std::vector<TH1*>& h, float factor_min, float factor_max);
 
-  TGraphErrors* shifthistcenter(TH1* hh, std::string name, int option=-1);
+  TGraphErrors* shifthistcenter(TH1* hh, std::string name, int option=-1, bool zeroxerr=false);
   TGraphAsymmErrors* shifthistcenter(TEfficiency* geff, std::string name, int option=-1);
   TGraphAsymmErrors* shifthistcenter(TH1* hh, std::string name, float offset, std::string option=""); // opt ["X0": zero x err]
   TGraphAsymmErrors* setwcenter(TH1F* h, std::vector<double>& xw, std::string name);
@@ -161,6 +162,15 @@ double xjjana::gethminimum(TH1* h)
   return ymin;
 }
 
+double xjjana::gethnonzerominimum(TH1* h)
+{
+  double ymin = gethmaximum(h);
+  for(int i=0; i<h->GetXaxis()->GetNbins(); i++)
+    if(h->GetBinContent(i+1) > 0)
+      ymin = std::min(ymin, h->GetBinContent(i+1));
+  return ymin;
+}
+
 double xjjana::gethmaximum(TH1* h)
 {
   double ymax = -1.e+10;
@@ -206,7 +216,7 @@ void xjjana::sethsminmax(std::vector<TH1*>& h, float factor_min, float factor_ma
     }
 }
 
-TGraphErrors* xjjana::shifthistcenter(TH1* hh, std::string name, int option)
+TGraphErrors* xjjana::shifthistcenter(TH1* hh, std::string name, int option, bool zeroxerr)
 {
   int n = hh->GetNbinsX();
   std::vector<double> xx, yy, xxerr, yyerr;
@@ -214,7 +224,7 @@ TGraphErrors* xjjana::shifthistcenter(TH1* hh, std::string name, int option)
     {
       yy.push_back(hh->GetBinContent(i+1));
       yyerr.push_back(hh->GetBinError(i+1));
-      if(option == 0) xxerr.push_back(hh->GetBinWidth(i+1)/2.);
+      if(option == 0 && !zeroxerr) xxerr.push_back(hh->GetBinWidth(i+1)/2.);
       else xxerr.push_back(0);
       if(option < 0) xx.push_back(hh->GetBinCenter(i+1) - hh->GetBinWidth(i+1)/2.);
       else if(option > 0) xx.push_back(hh->GetBinCenter(i+1) + hh->GetBinWidth(i+1)/2.);
