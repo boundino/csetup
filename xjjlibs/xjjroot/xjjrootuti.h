@@ -27,6 +27,8 @@
 
 namespace xjjroot
 {
+  bool silence__ = false; void silence(bool s = true) { silence__ = s; }
+  
   const float margin_pad_left = 0.18;
   const float margin_pad_right = 0.043;
   const float margin_pad_bottom = 0.145;
@@ -81,10 +83,11 @@ namespace xjjroot
   TGraph* drawpoint(Double_t x, Double_t y, Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1);
 
   template<class T> void printhist(T* hh, int w=10);
-  template<class T> void writehist(T* hh, int w=10) { printhist(hh, w); hh->Write(); }
+  template<class T> void printobject(T* hh);
+  template<class T> void writehist(T* hh, int w=10) { if(!silence__) { printhist(hh, w); } hh->Write(); }
   template<class T> void printhistvalue(T* hh);
-  template<class T> T* gethist(TFile* inf, std::string name, int w=10);
-  template<class T> T* gethist(std::string name, int w=10);
+  template<class T> T* gethist(TFile* inf, std::string name);
+  template<class T> T* gethist(std::string name);
 
   void mkdir(std::string outputfile);
   void saveas(TCanvas* c, std::string outputfile, std::string opt="WT");
@@ -386,24 +389,30 @@ void xjjroot::printhist(T* hh, int w)
 }
 
 template<class T> 
-T* xjjroot::gethist(TFile* inf, std::string name, int w)
+void xjjroot::printobject(T* hh)
+{ 
+  std::cout<<std::left<<"\e[2m"<<hh->GetName()<<"\e[0m"<<std::endl;
+}
+
+template<class T> 
+T* xjjroot::gethist(TFile* inf, std::string name)
 { 
   T* hh = 0;
-  if(!inf) { std::cout<<std::left<<"\e[31m"<<std::setw(w)<<name<<" (x)\e[0m"<<std::endl; return hh; }
+  if(!inf) { std::cout<<std::left<<"\e[31m(x) "<<name<<"\e[0m"<<std::endl; return hh; }
   hh = (T*)inf->Get(name.c_str());
-  if(!hh) { std::cout<<std::left<<"\e[31m"<<std::setw(w)<<name<<" (x)\e[0m"<<std::endl; return hh; }
-  printhist(hh, w); 
+  if(!hh) { std::cout<<std::left<<"\e[31m(x) "<<name<<"\e[0m"<<std::endl; return hh; }
+  if(!silence__) printobject(hh); 
   return hh;
 }
 
 template<class T> 
-T* xjjroot::gethist(std::string name, int w)
+T* xjjroot::gethist(std::string name)
 { 
   T* hh = 0;
   auto inputname = xjjc::str_divide(name, "::");
   auto inf = TFile::Open(inputname[0].c_str());
-  hh = gethist<T>(inf, inputname[1], w);
-
+  if(!inf) { std::cout<<std::left<<"\e[31m(x) "<<inputname[0]<<"\e[0m"<<std::endl; return hh; }
+  hh = gethist<T>(inf, inputname[1]);
   return hh;
 }
 
