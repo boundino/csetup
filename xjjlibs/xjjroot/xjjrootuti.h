@@ -85,7 +85,7 @@ namespace xjjroot
   template<class T> void printhist(T* hh, int w=10);
   template<class T> void printobject(T* hh);
   template<class T> void writehist(T* hh, int w=10) { if(!silence__) { printhist(hh, w); } hh->Write(); }
-  template<class T> void printhistvalue(T* hh);
+  template<class T> void printhistvalue(T* hh, std::vector<int> bins={});
   template<class T> T* gethist(TFile* inf, std::string name);
   template<class T> T* gethist(std::string name);
 
@@ -373,13 +373,28 @@ TGraph* xjjroot::drawpoint(Double_t x, Double_t y,
 /* ----- */
 
 template<class T> 
-void xjjroot::printhistvalue(T* hh)
+void xjjroot::printhistvalue(T* hh, std::vector<int> bins)
 { 
-  std::cout<<std::left<<"\e[2m"<<hh->GetName()<<"\e[0m\e[36;1m ("<<hh->GetEntries()<<")\e[0m"<<std::endl; 
-  for(int i=0; i<hh->GetXaxis()->GetNbins(); i++)
-    {
-      std::cout<<hh->GetBinCenter(i+1)<<" "<<hh->GetBinContent(i+1)<<"  "<<hh->GetBinError(i+1)<<std::endl;
-    }
+  std::cout<<std::left<<"\e[2m"<<hh->GetName()<<"\e[0m\e[36;1m ("<<hh->GetEntries()<<")\e[0m"<<std::endl;
+  size_t lcenter = 0, lcontent = 0, lerror = 0;
+  for(int i=1; i<=hh->GetXaxis()->GetNbins(); i++) {
+    size_t ilcenter = xjjc::number_remove_zero(hh->GetBinCenter(i)).length();
+    lcenter = std::max(lcenter, ilcenter);
+    size_t ilcontent = xjjc::number_remove_zero(hh->GetBinContent(i)).length();
+    lcontent = std::max(lcontent, ilcontent);
+    size_t ilerror = xjjc::number_remove_zero(hh->GetBinError(i)).length();
+    lerror = std::max(lerror, ilerror);
+  }
+  for(int i=1; i<=hh->GetXaxis()->GetNbins(); i++) {
+    if(bins.size()>0 && std::find(bins.begin(), bins.end(), i)==bins.end()) continue;
+    std::cout<<std::left
+             <<" \e[38:5:232m\e[48:5:248m\e[4m "<<std::setw(lcenter+1)<<hh->GetBinCenter(i)<<"\e[38:5:232m\e[48:5:232m\e[4m"
+             // <<" \e[38:5:232m\e[48:5:248m\e[4m "<<std::setw(lcenter+1)<<hh->GetBinLowEdge(i)<<"\e[38:5:232m\e[48:5:232m\e[4m"
+             // <<" \e[38:5:232m\e[48:5:248m\e[4m "<<std::setw(lcenter+1)<<hh->GetBinLowEdge(i)+hh->GetBinWidth(i)<<"\e[38:5:232m\e[48:5:232m\e[4m"
+             <<" \e[38:5:232m\e[48:5:248m\e[4m "<<std::setw(lcontent+1)<<hh->GetBinContent(i)<<"\e[38:5:232m\e[48:5:232m\e[4m"
+             <<" \e[38:5:232m\e[48:5:248m\e[4m "<<std::setw(lerror+1)<<hh->GetBinError(i)<<"\e[0m"
+             <<std::endl;
+  }
 }
 
 template<class T> 
