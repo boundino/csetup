@@ -20,7 +20,7 @@ namespace xjjroot
     mypdf(std::string filename, std::string canvasname="c", int ww=1000, int hh=1000);
     mypdf(TCanvas* cc, std::string filename);
     void prepare() { fc->Clear(); fc->cd(); }
-    void write(std::string pngname = "", std::string opt = "WT");
+    void write(std::string pngname = "", std::string opt = "");
     void close() { fc->Print(Form("%s]", ffname.c_str())); delete fc; }
     TCanvas* getc() { return fc; }
     std::string getfilename() { return ffname; }
@@ -43,20 +43,18 @@ xjjroot::mypdf::mypdf(TCanvas* cc, std::string filename)
 }
 
 void xjjroot::mypdf::write(std::string pngname, std::string opt) {
-  if (opt.find("T") != std::string::npos)
-    {
-      std::time_t t = std::time(0);
-      std::string datetime(100,0);
-      datetime.resize(std::strftime(&datetime[0], datetime.size(), 
-                                    "%a %d %b %-H:%M:%S %Z %Y", std::localtime(&t)));
-      drawcomment(datetime, "rb");
-    }
-  if (opt.find("W") != std::string::npos)
+  if (opt.find("Q") == std::string::npos) {
+    std::time_t t = std::time(0);
+    std::string datetime(100,0);
+    datetime.resize(std::strftime(&datetime[0], datetime.size(), 
+                                  "%a %d %b %-H:%M:%S %Z %Y", std::localtime(&t)));
+    drawcomment(datetime, "rb");
     drawcomment(pngname);
+  }
 
   fc->Print(Form("%s", ffname.c_str()));
 
-  if (pngname != "") {
+  if (pngname != "" && opt.find("X") == std::string::npos) {
     mkdir(pngname);
     fc->SaveAs(pngname.c_str());
   }
