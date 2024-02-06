@@ -30,7 +30,12 @@ namespace xjjana
   TH1* histMinusCorr(TH1* ha, TH1* hb, std::string name);
   void drawpull(TH1* h, TF1* f, Color_t color=0, float ymax=4);
   void drawhoutline(TH2* h, Color_t lcolor=1, Style_t lstyle=1, Width_t lwidth=1);
+  TH2* gethratiozero(TH2* h1, TH2* h2, int opt); // opt = -1, 0, 1
+  void drawhratiozero(TH2* h1, TH2* h2, Color_t lcolor_minus=kRed, Color_t lcolor_plus=kGreen);
+  void drawgroutline(TGraphErrors* gr, Color_t lcolor=1, Style_t lstyle=2, Width_t lwidth=1);
 
+  void rmgrbins(TGraph* gr, float bincontent=0);
+  
   std::map<std::string, double> chi2test(TH1* h1, TH1* h2, const char* opt="UW");
   double gethminimum(TH1* h);
   double gethnonzerominimum(TH1* h);
@@ -136,6 +141,67 @@ void xjjana::drawhoutline(TH2* h, Color_t lcolor/*=1*/, Style_t lstyle/*=1*/, Wi
               }
           }
       }
+}
+
+TH2* xjjana::gethratiozero(TH2* h1, TH2* h2, int opt) {
+  TH2* hzero = (TH2*)h1->Clone(xjjc::currenttime().c_str());
+  auto nx = hzero->GetXaxis()->GetNbins(), ny = hzero->GetYaxis()->GetNbins();
+  for(int i=0; i<nx; i++)
+    for(int j=0; j<ny; j++) {
+        hzero->SetBinContent(i+1, j+1, 0);
+        hzero->SetBinError(i+1, j+1, 0);
+       	auto content1 = h1->GetBinContent(i+1, j+1);
+       	auto content2 = h2->GetBinContent(i+1, j+1);
+        if (content1 != 0 && content2 == 0 && opt < 0)
+          hzero->SetBinContent(i+1, j+1, 1);
+        else if (content1 == 0 && content2 != 0 && opt > 0)
+          hzero->SetBinContent(i+1, j+1, 1);
+        else if (content1 == 0 && content2 == 0 && opt == 0)
+          hzero->SetBinContent(i+1, j+1, 1);
+      }
+  return hzero;
+}
+
+void xjjana::drawhratiozero(TH2* h1, TH2* h2, Color_t lcolor_minus, Color_t lcolor_plus) {
+  TH2* hzero_minus = gethratiozero(h1, h2, -1);
+  TH2* hzero_plus = gethratiozero(h1, h2, 0);
+  TH2* hzero_same = gethratiozero(h1, h2, 1);
+  drawhoutline(hzero_minus, lcolor_minus);
+  drawhoutline(hzero_plus, lcolor_plus);
+  // drawhoutline(hzero_same, kBlack);
+}
+
+void xjjana::drawgroutline(TGraphErrors* gr, Color_t lcolor/*=1*/, Style_t lstyle/*=2*/, Width_t lwidth/*=1*/) {
+  TGraph* g1 = new TGraph(gr->GetN());
+  TGraph* g2 = new TGraph(gr->GetN());
+  for (int i=0; i<gr->GetN(); i++) {
+    g1->SetPointX(i, gr->GetPointX(i));
+    g1->SetPointY(i, gr->GetPointY(i) + gr->GetErrorY(i));
+    g2->SetPointX(i, gr->GetPointX(i));
+    g2->SetPointY(i, gr->GetPointY(i) - gr->GetErrorY(i));
+  }
+  g1->SetLineColor(lcolor);
+  g1->SetLineStyle(lstyle);
+  g1->SetLineWidth(lwidth);
+  g2->SetLineColor(lcolor);
+  g2->SetLineStyle(lstyle);
+  g2->SetLineWidth(lwidth);
+  g1->Draw("l same");
+  g2->Draw("l same");
+}
+
+void xjjana::rmgrbins(TGraph* gr, float bincontent/*=0*/) {
+  bool havezero = true;
+  while (havezero) {
+    havezero = false;
+    for (int i=0; i<gr->GetN(); i++) {
+      if (gr->GetPointY(i) == bincontent) {
+        gr->RemovePoint(i);
+        havezero = true;
+        break;
+      }
+    }
+  }
 }
 
 std::map<std::string, double> xjjana::chi2test(TH1* h1, TH1* h2, const char* opt)

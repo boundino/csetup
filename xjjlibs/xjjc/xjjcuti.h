@@ -51,7 +51,7 @@ namespace xjjc
   std::string str_erasestar(std::string strs, std::string sub); // e.g. sub = */ or .*
   std::string str_erasetwospace(std::string strs);
   bool str_contains(std::string str1, std::string str2) { return str1.find(str2) != std::string::npos; }
-  bool str_startsby(std::string str1, std::string str2) { return str1.find_first_of(str2) == 0; }
+  bool str_startsby(std::string str1, std::string str2) { return str1.find(str2) == 0; }
   bool str_endsby(std::string str1, std::string str2) { return str1.find_last_of(str2) == str1.size()-str2.size(); }
   bool str_isnumber(std::string strs) { return (std::regex_match(strs, std::regex("-?[0-9]+([.][0-9]*)?")) || std::regex_match(strs, std::regex("-?[0-9]*[.][0-9]+"))); }
   bool str_isinteger(std::string strs) { return std::regex_match(strs, std::regex("-?[0-9]+")); }

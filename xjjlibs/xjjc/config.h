@@ -21,6 +21,7 @@ namespace xjjc
     int vi(std::string key) { return atoi(v(key).c_str()); }
     std::vector<std::string> vv(std::string key) { return str_divide(v(key), ","); }
     std::vector<float> vvf(std::string key);
+    std::vector<int> vvi(std::string key);
     void print();
   private:
     std::string input_;
@@ -48,6 +49,15 @@ std::vector<float> xjjc::config::vvf(std::string key)
   std::vector<float> v_result;
   for(auto& iv : vv)
     v_result.push_back(atof(iv.c_str()));
+  return v_result;
+}
+
+std::vector<int> xjjc::config::vvi(std::string key)
+{
+  std::vector<std::string> vv = str_divide(v(key), ",");
+  std::vector<int> v_result;
+  for(auto& iv : vv)
+    v_result.push_back(atoi(iv.c_str()));
   return v_result;
 }
 
