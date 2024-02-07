@@ -49,13 +49,14 @@ namespace xjjc
   std::string str_replaceallspecial(std::string strs, std::string newsub = "_");
   std::string str_eraseall(std::string strs, std::string sub) { return str_replaceall(strs, sub, ""); }
   std::string str_erasestar(std::string strs, std::string sub); // e.g. sub = */ or .*
-  std::string str_erasetwospace(std::string strs);
+  std::string str_trim(std::string strs);
   bool str_contains(std::string str1, std::string str2) { return str1.find(str2) != std::string::npos; }
   bool str_startsby(std::string str1, std::string str2) { return str1.find(str2) == 0; }
   bool str_endsby(std::string str1, std::string str2) { return str1.find_last_of(str2) == str1.size()-str2.size(); }
   bool str_isnumber(std::string strs) { return (std::regex_match(strs, std::regex("-?[0-9]+([.][0-9]*)?")) || std::regex_match(strs, std::regex("-?[0-9]*[.][0-9]+"))); }
   bool str_isinteger(std::string strs) { return std::regex_match(strs, std::regex("-?[0-9]+")); }
   std::vector<std::string> str_divide(std::string str, std::string div);
+  std::vector<std::string> str_divide_trim(std::string str, std::string div);
   std::string str_divide_lastel(std::string str, std::string div);
   std::string str_getdir(std::string filename);
   std::string str_tolower(std::string str);
@@ -249,7 +250,7 @@ std::string xjjc::str_erasestar(std::string strs, std::string sub)
   return result;
 }
 
-std::string xjjc::str_erasetwospace(std::string strs)
+std::string xjjc::str_trim(std::string strs)
 {
   std::string result(strs), str(strs);
   size_t pos_front = str.find_first_not_of(" ");
@@ -302,6 +303,14 @@ std::vector<std::string> xjjc::str_divide(std::string str, std::string div)
   return token;
 }
 
+std::vector<std::string> xjjc::str_divide_trim(std::string str, std::string div) {
+  auto token = str_divide(str, div);
+  for (auto& tt : token) {
+    tt = str_trim(tt);
+  }
+  return token;
+}
+
 std::string xjjc::str_divide_lastel(std::string str, std::string div)
 {
   std::vector<std::string> token = str_divide(str, div);
@@ -330,7 +339,7 @@ std::string xjjc::currenttime()
   std::time_t t = std::time(0);   // get time now
   std::tm* now = std::localtime(&t);
   char chartime[29]; // yyyymmdd-hhmmss
-  sprintf(chartime, "%d%s%d%d-%d%d%d", now->tm_year+1900, (now->tm_mon>=9?"":"0"), now->tm_mon+1, now->tm_mday,
+  snprintf(chartime, 29, "%d%s%d%d-%d%d%d", now->tm_year+1900, (now->tm_mon>=9?"":"0"), now->tm_mon+1, now->tm_mday,
           now->tm_hour, now->tm_min, now->tm_sec);
   return std::string(chartime);
 }
