@@ -22,12 +22,12 @@ namespace xjjc
     std::vector<std::string> vv(std::string key) { return str_divide(v(key), ","); }
     std::vector<float> vvf(std::string key);
     std::vector<int> vvi(std::string key);
-    void print();
+    void print(std::string div2 = ",");
   private:
     std::string input_;
     std::map<std::string, std::string> value_;
     void parse();
-    const char commentt = '#';
+    // const char commentt = '#';
   };
 }
 
@@ -37,9 +37,10 @@ void xjjc::config::parse()
   std::string line_now, key_now;
   for(std::string line; std::getline(filein, line);)
     {
-      line = xjjc::str_trim(line);
+      line = xjjc::str_trim( xjjc::str_erasestar(line, "#*") );
+      if (line == "") continue;
+
       bool endp = line[line.length()-1] != '\\';
-      if (line[0] == commentt) continue;
       if (!endp) line.pop_back();
       
       auto content = line;
@@ -76,10 +77,25 @@ std::vector<int> xjjc::config::vvi(std::string key)
   return v_result;
 }
 
-void xjjc::config::print()
+void xjjc::config::print(std::string div2)
 {
-  for(auto& vv : value_)
-    std::cout<<std::left<<std::setw(40)<<vv.first<<" => "<<vv.second<<std::endl;
+  auto maxk = std::string("").length();
+  for(auto& iv : value_) {
+    maxk = std::max(maxk, iv.first.length());
+  }
+  for(auto& iv : value_) {
+    std::cout << " \e[4;1m" << std::setw(maxk) << iv.first << "\e[0m"
+              << "\e[2m => \e[0m";
+    auto vl2 = str_divide_trim(iv.second, div2);
+    auto first = true;
+    for (auto & i2 : vl2) {
+      if (!first)
+        std::cout << std::left << std::setw(maxk+5) << " ";
+      first = false;
+      std::cout << str_trim(i2) << "\e[0m"
+                << std::endl;
+    }
+  }
 }
 
 #endif
