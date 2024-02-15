@@ -1,6 +1,10 @@
 #ifndef __XJJC_CSV_H_
 #define __XJJC_CSV_H_
 
+/*
+  M-x set-buffer-file-coding-system RET unix RET
+*/
+
 #include <fstream>
 #include <iostream>
 #include <iomanip>
@@ -14,6 +18,8 @@ namespace xjjc {
   public:
     csv(std::string input, int iheader = -1) : input_(input), iheader_(iheader), ni_(0), nj_(0) { parse(); }
     void print();
+    std::string at(int i, int j) { return c_[i][j]; }
+    // std::string at(int i, std::string title);
   private:
     std::string input_;
     int ni_, nj_, iheader_;
@@ -21,6 +27,7 @@ namespace xjjc {
     std::vector<std::string> h_;
     std::vector<int> w_;
     void parse();
+    void print_div();
   };
 }
 
@@ -31,46 +38,45 @@ void xjjc::csv::parse() {
   for(std::string line; std::getline(filein, line);) {
     line = xjjc::str_trim( xjjc::str_erasestar(line, "#*") );
     if (line == "") continue;
-    // std::cout<<line<<std::endl;
+
     auto nline = line;
     std::vector<std::string> vlines = xjjc::str_divide(nline, ",");
     nj_ = std::max((int)vlines.size(), nj_);
     w_.resize(nj_, 1);
-    // std::cout<<vlines.size()<<std::endl;
-    std::vector<std::string> il;
+    c_.push_back(vlines);
+
     for (int j=0; j<vlines.size(); j++) {
       auto ll = vlines[j];
-      // std::cout<<j<<" "<<ll.length()<<" -> ";
-      std::cout<<j<<" ";
-      il.push_back(ll);
       w_[j] = std::max((int)ll.length(), w_[j]);
-      // std::cout<<w_[j]<<" "<<ll<<" ";
-      std::cout<<w_[j]<<" ";
       if (ni_ == iheader_) {
         h_.push_back(ll);
       }
-      std::cout<<vlines[j]<<" ";
-      std::cout<<"| ";
     }
-    std::cout<<std::endl<<std::endl;
-    c_.push_back(il);
     ni_++;
   }
 }
 
 void xjjc::csv::print() {
   for (int i=0; i<ni_ ; i++) {
-    std::cout<<nj_<<" "<<c_[i][0]<<std::endl;
+    std::string color = "\e[0m";
+    if (i==iheader_) color = "\e[48;5;248;38;5;232;1m";
+    if ((i > iheader_ && i%2==iheader_%2) || (iheader_<0 && i%2==0 )) color = "\e[48;5;238m";
+    print_div();
+    std::cout << " " << color << "|";
     for (int j=0; j<nj_; j++) {
-      std::cout<<w_[j]<<" : ";
-      std::string color = "\e[0m";
-      if (i==iheader_) color = "\e[7m";
-      if ((i > iheader_ && i%2==iheader_%2) || (iheader_<0 && i%2==0 )) color = "\e[40;37m";
-      // std::cout << std::left << color << std::setw(w_[j]) << c_[i][j] << "\e[0m ";
-      std::cout << std::left <<  std::setw(w_[j]) << c_[i][j] << "\e[0m ";
+      std::cout << std::left << " "<< std::setw(w_[j]+1) << c_[i][j] << "|";
     }
-    std::cout<<std::endl;
+    std::cout << "\e[0m" << std::endl;
   }
+  print_div();
+}
+
+void xjjc::csv::print_div() {
+  std::cout << " " << "\e[0m" << "+";
+  for (int j=0; j<nj_; j++) {
+    std::cout << std::left << "-"<< std::string(w_[j]+1, '-') << "+";
+  }
+  std::cout << "\e[0m" << std::endl;
 }
 
 #endif 
