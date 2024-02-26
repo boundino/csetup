@@ -7,6 +7,7 @@
 #include <TLatex.h>
 #include <TLegend.h>
 #include <TLine.h>
+#include <TArrow.h>
 #include <TStyle.h>
 #include <TH1.h>
 #include <TGaxis.h>
@@ -41,10 +42,17 @@ namespace xjjroot
                                    TColor::GetColor("#5d5d5d"), TColor::GetColor("#666666"), TColor::GetColor("#7f7f7f"), TColor::GetColor("#999999"),
                                    TColor::GetColor("#b2b2b2"), TColor::GetColor("#cccccc"), TColor::GetColor("#d3d3d3"), TColor::GetColor("#e2e2e2")};
   // mycolor_satmiddle[cc], mycolor_light[cc], mycolor_middle[cc], mycolor_dark[cc]
-  std::vector<std::string> cc = {"red", "azure", "green", "magenta", "orange", "greenblue", "pink", "cyan", "yellow", "blue", "violet"};  
+  std::vector<std::string> cc = {"red", "azure", "green", "magenta", "orange", "olive", "pink", "cyan", "yellow", "blue", "violet"};  
 
   std::vector<Style_t> markerlist_solid = {21, 20, 34, 47, 33, 43, 22, 23};
   std::vector<Style_t> markerlist_open = {24, 25, 26, 27, 28, 30, 32, 42, 46, 44};
+
+  namespace CMS {
+    const char* internal = "#scale[1.25]{#bf{CMS}} #it{Internal}";
+    const char* pre = "#scale[1.25]{#bf{CMS}} #it{Preliminary}";
+    const char* cms = "#scale[1.25]{#bf{CMS}}";
+    std::string snn = "#sqrt{s_{NN}} = ";
+  }
   
   void setgstyle(Int_t padtick=0, Width_t lwidth=2);
   template <class T> void sethempty(T* hempty, Float_t xoffset=0, Float_t yoffset=0, Float_t xsize=1, Float_t ysize=1);
@@ -71,6 +79,9 @@ namespace xjjroot
   void setlegndraw(TLegend* leg, Float_t tsize=0.04);
   TLine* drawline(Double_t x1, Double_t y1, Double_t x2, Double_t y2,
                   Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=2, Float_t lalpha=1);
+  TArrow* drawarrow(Double_t x1, Double_t y1, Double_t x2, Double_t y2,
+                    Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=2, Float_t lalpha=1,
+                    Option_t* option = "|>", Float_t arrowsize=0.02);
   template<class T> TLine* drawlinevertical(Double_t x, T* hempty,
                                             Color_t lcolor=kGray+1, Style_t lstyle=6, Width_t lwidth=2, Float_t lalpha=1);
   TBox* drawbox(Double_t x1, Double_t y1, Double_t x2, Double_t y2,
@@ -82,6 +93,7 @@ namespace xjjroot
                    Option_t *chopt="", 
                    Float_t labelsize=gStyle->GetLabelSize("Y"), Style_t labelfont=gStyle->GetLabelFont("Y"),
                    Int_t ndiv=510, Double_t gridlength=0);
+  void setaxisstyle(TAxis* axis, TGaxis* axis_mom);
   TGraph* drawpoint(Double_t x, Double_t y, Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1);
 
   template<class T> void printhist(T* hh, int w=10);
@@ -228,12 +240,12 @@ void xjjroot::drawCMS(TString contentleft/*="#scale[1.25]{#bf{CMS}} #it{Internal
 void xjjroot::drawCMSleft(TString content/*="#scale[1.25]{#bf{CMS}} #it{Internal}"*/,
                           Float_t xpos/*=0*/, Float_t ypos/*=0*/, Float_t tsize/*=0.04*/)
 {
-  if(content=="") content = "Internal";
-  if(content=="Preliminary" || 
-     content=="Simulation" ||
-     content=="Projection" ||
-     content=="Internal") content = Form("#scale[1.25]{#bf{CMS}} #it{%s}", content.Data());
-  if(content=="CMS") content = "#scale[1.25]{#bf{CMS}}";
+  // if(content=="") content = "Internal";
+  // if(content=="Preliminary" || 
+  //    content=="Simulation" ||
+  //    content=="Projection" ||
+  //    content=="Internal") content = Form("#scale[1.25]{#bf{CMS}} #it{%s}", content.Data());
+  // if(content=="CMS") content = "#scale[1.25]{#bf{CMS}}";
   TLatex* texCms = new TLatex(gStyle->GetPadLeftMargin()+xpos,(1-gStyle->GetPadTopMargin())*1.02+ypos, content.Data());
   texCms->SetNDC();
   texCms->SetTextAlign(11);
@@ -245,7 +257,7 @@ void xjjroot::drawCMSleft(TString content/*="#scale[1.25]{#bf{CMS}} #it{Internal
 void xjjroot::drawCMSright(TString content/*="#sqrt{s_{NN}} = 5.02 TeV"*/,
                            Float_t xpos/*=0*/, Float_t ypos/*=0*/, Float_t tsize/*=0.04*/)
 {
-  if(content=="pp" || content=="PbPb") content = Form("%s #sqrt{s_{NN}} = 5.02 TeV", content.Data());
+  // if(content=="pp" || content=="PbPb") content = Form("%s #sqrt{s_{NN}} = 5.02 TeV", content.Data());
   TLatex* texCol = new TLatex((1-gStyle->GetPadRightMargin())+xpos,(1-gStyle->GetPadTopMargin())*1.02+ypos, content.Data());
   texCol->SetNDC();
   texCol->SetTextAlign(31);
@@ -329,6 +341,17 @@ TLine* xjjroot::drawline(Double_t x1, Double_t y1, Double_t x2, Double_t y2,
   return l;
 }
 
+TArrow* xjjroot::drawarrow(Double_t x1, Double_t y1, Double_t x2, Double_t y2,
+                           Color_t lcolor/*=kBlack*/, Style_t lstyle/*=1*/, Width_t lwidth/*=2*/, Float_t lalpha/*=1*/,
+                           Option_t* option/*="|>"*/, Float_t arrowsize/*=0.02*/)
+{
+  TArrow* l = new TArrow(x1, y1, x2, y2, arrowsize, option);
+  xjjroot::setlinestyle(l, lcolor, lstyle, lwidth, lalpha);
+  l->SetFillColor(lcolor);
+  l->Draw();
+  return l;
+}
+
 template<class T>
 TLine* xjjroot::drawlinevertical(Double_t x, T* hempty,
                                  Color_t lcolor/*=kBlack*/, Style_t lstyle/*=1*/, Width_t lwidth/*=2*/, Float_t lalpha/*=1*/) {
@@ -384,9 +407,21 @@ TGaxis* xjjroot::drawaxis(Double_t xmin, Double_t ymin, Double_t xmax, Double_t 
   g->SetLineColor(lcolor);
   g->SetLineStyle(lstyle);
   g->SetLineWidth(lwidth);
+  g->CenterTitle();
   g->Draw();
   return g;
 }
+
+void xjjroot::setaxisstyle(TAxis* axis, TGaxis* axis_mom)
+{
+  axis->SetLabelFont(axis_mom->GetLabelFont());
+  axis->SetLabelSize(axis_mom->GetLabelSize());
+  axis->SetLabelOffset(axis_mom->GetLabelOffset());
+  // axis->SetTitleFont(axis_mom->GetTitleFont()); // why no gettitlefont?
+  axis->SetTitleSize(axis_mom->GetTitleSize());
+  axis->SetTitleOffset(axis_mom->GetTitleOffset());
+}
+
 
 TGraph* xjjroot::drawpoint(Double_t x, Double_t y,
                            Color_t mcolor/*=-1*/, Style_t mstyle/*=-1*/, Size_t msize/*=-1*/)
@@ -574,27 +609,27 @@ void xjjroot::twopads(TCanvas *c, TPad*& p1, TPad*& p2, TH1 *hempty, TH1 *hempty
 
 namespace xjjroot
 {
-  // int dummy = (TColor::SetColorThreshold(0), 0);
+  int dummy = (TColor::SetColorThreshold(0), 0);
   std::map<std::string, int> mycolor_middle = {
-                                               {"greenblue", TColor::GetColor("#6CA892")},
-                                               {"orange",    TColor::GetColor("#C67D4B")},
-                                               {"red",       TColor::GetColor("#BA6E6E")},
-                                               {"azure",     TColor::GetColor("#4B6D97")},
-                                               {"magenta",   TColor::GetColor("#AA7799")},
-                                               {"green",     TColor::GetColor("#839169")},
-                                               {"cyan",      TColor::GetColor("#44929b")},
-                                               {"yellow",    TColor::GetColor("#DEA63B")},
-                                               {"blue",      TColor::GetColor("#4C599C")},
+                                               {"green",     TColor::GetColor("#02735E")},
+                                               {"orange",    TColor::GetColor("#D95829")},
+                                               {"red",       TColor::GetColor("#A6442E")},
+                                               {"azure",     TColor::GetColor("#146EA6")},
+                                               {"magenta",   TColor::GetColor("#A65579")},
+                                               {"olive",     TColor::GetColor("#467325")},
+                                               {"cyan",      TColor::GetColor("#458984")},
+                                               {"yellow",    TColor::GetColor("#F2B445")},
+                                               {"blue",      TColor::GetColor("#015AA6")},
                                                {"pink",      TColor::GetColor("#C07A97")},
-                                               {"violet",    TColor::GetColor("#8473B3")},
+                                               {"violet",    TColor::GetColor("#734886")},
   };
   std::map<std::string, int> mycolor_light = {
-                                              {"greenblue", TColor::GetColor("#A7C5A5")},
+                                              {"green",     TColor::GetColor("#A7C5A5")},
                                               {"orange",    TColor::GetColor("#DFB89D")},
                                               {"red",       TColor::GetColor("#D7ABAB")},
                                               {"azure",     TColor::GetColor("#96AECB")},
                                               {"magenta",   TColor::GetColor("#CCAABB")},
-                                              {"green",     TColor::GetColor("#95A273")},
+                                              {"olive",     TColor::GetColor("#95A273")},
                                               {"cyan",      TColor::GetColor("#8EBDC3")},
                                               {"yellow",    TColor::GetColor("#F3D391")},
                                               {"blue",      TColor::GetColor("#989FC6")},
@@ -602,25 +637,25 @@ namespace xjjroot
                                               {"violet",    TColor::GetColor("#C4BFD0")},
   };
   std::map<std::string, int> mycolor_dark = {
-                                             {"greenblue", TColor::GetColor("#406457")},
-                                             {"orange",    TColor::GetColor("#8A5734")},
-                                             {"red",       TColor::GetColor("#863F3F")},
-                                             {"azure",     TColor::GetColor("#324864")},
-                                             {"magenta",   TColor::GetColor("#754966")},
-                                             {"green",     TColor::GetColor("#6D7850")},
-                                             {"cyan",      TColor::GetColor("#2D6066")},
-                                             {"yellow",    TColor::GetColor("#BB8413")},
-                                             {"blue",      TColor::GetColor("#2D365E")},
-                                             {"pink",      TColor::GetColor("#926678")},
-                                             {"violet",    TColor::GetColor("#5E4D8D")},
+                                             {"green",     TColor::GetColor("#0E4037")},
+                                             {"orange",    TColor::GetColor("#A65C41")},
+                                             {"red",       TColor::GetColor("#752726")},
+                                             {"azure",     TColor::GetColor("#255573")},
+                                             {"magenta",   TColor::GetColor("#735160")},
+                                             {"olive",     TColor::GetColor("#2E4021")},
+                                             {"cyan",      TColor::GetColor("#3D5755")},
+                                             {"yellow",    TColor::GetColor("#8C7C61")},
+                                             {"blue",      TColor::GetColor("#184873")},
+                                             {"pink",      TColor::GetColor("#8C767F")},
+                                             {"violet",    TColor::GetColor("#4E3E54")},
   };
   std::map<std::string, int> mycolor_satmiddle = {
-                                                  {"greenblue", TColor::GetColor("#5BB997")},
+                                                  {"green",     TColor::GetColor("#5BB997")},
                                                   {"orange",    TColor::GetColor("#D77D3C")},
                                                   {"red",       TColor::GetColor("#CF5959")},
                                                   {"azure",     TColor::GetColor("#2D6BB4")},
                                                   {"magenta",   TColor::GetColor("#BD659F")},
-                                                  {"green",     TColor::GetColor("#89AF4B")},
+                                                  {"olive",     TColor::GetColor("#89AF4B")},
                                                   {"cyan",      TColor::GetColor("#329FAE")},
                                                   {"yellow",    TColor::GetColor("#EAAD31")},
                                                   {"blue",      TColor::GetColor("#394CAC")},
@@ -628,12 +663,12 @@ namespace xjjroot
                                                   {"violet",    TColor::GetColor("#7D64C4")},
   };
   std::map<std::string, int> mycolor_satmiddle2 = {
-                                                   {"greenblue", TColor::GetColor("#2CE8A4")},
+                                                   {"green",     TColor::GetColor("#2CE8A4")},
                                                    {"orange",    TColor::GetColor("#F37920")},
                                                    {"red",       TColor::GetColor("#F43434")},
                                                    {"azure",     TColor::GetColor("#0B68D5")},
                                                    {"magenta",   TColor::GetColor("#E93AAD")},
-                                                   {"green",     TColor::GetColor("#95E119")},
+                                                   {"olive",     TColor::GetColor("#95E119")},
                                                    {"cyan",      TColor::GetColor("#16B4CA")},
                                                    {"yellow",    TColor::GetColor("#FEB11B")},
                                                    {"blue",      TColor::GetColor("#1734CF")},

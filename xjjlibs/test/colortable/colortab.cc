@@ -56,7 +56,11 @@ void colortab()
           TColor::SaveColor(oshex, cc.second);
           std::string strhex(oshex.str());
           auto pos1 = strhex.find("#"), pos2 = strhex.find("\"", pos1+1);
-          xjjroot::drawtex((x1+x2)/2., (y1+y2)/2., std::string(strhex, pos1+1, pos2-pos1-1).c_str(), 0.05*(11*3)/(mycolor.size()*mycolor[0].size()), 22, 62, 0);
+          std::string s(strhex, pos1+1, pos2-pos1-1);
+          std::transform(s.begin(), s.end(), s.begin(),
+                         [](unsigned char c){ return std::toupper(c); }
+                         );
+          xjjroot::drawtex((x1+x2)/2., (y1+y2)/2., s.c_str(), 0.05*(11*3)/(mycolor.size()*mycolor[0].size()), 22, 62, 0);
           if(!nrow)
             xjjroot::drawtex((x1+x2)/2., y1, mycolor_txt[ncol].c_str(), 0.02, 23, 42, 0);
           if(!ncol) 
