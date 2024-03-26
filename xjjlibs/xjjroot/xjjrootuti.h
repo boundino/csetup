@@ -42,11 +42,10 @@ namespace xjjroot
                                    TColor::GetColor("#5d5d5d"), TColor::GetColor("#666666"), TColor::GetColor("#7f7f7f"), TColor::GetColor("#999999"),
                                    TColor::GetColor("#b2b2b2"), TColor::GetColor("#cccccc"), TColor::GetColor("#d3d3d3"), TColor::GetColor("#e2e2e2")};
   // mycolor_satmiddle[cc], mycolor_light[cc], mycolor_middle[cc], mycolor_dark[cc]
-<<<<<<< Updated upstream
   std::vector<std::string> cc = {"red", "azure", "green", "magenta", "orange", "olive", "pink", "cyan", "yellow", "blue", "violet"};  
 
   std::vector<Style_t> markerlist_solid = {21, 20, 34, 47, 33, 43, 22, 23};
-  std::vector<Style_t> markerlist_open = {24, 25, 26, 27, 28, 30, 32, 42, 46, 44};
+  std::vector<Style_t> markerlist_open = {25, 24, 28, 27, 26, 30, 32, 42, 46, 44};
 
   namespace CMS {
     const char* internal = "#scale[1.25]{#bf{CMS}} #it{Internal}";
@@ -55,13 +54,6 @@ namespace xjjroot
     std::string snn = "#sqrt{s_{NN}} = ";
   }
   
-=======
-  std::vector<std::string> cc = {"red", "azure", "green", "magenta", "orange", "greenblue", "pink", "cyan", "yellow", "blue", "violet"};
-
-  std::vector<Style_t> markerlist_solid = {21, 20, 34, 47, 33, 43, 22, 23};
-  std::vector<Style_t> markerlist_open = {25, 24, 28, 27, 28, 30, 32, 42, 46, 44};
-
->>>>>>> Stashed changes
   void setgstyle(Int_t padtick=0, Width_t lwidth=2);
   template <class T> void sethempty(T* hempty, Float_t xoffset=0, Float_t yoffset=0, Float_t xsize=1, Float_t ysize=1);
   template <class T> void setthgr(T* hempty, Float_t xoffset=0, Float_t yoffset=0);
@@ -248,21 +240,14 @@ void xjjroot::drawCMS(TString contentleft/*="#scale[1.25]{#bf{CMS}} #it{Internal
 void xjjroot::drawCMSleft(TString content/*="#scale[1.25]{#bf{CMS}} #it{Internal}"*/,
                           Float_t xpos/*=0*/, Float_t ypos/*=0*/, Float_t tsize/*=0.04*/)
 {
-<<<<<<< Updated upstream
+
   // if(content=="") content = "Internal";
   // if(content=="Preliminary" || 
   //    content=="Simulation" ||
   //    content=="Projection" ||
   //    content=="Internal") content = Form("#scale[1.25]{#bf{CMS}} #it{%s}", content.Data());
   // if(content=="CMS") content = "#scale[1.25]{#bf{CMS}}";
-=======
-  if(content=="") content = "Internal";
-  if(content=="Preliminary" ||
-     content=="Simulation" ||
-     content=="Projection" ||
-     content=="Internal") content = Form("#scale[1.25]{#bf{CMS}} #it{%s}", content.Data());
-  if(content=="CMS") content = "#scale[1.25]{#bf{CMS}}";
->>>>>>> Stashed changes
+
   TLatex* texCms = new TLatex(gStyle->GetPadLeftMargin()+xpos,(1-gStyle->GetPadTopMargin())*1.02+ypos, content.Data());
   texCms->SetNDC();
   texCms->SetTextAlign(11);
@@ -392,7 +377,7 @@ TBox* xjjroot::drawbox(Double_t x1, Double_t y1, Double_t x2, Double_t y2,
   return b;
 }
 
-<<<<<<< Updated upstream
+
 // TBox* xjjroot::drawboxnum(Double_t x1, Double_t y1, Double_t x2, Double_t y2,
 //                           Color_t fcolor/*=kGray*/, Float_t falpha/*=0.4*/, Style_t fstyle/*=1001*/,
 //                           Color_t lcolor/*=0*/, Style_t lstyle/*=1*/, Width_t lwidth/*=0*/)
@@ -411,10 +396,6 @@ TBox* xjjroot::drawbox(Double_t x1, Double_t y1, Double_t x2, Double_t y2,
 
 TGaxis* xjjroot::drawaxis(Double_t xmin, Double_t ymin, Double_t xmax, Double_t ymax, 
                           Double_t wmin, Double_t wmax, 
-=======
-TGaxis* xjjroot::drawaxis(Double_t xmin, Double_t ymin, Double_t xmax, Double_t ymax,
-                          Double_t wmin, Double_t wmax,
->>>>>>> Stashed changes
                           Color_t lcolor/*=kBlack*/, Style_t lstyle/*=1*/, Width_t lwidth/*=1*/,
                           Option_t *chopt/*=""*/,
                           Float_t labelsize/*=gStyle->GetLabelSize("Y")*/, Style_t labelfont/*=gStyle->GetLabelFont("Y")*/,
@@ -457,16 +438,9 @@ TGraph* xjjroot::drawpoint(Double_t x, Double_t y,
 
 /* ----- */
 
-<<<<<<< Updated upstream
 void xjjroot::printhistvalue(TH1* hh, std::vector<int> bins)
 { 
   std::cout<<std::left<<" \e[2m"<<hh->GetName()<<"\e[0m\e[36;1m ("<<hh->GetEntries()<<")\e[0m"<<std::endl;
-=======
-template<class T>
-void xjjroot::printhistvalue(T* hh, std::vector<int> bins)
-{
-  std::cout<<std::left<<"\e[2m"<<hh->GetName()<<"\e[0m\e[36;1m ("<<hh->GetEntries()<<")\e[0m"<<std::endl;
->>>>>>> Stashed changes
   size_t lcenter = 0, lcontent = 0, lerror = 0;
   for(int i=1; i<=hh->GetXaxis()->GetNbins(); i++) {
     size_t ilcenter = xjjc::number_remove_zero(hh->GetBinCenter(i)).length();
