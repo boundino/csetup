@@ -97,9 +97,9 @@ void xjjroot::hepdata::print(std::ostream &out,
         out << "  - {value: " << Form("%.*f", fx, xval) << "}" << std::endl;
       }
     }
+    out << "dependent_variables:" << std::endl;
   }
   
-  out << "dependent_variables:" << std::endl;
   out << "- header: " << print_hep_nuv(y_header) << std::endl;
   out << "  qualifiers:" << std::endl;
   for (auto& q : qualifiers) {
