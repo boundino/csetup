@@ -84,7 +84,7 @@ void xjjc::config::print(std::string div2)
     maxk = std::max(maxk, iv.first.length());
   }
   for(auto& iv : value_) {
-    std::cout << " \e[4;1m" << std::setw(maxk) << iv.first << "\e[0m"
+    std::cout << std::left << " \e[4;3m" << std::setw(maxk) << iv.first << "\e[0m"
               << "\e[2m => \e[0m";
     auto vl2 = str_divide_trim(iv.second, div2);
     auto first = true;

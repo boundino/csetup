@@ -15,6 +15,9 @@
 #include <regex>
 #include <ctime>
 #include <cctype>
+#include <sstream>
+#include <chrono>
+#include <random>
 
 namespace xjjc
 {
@@ -68,6 +71,7 @@ namespace xjjc
   template<class T> std::vector<std::vector<std::vector<T>>> array3d(int n1, int n2, int n3);
 
   std::string currenttime();
+  std::string unique_str();
   void prt_divider(std::string color="\e[0m", int len=35) { std::cout<<color<<std::string(len, '-')<<"\e[0m"<<std::endl; }
 }
 
@@ -340,8 +344,27 @@ std::string xjjc::currenttime()
   std::tm* now = std::localtime(&t);
   char chartime[29]; // yyyymmdd-hhmmss
   snprintf(chartime, 29, "%d%s%d%d-%d%d%d", now->tm_year+1900, (now->tm_mon>=9?"":"0"), now->tm_mon+1, now->tm_mday,
-          now->tm_hour, now->tm_min, now->tm_sec);
+           now->tm_hour, now->tm_min, now->tm_sec);
   return std::string(chartime);
+}
+
+std::string xjjc::unique_str()
+{
+  auto now = std::chrono::system_clock::now();
+  auto duration = now.time_since_epoch();
+  auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+  
+  // Generate a random number
+  std::random_device rd;
+  std::mt19937 generator(rd());
+  std::uniform_int_distribution<int> distribution(1000, 9999);
+  int randomNumber = distribution(generator);
+
+  // Combine time and random number into a unique string
+  std::ostringstream uniqueString;
+  uniqueString << millis << "_" << randomNumber;
+
+  return uniqueString.str();
 }
 
 std::string xjjc::str_getdir(std::string filename)

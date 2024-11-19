@@ -60,6 +60,8 @@ namespace xjjana
 
   void setbranchaddress(TTree* nt, const char* bname, void* addr);
   template <class T> T* copyobject(const T* obj, TString objname);
+
+  bool tree_exist(TFile* inf, std::string treename);
 }
 
 /* ---------- */
@@ -148,17 +150,17 @@ TH2* xjjana::gethratiozero(TH2* h1, TH2* h2, int opt) {
   auto nx = hzero->GetXaxis()->GetNbins(), ny = hzero->GetYaxis()->GetNbins();
   for(int i=0; i<nx; i++)
     for(int j=0; j<ny; j++) {
-        hzero->SetBinContent(i+1, j+1, 0);
-        hzero->SetBinError(i+1, j+1, 0);
-       	auto content1 = h1->GetBinContent(i+1, j+1);
-       	auto content2 = h2->GetBinContent(i+1, j+1);
-        if (content1 != 0 && content2 == 0 && opt < 0)
-          hzero->SetBinContent(i+1, j+1, 1);
-        else if (content1 == 0 && content2 != 0 && opt > 0)
-          hzero->SetBinContent(i+1, j+1, 1);
-        else if (content1 == 0 && content2 == 0 && opt == 0)
-          hzero->SetBinContent(i+1, j+1, 1);
-      }
+      hzero->SetBinContent(i+1, j+1, 0);
+      hzero->SetBinError(i+1, j+1, 0);
+      auto content1 = h1->GetBinContent(i+1, j+1);
+      auto content2 = h2->GetBinContent(i+1, j+1);
+      if (content1 != 0 && content2 == 0 && opt < 0)
+        hzero->SetBinContent(i+1, j+1, 1);
+      else if (content1 == 0 && content2 != 0 && opt > 0)
+        hzero->SetBinContent(i+1, j+1, 1);
+      else if (content1 == 0 && content2 == 0 && opt == 0)
+        hzero->SetBinContent(i+1, j+1, 1);
+    }
   return hzero;
 }
 
@@ -448,6 +450,21 @@ T* xjjana::changebin(T* h, double xmin, double xmax, std::string name)
       hnew->SetBinError(i+1, h->GetBinError(i+1));
     }
   return hnew;
+}
+
+bool xjjana::tree_exist(TFile* inf, std::string treename) {
+  if (!inf) return false;
+  auto paths = xjjc::str_divide(treename, "/");
+  TDirectory* dr = (TDirectory*)inf;
+  std::string dirname;
+  for (int i=0; i<paths.size(); i++) {
+    dirname = paths[i];
+    if (i == paths.size()-1)
+      break;
+    dr = dr->GetDirectory(dirname.c_str());
+    if (!dr) return false;
+  }
+  return dr->GetListOfKeys()->Contains(dirname.c_str());
 }
 
 #endif

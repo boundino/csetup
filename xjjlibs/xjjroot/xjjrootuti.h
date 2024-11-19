@@ -66,9 +66,9 @@ namespace xjjroot
   template <class T> void setlinestyle(T* h, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1, Float_t lalpha=-1);
   template <class T> void settfstyle(T* h, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1,
                                      Color_t fcolor=-1, Float_t falpha=-1, Style_t fstyle=-1);
-  void drawCMSleft(TString content="#scale[1.25]{#bf{CMS}} #it{Internal}", Float_t xpos=0, Float_t ypos=0, Float_t tsize=0.04);
+  void drawCMSleft(TString content=CMS::internal, Float_t xpos=0, Float_t ypos=0, Float_t tsize=0.04);
   void drawCMSright(TString content="#sqrt{s_{NN}} = 5.36 TeV", Float_t xpos=0, Float_t ypos=0, Float_t tsize=0.04);
-  void drawCMS(TString contentleft="#scale[1.25]{#bf{CMS}} #it{Internal}", TString contentright="PbPb #sqrt{s_{NN}} = 5.36 TeV");
+  void drawCMS(TString contentleft=CMS::internal, TString contentright="PbPb #sqrt{s_{NN}} = 5.36 TeV");
   void settex(TLatex* tex, Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack, Float_t tangle=0);
   TLatex* drawtex(Double_t x, Double_t y, const char *text,
                   Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack, Float_t tangle=0, bool draw = true);
@@ -78,6 +78,11 @@ namespace xjjroot
                     Float_t tsize=0.04, Short_t align=12, Style_t font=42, std::vector<Color_t> color=colorlist_middle);
   void setleg(TLegend* leg, Float_t tsize=0.04);
   void setlegndraw(TLegend* leg, Float_t tsize=0.04);
+  void addentrybystyle(TLegend* leg, std::string text, std::string opt,
+                       Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1,
+                       Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1,
+                       Color_t fcolor=-1, Float_t falpha=-1, Style_t fstyle=-1,
+                       Float_t lalpha=-1, Float_t malpha=-1);
   TLine* drawline(Double_t x1, Double_t y1, Double_t x2, Double_t y2,
                   Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=2, Float_t lalpha=1);
   TArrow* drawarrow(Double_t x1, Double_t y1, Double_t x2, Double_t y2,
@@ -339,6 +344,19 @@ void xjjroot::setlegndraw(TLegend* leg, Float_t tsize/*=0.04*/)
 {
   xjjroot::setleg(leg, tsize);
   leg->Draw();
+}
+
+void xjjroot::addentrybystyle(TLegend* leg, std::string text, std::string opt,
+                              Color_t mcolor/*=-1*/, Style_t mstyle/*=-1*/, Size_t msize/*=-1*/,
+                              Color_t lcolor/*=-1*/, Style_t lstyle/*=-1*/, Width_t lwidth/*=-1*/,
+                              Color_t fcolor/*=-1*/, Float_t falpha/*=-1*/, Style_t fstyle/*=-1*/,
+                              Float_t lalpha/*=-1*/, Float_t malpha/*=-1*/) {
+  auto h = new TH1F(Form("dummyh_%s", xjjc::unique_str().c_str()), "", 1, 0, 1);
+  setthgrstyle(h, mcolor, mstyle, msize,
+               lcolor, lstyle, lwidth,
+               fcolor, falpha, fstyle,
+               lalpha, malpha);
+  leg->AddEntry(h, text.c_str(), opt.c_str());
 }
 
 TLine* xjjroot::drawline(Double_t x1, Double_t y1, Double_t x2, Double_t y2,
