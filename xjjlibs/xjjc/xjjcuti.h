@@ -32,7 +32,8 @@ namespace xjjc
   template<typename T> std::string number_to_string(T param_);
   float string_to_number(std::string param_);
   template<typename T> std::string number_remove_zero(T param_);
-  template<typename T> std::string number_range(T val1_, T val2_, std::string var, std::string opt="");
+  template<typename T> std::string number_range_string(T val1_, T val2_, std::string var, std::string opt);
+  template<typename T> std::string number_range_string(T val1_, T val2_, std::string var, T over1_=0, T over2_=1.e+3);
   int number_digit(int i, int n);
 
   void progressbar(int index_, int total_, int step=10000, int morespace_=0);
@@ -170,7 +171,7 @@ std::string xjjc::number_remove_zero(T param_)
 }
 
 template<typename T>
-std::string xjjc::number_range(T val1_, T val2_, std::string var, std::string opt/*=""*/)
+std::string xjjc::number_range_string(T val1_, T val2_, std::string var, std::string opt)
 {
   std::string str = "";
   if(val1_ == val2_) { return str; }
@@ -182,6 +183,15 @@ std::string xjjc::number_range(T val1_, T val2_, std::string var, std::string op
   str += (" "+sign+" "+number_remove_zero(val2_)); 
   return str;
 }
+
+template<typename T>
+std::string xjjc::number_range_string(T val1_, T val2_, std::string var, T over1_/*=0*/, T over2_/*=1.e+3*/)
+{
+  if (val2_ >= over2_) return number_range_string(val1_, val2_, var, "fmax");
+  else if (val1_ <= over1_) return number_range_string(val1_, val2_, var, "fmin");
+  return number_range_string(val1_, val2_, var, "");
+}
+
 
 int xjjc::number_digit(int i, int n)
 {
