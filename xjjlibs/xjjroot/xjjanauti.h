@@ -41,8 +41,12 @@ namespace xjjana
   double gethnonzerominimum(TH1* h);
   double gethmaximum(TH1* h);
   void sethabsminmax(TH1* h, float ymin, float ymax);
-  double sethsmin(std::vector<TH1*>& h, float factor=1);
-  double sethsmax(std::vector<TH1*>& h, float factor=1);
+  template<class T> double sethsmin(std::vector<T>& h, float factor=1);
+  template<class T1, class T2> double sethsmin(std::map<T1, T2>& h, float factor=1);
+  template<class T1, class T2> double sethsmin(std::vector<std::pair<T1, T2>>& h, float factor=1);
+  template<class T> double sethsmax(std::vector<T>& h, float factor=1);
+  template<class T1, class T2> double sethsmax(std::map<T1, T2>& h, float factor=1);
+  template<class T1, class T2> double sethsmax(std::vector<std::pair<T1, T2>>& h, float factor=1);
   void sethsminmax(std::vector<TH1*>& h, float factor_min, float factor_max);
 
   TGraphErrors* shifthistcenter(TH1* hh, std::string name); // TH1 -> TGraphErrors with the original bins
@@ -52,6 +56,7 @@ namespace xjjana
   TGraphAsymmErrors* setwcenter(TH1F* h, std::vector<double>& xw, std::string name);
   std::vector<double> gethXaxis(TH1* h);
   int gethXn(TH1* h) { return h->GetXaxis()->GetNbins(); }
+  double integral_overflow(TH1* h, Option_t *option="") { return h->Integral(0, h->GetNbinsX()+1, option); }
   void gScale(TGraph* g, float scale);
   void gScale(TGraphErrors* g, float scale);
   void gScale(TGraphAsymmErrors* g, float scale);
@@ -62,6 +67,7 @@ namespace xjjana
   template <class T> T* copyobject(const T* obj, TString objname);
 
   bool tree_exist(TFile* inf, std::string treename);
+  bool ismc_hievt(TTree* root);
 }
 
 /* ---------- */
@@ -254,7 +260,8 @@ void xjjana::sethabsminmax(TH1* h, float ymin, float ymax)
   h->SetMaximum(ymax);
 }
 
-double xjjana::sethsmin(std::vector<TH1*>& h, float factor)
+template <class T>
+double xjjana::sethsmin(std::vector<T>& h, float factor)
 {
   double ymin = 1.e+10;
   for(auto& hh : h) ymin = std::min(ymin, gethminimum(hh));
@@ -262,12 +269,53 @@ double xjjana::sethsmin(std::vector<TH1*>& h, float factor)
   return ymin;
 }
 
-double xjjana::sethsmax(std::vector<TH1*>& h, float factor)
+template <class T1, class T2>
+double xjjana::sethsmin(std::map<T1, T2>& h, float factor)
+{
+  std::vector<T2> hs;
+  for (auto& hh : h) {
+    hs.push_back(hh.second);
+  }
+  return sethsmin(hs, factor);
+}
+
+template <class T1, class T2>
+double xjjana::sethsmin(std::vector<std::pair<T1, T2>>& h, float factor)
+{
+  std::vector<T2> hs;
+  for (auto& hh : h) {
+    hs.push_back(hh.second);
+  }
+  return sethsmin(hs, factor);
+}
+
+template <class T>
+double xjjana::sethsmax(std::vector<T>& h, float factor)
 {
   double ymax = -1.e+10;
   for(auto& hh : h) ymax = std::max(ymax, gethmaximum(hh));
   for(auto& hh : h) hh->SetMaximum(ymax * factor);
   return ymax;
+}
+
+template <class T1, class T2>
+double xjjana::sethsmax(std::map<T1, T2>& h, float factor)
+{
+  std::vector<T2> hs;
+  for (auto& hh : h) {
+    hs.push_back(hh.second);
+  }
+  return sethsmax(hs, factor);
+}
+
+template <class T1, class T2>
+double xjjana::sethsmax(std::vector<std::pair<T1, T2>>& h, float factor)
+{
+  std::vector<T2> hs;
+  for (auto& hh : h) {
+    hs.push_back(hh.second);
+  }
+  return sethsmax(hs, factor);
 }
 
 void xjjana::sethsminmax(std::vector<TH1*>& h, float factor_min, float factor_max)
@@ -465,6 +513,12 @@ bool xjjana::tree_exist(TFile* inf, std::string treename) {
     if (!dr) return false;
   }
   return dr->GetListOfKeys()->Contains(dirname.c_str());
+}
+
+bool xjjana::ismc_hievt(TTree* root) {
+  UInt_t run; root->SetBranchAddress("run", &run);
+  root->GetEntry(0);
+  return (run < 2);
 }
 
 #endif
