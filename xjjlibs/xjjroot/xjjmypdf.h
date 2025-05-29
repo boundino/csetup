@@ -47,7 +47,7 @@ void xjjroot::mypdf::write(std::string pngname, std::string opt) {
     std::time_t t = std::time(0);
     std::string datetime(100,0);
     datetime.resize(std::strftime(&datetime[0], datetime.size(), 
-                                  "%a %d %b %-H:%M:%S %Z %Y", std::localtime(&t)));
+                                  "%b %d %a %-H:%M:%S %Z %Y", std::localtime(&t)));
     drawcomment(datetime, "rb");
     drawcomment(pngname);
   }
