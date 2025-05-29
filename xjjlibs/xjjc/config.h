@@ -13,7 +13,7 @@ namespace xjjc
   class config
   {
   public:
-    config(std::string input) : input_(input) { parse(); }
+    config(std::string input, std::string escape="%%") : input_(input), escape_(escape) { parse(); print(); }
     bool goodkey(std::string key) { return value_.find(key) != value_.end(); }
     std::string v(std::string key) { return goodkey(key)?value_[key]:""; }
     std::string operator[](std::string key) { return v(key); }
@@ -26,8 +26,8 @@ namespace xjjc
   private:
     std::string input_;
     std::map<std::string, std::string> value_;
+    std::string escape_;
     void parse();
-    // const char commentt = '#';
   };
 }
 
@@ -52,6 +52,7 @@ void xjjc::config::parse()
       line_now += xjjc::str_trim(content);
 
       if (endp) {
+        line_now = xjjc::str_replaceall(line_now, escape_, "#");
         value_[key_now] = line_now;
         key_now.clear();
         line_now.clear();
