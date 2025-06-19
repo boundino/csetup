@@ -19,6 +19,8 @@
 #include <TSystem.h>
 #include <TFile.h>
 #include <TCanvas.h>
+#include <TKey.h>
+#include <TROOT.h>
 
 #include <vector>
 #include <iostream>
@@ -98,7 +100,9 @@ namespace xjjroot
                     Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=2, Float_t lalpha=1,
                     Option_t* option = "|>", Float_t arrowsize=0.02);
   template<class T> TLine* drawlinevertical(Double_t x, T* hempty,
-                                            Color_t lcolor=kGray+1, Style_t lstyle=6, Width_t lwidth=2, Float_t lalpha=1);
+                                            Color_t lcolor=kBlack, Style_t lstyle=6, Width_t lwidth=1, Float_t lalpha=1);
+  template<class T> TLine* drawlinehorizon(Double_t y, T* hempty,
+                                           Color_t lcolor=kBlack, Style_t lstyle=6, Width_t lwidth=1, Float_t lalpha=1);
   TBox* drawbox(Double_t x1, Double_t y1, Double_t x2, Double_t y2,
                 Color_t fcolor=kGray, Float_t falpha=0.4, Style_t fstyle=1001,
                 Color_t lcolor=0, Style_t lstyle=1, Width_t lwidth=0);
@@ -115,8 +119,11 @@ namespace xjjroot
   template<class T> void printobject(T* hh);
   template<class T> void writehist(T* hh, int w=10) { if(!silence__) { printhist(hh, w); } hh->Write(); }
   void printhistvalue(TH1* hh, std::vector<int> bins={});
+  void printgrvalue(TGraphErrors* gr);
+  void printgrvalue(TGraph* gr);
   template<class T> T* gethist(TFile* inf, std::string name);
   template<class T> T* gethist(std::string name);
+  template<class T> std::map<std::string, T*> getallhist(TFile* inf_);
 
   void mkdir(std::string outputfile);
   void saveas(TCanvas* c, std::string outputfile, std::string opt="WT");
@@ -405,6 +412,14 @@ TLine* xjjroot::drawlinevertical(Double_t x, T* hempty,
   return line;
 }
 
+template<class T>
+TLine* xjjroot::drawlinehorizon(Double_t y, T* hempty,
+                                Color_t lcolor/*=kBlack*/, Style_t lstyle/*=1*/, Width_t lwidth/*=2*/, Float_t lalpha/*=1*/) {
+  auto line = drawline(hempty->GetXaxis()->GetXmin(), y, hempty->GetXaxis()->GetXmax(), y,
+                       lcolor, lstyle, lwidth, lalpha);
+  return line;
+}
+
 TBox* xjjroot::drawbox(Double_t x1, Double_t y1, Double_t x2, Double_t y2,
                        Color_t fcolor/*=kGray*/, Float_t falpha/*=0.4*/, Style_t fstyle/*=1001*/,
                        Color_t lcolor/*=0*/, Style_t lstyle/*=1*/, Width_t lwidth/*=0*/)
@@ -508,6 +523,51 @@ void xjjroot::printhistvalue(TH1* hh, std::vector<int> bins)
   }
 }
 
+void xjjroot::printgrvalue(TGraphErrors* gr)
+{ 
+  std::cout<<std::endl;
+  std::cout<<std::left<<" \e[2m"<<gr->GetName()<<"\e[0m\e[36;1m ("<<gr->GetN()<<")\e[0m"<<std::endl;
+  size_t lcenter = 0, lcontent = 0, lerror = 0;
+  for(int i=0; i<gr->GetN(); i++) {
+    lcenter = std::max(lcenter, (size_t)xjjc::number_remove_zero(gr->GetPointX(i)).length());
+    lcontent = std::max(lcontent, (size_t)xjjc::number_remove_zero(gr->GetPointY(i)).length());
+    lerror = std::max(lerror, (size_t)xjjc::number_remove_zero(gr->GetErrorY(i)).length());
+  }
+  
+  std::cout<<std::left<<" \e[38:5:232m\e[48:5:248m\e[4m "<<std::setw(lcenter+1)<<""<<"\e[38:5:232m\e[48:5:232m\e[4m"
+           <<" \e[38:5:232m\e[48:5:248m\e[4m "<<std::setw(lcontent+1)<<"value"<<"\e[38:5:232m\e[48:5:232m\e[4m"
+           <<" \e[38:5:232m\e[48:5:248m\e[4m "<<std::setw(lerror+1)<<"error"<<"\e[0m"
+           <<std::endl; 
+  for(int i=0; i<gr->GetN(); i++) {
+    std::cout<<std::left
+             <<" \e[38:5:232m\e[48:5:248m "<<std::setw(lcenter+1)<<xjjc::number_remove_zero(gr->GetPointX(i))<<"\e[38:5:232m\e[48:5:232m"
+             <<" \e[38:5:232m\e[48:5:248m "<<std::setw(lcontent+1)<<xjjc::number_remove_zero(gr->GetPointY(i))<<"\e[38:5:232m\e[48:5:232m"
+             <<" \e[38:5:232m\e[48:5:248m "<<std::setw(lerror+1)<<xjjc::number_remove_zero(gr->GetErrorY(i))<<"\e[0m"
+             <<std::endl;
+  }
+}
+
+void xjjroot::printgrvalue(TGraph* gr)
+{
+  std::cout<<std::endl;
+  std::cout<<std::left<<" \e[2m"<<gr->GetName()<<"\e[0m\e[36;1m ("<<gr->GetN()<<")\e[0m"<<std::endl;
+  size_t lcenter = 0, lcontent = 0;
+  for(int i=0; i<gr->GetN(); i++) {
+    lcenter = std::max(lcenter, (size_t)xjjc::number_remove_zero(gr->GetPointX(i)).length());
+    lcontent = std::max(lcontent, (size_t)xjjc::number_remove_zero(gr->GetPointY(i)).length());
+  }
+  
+  std::cout<<std::left<<" \e[38:5:232m\e[48:5:248m\e[4m "<<std::setw(lcenter+1)<<""<<"\e[38:5:232m\e[48:5:232m\e[4m"
+           <<" \e[38:5:232m\e[48:5:248m\e[4m "<<std::setw(lcontent+1)<<"value"<<"\e[38:5:232m\e[48:5:232m\e[4m"
+           <<"\e[0m"<<std::endl; 
+  for(int i=0; i<gr->GetN(); i++) {
+    std::cout<<std::left
+             <<" \e[38:5:232m\e[48:5:248m "<<std::setw(lcenter+1)<<xjjc::number_remove_zero(gr->GetPointX(i))<<"\e[38:5:232m\e[48:5:232m"
+             <<" \e[38:5:232m\e[48:5:248m "<<std::setw(lcontent+1)<<xjjc::number_remove_zero(gr->GetPointY(i))<<"\e[38:5:232m\e[48:5:232m"
+             <<"\e[0m"<<std::endl; 
+  }
+}
+
 template<class T> 
 void xjjroot::printhist(T* hh, int w)
 { 
@@ -540,6 +600,26 @@ T* xjjroot::gethist(std::string name)
   if(!inf) { std::cout<<std::left<<"\e[31m(x) "<<name<<"\e[0m"<<std::endl; return hh; }
   hh = gethist<T>(inf, inputname[1]);
   return hh;
+}
+
+template<class T>
+std::map<std::string, T*> xjjroot::getallhist(TDirectory* inf_) {
+  std::map<std::string, T*> hs;
+  auto hdump = new T();
+  TKey* key;
+  TIter nextkey(inf_->GetListOfKeys());
+  while((key = (TKey*)nextkey())) {
+    const std::string classname(key->GetClassName()), keyname(key->GetName());
+    auto cl = gROOT->GetClass(classname.c_str());
+
+    if (cl->InheritsFrom(hdump->IsA())) {
+      std::cout<<"("<<classname<<") "<<keyname<<std::endl;
+      hs[keyname] = (T*)inf_->Get(keyname.c_str());
+      hs[keyname]->SetName(Form("%s_%d", keyname.c_str(), inf_));
+    }
+  }
+
+  return hs;
 }
 
 void xjjroot::mkdir(std::string outputfile)
@@ -641,8 +721,7 @@ void xjjroot::twopads(TCanvas *c, TPad*& p1, TPad*& p2, TH1 *hempty, TH1 *hempty
   // p1->SetLogy();
   p1->Draw("axis");
   p1->cd();
-  hempty->Draw();
-  // xjjroot::drawCMS();
+  hempty->Draw("axis");
 
   c->cd();
   p2 = new TPad("p2", "", 0, 0, 1, ydowndiv);

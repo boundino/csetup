@@ -33,7 +33,7 @@ namespace xjjc
   float string_to_number(std::string param_);
   template<typename T> std::string number_remove_zero(T param_);
   template<typename T> std::string number_range_string(T val1_, T val2_, std::string var, std::string opt);
-  template<typename T> std::string number_range_string(T val1_, T val2_, std::string var, T over1_=0, T over2_=1.e+3);
+  template<typename T> std::string number_range_string(T val1_, T val2_, std::string var, T over1_=0, T over2_=1.e+3, std::string unit="");
   int number_digit(int i, int n);
 
   void progressbar(int index_, int total_, int step=10000, int morespace_=0);
@@ -56,7 +56,7 @@ namespace xjjc
   std::string str_trim(std::string strs);
   bool str_contains(std::string str1, std::string str2) { return str1.find(str2) != std::string::npos; }
   bool str_startsby(std::string str1, std::string str2) { return str1.find(str2) == 0; }
-  bool str_endsby(std::string str1, std::string str2) { return str1.find_last_of(str2) == str1.size()-str2.size(); }
+  bool str_endsby(std::string str1, std::string str2) { return str1.ends_with(str2); }
   bool str_isnumber(std::string strs) { return (std::regex_match(strs, std::regex("-?[0-9]+([.][0-9]*)?")) || std::regex_match(strs, std::regex("-?[0-9]*[.][0-9]+"))); }
   bool str_isinteger(std::string strs) { return std::regex_match(strs, std::regex("-?[0-9]+")); }
   std::vector<std::string> str_divide(std::string str, std::string div);
@@ -185,11 +185,11 @@ std::string xjjc::number_range_string(T val1_, T val2_, std::string var, std::st
 }
 
 template<typename T>
-std::string xjjc::number_range_string(T val1_, T val2_, std::string var, T over1_/*=0*/, T over2_/*=1.e+3*/)
+std::string xjjc::number_range_string(T val1_, T val2_, std::string var, T over1_/*=0*/, T over2_/*=1.e+3*/, std::string unit/*=""*/)
 {
   if (val2_ >= over2_) return number_range_string(val1_, val2_, var, "fmax");
   else if (val1_ <= over1_) return number_range_string(val1_, val2_, var, "fmin");
-  return number_range_string(val1_, val2_, var, "");
+  return number_range_string(val1_, val2_, var, "")+" "+unit;
 }
 
 
