@@ -29,6 +29,7 @@ namespace xjjana
   void dividebinwid(TH1* h);
   TH1* histMinusCorr(TH1* ha, TH1* hb, std::string name);
   void drawpull(TH1* h, TF1* f, Color_t color=0, float ymax=4);
+  void drawreldev(TH1* h, TF1* f, Color_t color=0, float ymax=0.5);
   void drawhoutline(TH2* h, Color_t lcolor=1, Style_t lstyle=1, Width_t lwidth=1);
   TH2* gethratiozero(TH2* h1, TH2* h2, int opt); // opt = -1, 0, 1
   void drawhratiozero(TH2* h1, TH2* h2, Color_t lcolor_minus=kRed, Color_t lcolor_plus=kGreen);
@@ -63,92 +64,111 @@ namespace xjjana
   template <class T> T* changeTHtype(TH1* h, std::string name);
   template <class T> T* changebin(T* h, double xmin, double xmax, std::string name);
 
+  template <class T> void grzero(T* gr);
+  
   void setbranchaddress(TTree* nt, const char* bname, void* addr);
   template <class T> T* copyobject(const T* obj, TString objname);
 
   bool tree_exist(TFile* inf, std::string treename);
   bool ismc_hievt(TTree* root);
+
+  template<class T> std::vector<T*> get_regexp(TDirectory* d, const std::string& pattern = "*");
 }
 
 /* ---------- */
 
-void xjjana::setbranchaddress(TTree* nt, const char* bname, void* addr)
-{
+void xjjana::setbranchaddress(TTree* nt, const char* bname, void* addr) {
   nt->SetBranchStatus(bname, 1);
   nt->SetBranchAddress(bname, addr);
 }
 
-void xjjana::dividebinwid(TH1* h)
-{
-  for(int i=0;i<h->GetNbinsX();i++)
-    {
-      Float_t val = h->GetBinContent(i+1)/h->GetBinWidth(i+1);
-      Float_t valErr = h->GetBinError(i+1)/h->GetBinWidth(i+1);
-      h->SetBinContent(i+1,val);
-      h->SetBinError(i+1,valErr);
-    }
+void xjjana::dividebinwid(TH1* h) {
+  for(int i=0;i<h->GetNbinsX();i++) {
+    Float_t val = h->GetBinContent(i+1)/h->GetBinWidth(i+1);
+    Float_t valErr = h->GetBinError(i+1)/h->GetBinWidth(i+1);
+    h->SetBinContent(i+1,val);
+    h->SetBinError(i+1,valErr);
+  }
 }
 
-TH1* xjjana::histMinusCorr(TH1* ha, TH1* hb, std::string name)
-{
+TH1* xjjana::histMinusCorr(TH1* ha, TH1* hb, std::string name) {
   TH1* hr = (TH1*)ha->Clone(name.c_str());
-  for(int i=0;i<ha->GetNbinsX();i++)
-    {
-      hr->SetBinContent(i+1, ha->GetBinContent(i+1)-hb->GetBinContent(i+1));
-      hr->SetBinError(i+1, TMath::Sqrt(TMath::Abs(ha->GetBinError(i+1)*ha->GetBinError(i+1) -
-                                                  hb->GetBinError(i+1)*hb->GetBinError(i+1))));
-    }
+  for(int i=0;i<ha->GetNbinsX();i++) {
+    hr->SetBinContent(i+1, ha->GetBinContent(i+1)-hb->GetBinContent(i+1));
+    hr->SetBinError(i+1, TMath::Sqrt(TMath::Abs(ha->GetBinError(i+1)*ha->GetBinError(i+1) -
+                                                hb->GetBinError(i+1)*hb->GetBinError(i+1))));
+  }
   return hr;
 }
 
-void xjjana::drawpull(TH1* h, TF1* f, Color_t color, float pullmax)
-{
+void xjjana::drawreldev(TH1* h, TF1* f, Color_t color, float pullmax) {
   Color_t tcolor = color?color:f->GetLineColor();
   int nbin = h->GetXaxis()->GetNbins();
   float binmin = h->GetXaxis()->GetXmin(), binmax = h->GetXaxis()->GetXmax();
   float yhmax = h->GetMaximum(), yhmin = h->GetMinimum();
   // float yhmax = h->GetYaxis()->GetXmax();
-  for(int bb=0; bb<nbin; bb++)
-    {
-      float realval = h->GetBinError(bb+1)==0?0:(h->GetBinContent(bb+1)-f->Eval(h->GetBinCenter(bb+1)))/h->GetBinError(bb+1);
-      // float fillval = ((realval+pullmax)/(pullmax*2))*yhmax;
-      float fillval = ((realval+pullmax)/(pullmax*2))*(yhmax-yhmin)+yhmin;
-      xjjroot::drawbox(h->GetBinCenter(bb+1)-h->GetBinWidth(bb+1)/2.,
-                       (yhmax-yhmin)/2.+yhmin,
-                       h->GetBinCenter(bb+1)+h->GetBinWidth(bb+1)/2.,
-                       fillval,
-                       tcolor, 0.1, 1001);
-    }
+  for(int bb=0; bb<nbin; bb++) {
+    float realval =(h->GetBinContent(bb+1)-f->Eval(h->GetBinCenter(bb+1)))/h->GetBinContent(bb+1);
+    float fillval = ((realval+pullmax)/(pullmax*2))*(yhmax-yhmin)+yhmin;
+    xjjroot::drawbox(h->GetBinCenter(bb+1)-h->GetBinWidth(bb+1)/2.,
+                     (yhmax-yhmin)/2.+yhmin,
+                     h->GetBinCenter(bb+1)+h->GetBinWidth(bb+1)/2.,
+                     fillval,
+                     tcolor, 0.1, 1001);
+  }
   xjjroot::drawline(binmin, (yhmax-yhmin)/2.+yhmin, binmax, (yhmax-yhmin)/2.+yhmin,
-                    kGray, 2, gStyle->GetLineWidth(), 0.5);
-  xjjroot::drawaxis(binmax, yhmin, binmax, yhmax, -pullmax, pullmax,
-                    tcolor, 1, gStyle->GetLineWidth(), "+L", h->GetYaxis()->GetLabelSize()*0.9);
-  xjjroot::drawtex(0.93, 0.55, "Pull", 0.04, 33, 62, tcolor);
+                    kGray, 2, gStyle->GetLineWidth(), 1.0);
+  auto axis = xjjroot::drawaxis(binmax, yhmin, binmax, yhmax, -pullmax, pullmax,
+                                tcolor, 1, gStyle->GetLineWidth(), "+L", h->GetYaxis()->GetLabelSize()*0.9);
+  axis->SetTitleFont(42);
+  axis->SetTitle("Relative deviation");
+  axis->SetTitleOffset(1.7);
 }
 
-void xjjana::drawhoutline(TH2* h, Color_t lcolor/*=1*/, Style_t lstyle/*=1*/, Width_t lwidth/*=1*/)
-{
+void xjjana::drawpull(TH1* h, TF1* f, Color_t color, float pullmax) {
+  Color_t tcolor = color?color:f->GetLineColor();
+  int nbin = h->GetXaxis()->GetNbins();
+  float binmin = h->GetXaxis()->GetXmin(), binmax = h->GetXaxis()->GetXmax();
+  float yhmax = h->GetMaximum(), yhmin = h->GetMinimum();
+  // float yhmax = h->GetYaxis()->GetXmax();
+  for(int bb=0; bb<nbin; bb++) {
+    float realval = h->GetBinError(bb+1)==0?0:(h->GetBinContent(bb+1)-f->Eval(h->GetBinCenter(bb+1)))/h->GetBinError(bb+1);
+    // float fillval = ((realval+pullmax)/(pullmax*2))*yhmax;
+    float fillval = ((realval+pullmax)/(pullmax*2))*(yhmax-yhmin)+yhmin;
+    xjjroot::drawbox(h->GetBinCenter(bb+1)-h->GetBinWidth(bb+1)/2.,
+                     (yhmax-yhmin)/2.+yhmin,
+                     h->GetBinCenter(bb+1)+h->GetBinWidth(bb+1)/2.,
+                     fillval,
+                     tcolor, 0.1, 1001);
+  }
+  xjjroot::drawline(binmin, (yhmax-yhmin)/2.+yhmin, binmax, (yhmax-yhmin)/2.+yhmin,
+                    kGray, 2, gStyle->GetLineWidth(), 0.5);
+  auto* axis = xjjroot::drawaxis(binmax, yhmin, binmax, yhmax, -pullmax, pullmax,
+                                 tcolor, 1, gStyle->GetLineWidth(), "+L", h->GetYaxis()->GetLabelSize()*0.9);
+  axis->SetTitleFont(42);
+  axis->SetTitle("Pull");
+  // axis->SetTitleOffset(1.5);
+}
+
+void xjjana::drawhoutline(TH2* h, Color_t lcolor/*=1*/, Style_t lstyle/*=1*/, Width_t lwidth/*=1*/) {
   auto xaxis = h->GetXaxis(), yaxis = h->GetYaxis();
   auto nx = xaxis->GetNbins(), ny = yaxis->GetNbins();
   int b[4][2] = { {0, 1}, {-1, 0}, {0, -1}, {1, 0} };
   for(int i=0; i<nx; i++)
-    for(int j=0; j<ny; j++)
-      {
-        auto content = h->GetBinContent(i+1, j+1);
-        for(int k=0; k<4; k++)
-          {
-            auto neighbor = h->GetBinContent(i+1+b[k][0], j+1+b[k][1]);
-            if((content||neighbor) && !(content&&neighbor))
-              {
-                auto cx = xaxis->GetBinCenter(i+1), wx = xaxis->GetBinWidth(i+1),
-                  cy = yaxis->GetBinCenter(j+1), wy = yaxis->GetBinWidth(j+1),
-                  fx = (double)b[k][0], fy = (double)b[k][1];
-                xjjroot::drawline(cx+wx*(fx+fy)/2., cy+wy*(fy+fx)/2, 
-                                  cx+wx*(fx-fy)/2., cy+wy*(fy-fx)/2., 
-                                  lcolor, lstyle, lwidth);
-              }
-          }
+    for(int j=0; j<ny; j++) {
+      auto content = h->GetBinContent(i+1, j+1);
+      for(int k=0; k<4; k++) {
+        auto neighbor = h->GetBinContent(i+1+b[k][0], j+1+b[k][1]);
+        if((content||neighbor) && !(content&&neighbor)) {
+          auto cx = xaxis->GetBinCenter(i+1), wx = xaxis->GetBinWidth(i+1),
+            cy = yaxis->GetBinCenter(j+1), wy = yaxis->GetBinWidth(j+1),
+            fx = (double)b[k][0], fy = (double)b[k][1];
+          xjjroot::drawline(cx+wx*(fx+fy)/2., cy+wy*(fy+fx)/2, 
+                            cx+wx*(fx-fy)/2., cy+wy*(fy-fx)/2., 
+                            lcolor, lstyle, lwidth);
+        }
       }
+    }
 }
 
 TH2* xjjana::gethratiozero(TH2* h1, TH2* h2, int opt) {
@@ -212,8 +232,7 @@ void xjjana::rmgrbins(TGraph* gr, float bincontent/*=0*/) {
   }
 }
 
-std::map<std::string, double> xjjana::chi2test(TH1* h1, TH1* h2, const char* opt)
-{
+std::map<std::string, double> xjjana::chi2test(TH1* h1, TH1* h2, const char* opt) {
   // double res[n];
   std::cout<<"## Chi2 Test ("<<h1->GetName()<<", "<<h2->GetName()<<")"<<std::endl;
   double pvalue = h1->Chi2Test(h2, opt);
@@ -229,16 +248,14 @@ std::map<std::string, double> xjjana::chi2test(TH1* h1, TH1* h2, const char* opt
   return result;
 }
 
-double xjjana::gethminimum(TH1* h)
-{
+double xjjana::gethminimum(TH1* h) {
   double ymin = 1.e+10;
   for(int i=0; i<h->GetXaxis()->GetNbins(); i++)
     ymin = std::min(ymin, h->GetBinContent(i+1));
   return ymin;
 }
 
-double xjjana::gethnonzerominimum(TH1* h)
-{
+double xjjana::gethnonzerominimum(TH1* h) {
   double ymin = gethmaximum(h);
   for(int i=0; i<h->GetXaxis()->GetNbins(); i++)
     if(h->GetBinContent(i+1) > 0)
@@ -246,23 +263,20 @@ double xjjana::gethnonzerominimum(TH1* h)
   return ymin;
 }
 
-double xjjana::gethmaximum(TH1* h)
-{
+double xjjana::gethmaximum(TH1* h) {
   double ymax = -1.e+10;
   for(int i=0; i<h->GetXaxis()->GetNbins(); i++)
     ymax = std::max(ymax, h->GetBinContent(i+1));
   return ymax;
 }
 
-void xjjana::sethabsminmax(TH1* h, float ymin, float ymax)
-{
+void xjjana::sethabsminmax(TH1* h, float ymin, float ymax) {
   h->SetMinimum(ymin);
   h->SetMaximum(ymax);
 }
 
 template <class T>
-double xjjana::sethsmin(std::vector<T>& h, float factor)
-{
+double xjjana::sethsmin(std::vector<T>& h, float factor) {
   double ymin = 1.e+10;
   for(auto& hh : h) ymin = std::min(ymin, gethminimum(hh));
   for(auto& hh : h) hh->SetMinimum(ymin * factor);
@@ -270,8 +284,7 @@ double xjjana::sethsmin(std::vector<T>& h, float factor)
 }
 
 template <class T1, class T2>
-double xjjana::sethsmin(std::map<T1, T2>& h, float factor)
-{
+double xjjana::sethsmin(std::map<T1, T2>& h, float factor) {
   std::vector<T2> hs;
   for (auto& hh : h) {
     hs.push_back(hh.second);
@@ -280,8 +293,7 @@ double xjjana::sethsmin(std::map<T1, T2>& h, float factor)
 }
 
 template <class T1, class T2>
-double xjjana::sethsmin(std::vector<std::pair<T1, T2>>& h, float factor)
-{
+double xjjana::sethsmin(std::vector<std::pair<T1, T2>>& h, float factor) {
   std::vector<T2> hs;
   for (auto& hh : h) {
     hs.push_back(hh.second);
@@ -290,8 +302,7 @@ double xjjana::sethsmin(std::vector<std::pair<T1, T2>>& h, float factor)
 }
 
 template <class T>
-double xjjana::sethsmax(std::vector<T>& h, float factor)
-{
+double xjjana::sethsmax(std::vector<T>& h, float factor) {
   double ymax = -1.e+10;
   for(auto& hh : h) ymax = std::max(ymax, gethmaximum(hh));
   for(auto& hh : h) hh->SetMaximum(ymax * factor);
@@ -299,8 +310,7 @@ double xjjana::sethsmax(std::vector<T>& h, float factor)
 }
 
 template <class T1, class T2>
-double xjjana::sethsmax(std::map<T1, T2>& h, float factor)
-{
+double xjjana::sethsmax(std::map<T1, T2>& h, float factor) {
   std::vector<T2> hs;
   for (auto& hh : h) {
     hs.push_back(hh.second);
@@ -309,8 +319,7 @@ double xjjana::sethsmax(std::map<T1, T2>& h, float factor)
 }
 
 template <class T1, class T2>
-double xjjana::sethsmax(std::vector<std::pair<T1, T2>>& h, float factor)
-{
+double xjjana::sethsmax(std::vector<std::pair<T1, T2>>& h, float factor) {
   std::vector<T2> hs;
   for (auto& hh : h) {
     hs.push_back(hh.second);
@@ -318,8 +327,7 @@ double xjjana::sethsmax(std::vector<std::pair<T1, T2>>& h, float factor)
   return sethsmax(hs, factor);
 }
 
-void xjjana::sethsminmax(std::vector<TH1*>& h, float factor_min, float factor_max)
-{
+void xjjana::sethsminmax(std::vector<TH1*>& h, float factor_min, float factor_max) {
   double ymax = -1.e+10, ymin = 1.e+10;
   for(auto& hh : h)
     {
@@ -333,8 +341,7 @@ void xjjana::sethsminmax(std::vector<TH1*>& h, float factor_min, float factor_ma
     }
 }
 
-TGraphErrors* xjjana::shifthistcenter(TH1* hh, std::string name)
-{
+TGraphErrors* xjjana::shifthistcenter(TH1* hh, std::string name) {
   int n = hh->GetNbinsX();
   std::vector<double> xx, yy, xxerr, yyerr;
   for(int i=0; i<n; i++)
@@ -349,54 +356,55 @@ TGraphErrors* xjjana::shifthistcenter(TH1* hh, std::string name)
   return gr;
 }
 
-TGraphErrors* xjjana::shifthistcenter(TH1* hh, std::string name, int option)
-{
+TGraphErrors* xjjana::shifthistcenter(TH1* hh, std::string name, int option) {
   int n = hh->GetNbinsX();
   std::vector<double> xx, yy, xxerr, yyerr;
-  for(int i=0; i<n; i++)
-    {
-      yy.push_back(hh->GetBinContent(i+1));
-      yyerr.push_back(hh->GetBinError(i+1));
+  auto opt_offset = option & 0x1;
+  auto opt_zeroyerr = option & 0x10;
+  
+  for(int i=0; i<n; i++) {
+    yy.push_back(hh->GetBinContent(i+1));
+    // opt_zeroyerr
+    yyerr.push_back(opt_zeroyerr?0:hh->GetBinError(i+1));
+    // opt_offset
+    if (!opt_offset) {
+      xx.push_back(hh->GetBinCenter(i+1));
+    } else {
       if(option < 0) xx.push_back(hh->GetBinCenter(i+1) - hh->GetBinWidth(i+1)/2.);
       else if(option > 0) xx.push_back(hh->GetBinCenter(i+1) + hh->GetBinWidth(i+1)/2.);
-      else xx.push_back(hh->GetBinCenter(i+1));
-      xxerr.push_back(0);
     }
+    xxerr.push_back(0);
+  }
   TGraphErrors* gr = new TGraphErrors(n, xx.data(), yy.data(), xxerr.data(), yyerr.data());
   gr->SetName(name.c_str());
   return gr;
 }
 
-TGraphAsymmErrors* xjjana::shifthistcenter(TH1* hh, std::string name, float offset, std::string option)
-{
+TGraphAsymmErrors* xjjana::shifthistcenter(TH1* hh, std::string name, float offset, std::string option) {
   int n = hh->GetNbinsX();
   std::vector<double> xx, yy, xxel, xxeh, yyerr;
-  for(int i=0; i<n; i++)
-    {
-      yy.push_back(hh->GetBinContent(i+1));
-      xx.push_back(hh->GetBinCenter(i+1) + offset);
-      if(option.find("Y0") != std::string::npos)
-        yyerr.push_back(0);
-      else
-        yyerr.push_back(hh->GetBinError(i+1));
-      if(option.find("X0") != std::string::npos)
-        {
-          xxel.push_back(0);
-          xxeh.push_back(0);
-        }
-      else
-        {
-          xxel.push_back(std::max(hh->GetBinWidth(i+1)/2. + offset, (double)0));
-          xxeh.push_back(std::max(hh->GetBinWidth(i+1)/2. - offset, (double)0));
-        }
+  for(int i=0; i<n; i++) {
+    yy.push_back(hh->GetBinContent(i+1));
+    xx.push_back(hh->GetBinCenter(i+1) + offset);
+    if(option.find("Y0") != std::string::npos)
+      yyerr.push_back(0);
+    else
+      yyerr.push_back(hh->GetBinError(i+1));
+    if(option.find("X0") != std::string::npos) {
+      xxel.push_back(0);
+      xxeh.push_back(0);
     }
+    else {
+      xxel.push_back(std::max(hh->GetBinWidth(i+1)/2. + offset, (double)0));
+      xxeh.push_back(std::max(hh->GetBinWidth(i+1)/2. - offset, (double)0));
+    }
+  }
   TGraphAsymmErrors* gr = new TGraphAsymmErrors(n, xx.data(), yy.data(), xxel.data(), xxeh.data(), yyerr.data(), yyerr.data());
   gr->SetName(name.c_str());
   return gr;
 }
 
-TGraphAsymmErrors* xjjana::shifthistcenter(TEfficiency* geff, std::string name, int option)
-{
+TGraphAsymmErrors* xjjana::shifthistcenter(TEfficiency* geff, std::string name, int option) {
   TH1* hclone = geff->GetCopyTotalHisto();
   int n = hclone->GetNbinsX();
   std::vector<double> xx, yy, xxel, xxeh, yyel, yyeh;
@@ -416,8 +424,7 @@ TGraphAsymmErrors* xjjana::shifthistcenter(TEfficiency* geff, std::string name, 
   return gr;
 }
 
-TGraphAsymmErrors* xjjana::setwcenter(TH1F* h, std::vector<double>& xw, std::string name)
-{
+TGraphAsymmErrors* xjjana::setwcenter(TH1F* h, std::vector<double>& xw, std::string name) {
   int n = h->GetXaxis()->GetNbins();
   std::vector<double> y(n), xel(n), xeh(n), ye(n);
   for(int i=0; i<n; i++)
@@ -432,8 +439,7 @@ TGraphAsymmErrors* xjjana::setwcenter(TH1F* h, std::vector<double>& xw, std::str
   return gr;
 }
 
-std::vector<double> xjjana::gethXaxis(TH1* h)
-{
+std::vector<double> xjjana::gethXaxis(TH1* h) {
   const double* vx = h->GetXaxis()->GetXbins()->GetArray();
   int nx = h->GetXaxis()->GetNbins();
   std::vector<double> vvx({vx, vx+nx});
@@ -441,63 +447,60 @@ std::vector<double> xjjana::gethXaxis(TH1* h)
   return vvx;
 }
 
-void xjjana::gScale(TGraph* g, float scale)
-{
+void xjjana::gScale(TGraph* g, float scale) {
   for (int i=0; i<g->GetN(); i++) 
     g->GetY()[i] *= scale;
 }
 
-void xjjana::gScale(TGraphErrors* g, float scale)
-{
-  for (int i=0; i<g->GetN(); i++) 
-    {
-      g->GetY()[i] *= scale;
-      g->GetEY()[i] *= scale;
-    }
+void xjjana::gScale(TGraphErrors* g, float scale) {
+  for (int i=0; i<g->GetN(); i++) {
+    g->GetY()[i] *= scale;
+    g->GetEY()[i] *= scale;
+  }
 }
 
-void xjjana::gScale(TGraphAsymmErrors* g, float scale)
-{
-  for (int i=0; i<g->GetN(); i++) 
-    {
-      g->GetY()[i] *= scale;
-      g->GetEYhigh()[i] *= scale;
-      g->GetEYlow()[i] *= scale;
-    }
+void xjjana::gScale(TGraphAsymmErrors* g, float scale) {
+  for (int i=0; i<g->GetN(); i++) {
+    g->GetY()[i] *= scale;
+    g->GetEYhigh()[i] *= scale;
+    g->GetEYlow()[i] *= scale;
+  }
 }
 
 template <class T>
-T* xjjana::copyobject(const T* obj, TString objname)
-{
+T* xjjana::copyobject(const T* obj, TString objname) {
   T* newobj = new T(*obj);
   newobj->SetName(objname);
   return newobj;
 }
 
 template <class T> 
-T* xjjana::changeTHtype(TH1* h, std::string name)
-{
+T* xjjana::changeTHtype(TH1* h, std::string name) {
   auto vx = gethXaxis(h); int nvx = vx.size() - 1;
   T* hnew = new T(name.c_str(), h->GetTitle(), nvx, vx.data());
-  for(int i=0; i<nvx; i++)
-    {
-      hnew->SetBinContent(i+1, h->GetBinContent(i+1));
-      hnew->SetBinError(i+1, h->GetBinError(i+1));
-    }
+  for(int i=0; i<nvx; i++) {
+    hnew->SetBinContent(i+1, h->GetBinContent(i+1));
+    hnew->SetBinError(i+1, h->GetBinError(i+1));
+  }
   return hnew;
 }
 
 template <class T>
-T* xjjana::changebin(T* h, double xmin, double xmax, std::string name)
-{
+T* xjjana::changebin(T* h, double xmin, double xmax, std::string name) {
   int n = gethXn(h);
   T* hnew = new T(name.c_str(), h->GetTitle(), n, xmin, xmax);
-  for(int i=0; i<n; i++)
-    {
-      hnew->SetBinContent(i+1, h->GetBinContent(i+1));
-      hnew->SetBinError(i+1, h->GetBinError(i+1));
-    }
+  for(int i=0; i<n; i++) {
+    hnew->SetBinContent(i+1, h->GetBinContent(i+1));
+    hnew->SetBinError(i+1, h->GetBinError(i+1));
+  }
   return hnew;
+}
+
+template <class T>
+void xjjana::grzero(T* gr) {
+  for (int i=0; i<gr->GetN(); i++) {
+    gr->SetPoint(i, 0, 0);
+  }
 }
 
 bool xjjana::tree_exist(TFile* inf, std::string treename) {
@@ -519,6 +522,29 @@ bool xjjana::ismc_hievt(TTree* root) {
   UInt_t run; root->SetBranchAddress("run", &run);
   root->GetEntry(0);
   return (run < 2);
+}
+
+template<class T>
+std::vector<T*> xjjana::get_regexp(TDirectory* d, const std::string& pattern/* = "*"*/) {
+  std::string classname = T::Class()->GetName();
+  TIter next(d->GetListOfKeys());
+  TKey* key;
+  std::vector<T*> rs;
+  std::regex re(pattern);
+  while ((key = (TKey*)next())) {
+    auto* obj = key->ReadObj();
+    if (!obj->InheritsFrom(classname.c_str()))
+      continue;
+    auto* r = (T*)obj;
+    if (std::regex_match(r->GetName(), re)) {
+      std::cout<<"\e[2m"<<r->GetName()<<"\e[0m"<<std::endl;
+      rs.push_back(r);
+    }
+  }
+  if (rs.empty()) {
+    std::cout<<"warning: no \e[1;4m"<<classname<<"\e[0m matching regexp \e[1;4m"<<pattern<<"\e[0m."<<std::endl;
+  }
+  return rs;
 }
 
 #endif
