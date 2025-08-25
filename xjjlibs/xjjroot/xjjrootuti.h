@@ -63,7 +63,7 @@ namespace xjjroot
     std::string snn = "#sqrt{s_{NN}} = ";
   }
   
-  void setgstyle(Int_t padtick=0, Width_t lwidth=2);
+  void setgstyle(Int_t padtick=0, Width_t lwidth=2, Int_t opt=0);
   void adjustmargin(float tt=1, float rr=1, float bb=1, float ll=1);
   template <class T> void sethempty(T* hempty, Float_t xoffset=0, Float_t yoffset=0, Float_t xsize=1, Float_t ysize=1);
   template <class T> void setthgr(T* hempty, Float_t xoffset=0, Float_t yoffset=0);
@@ -79,16 +79,21 @@ namespace xjjroot
   void drawCMSleft(TString content=CMS::internal, Float_t xpos=0, Float_t ypos=0, Float_t tsize=0.04);
   void drawCMSright(TString content="#sqrt{s_{NN}} = 5.36 TeV", Float_t xpos=0, Float_t ypos=0, Float_t tsize=0.04);
   void drawCMS(TString contentleft=CMS::internal, TString contentright="PbPb #sqrt{s_{NN}} = 5.36 TeV");
-  void settex(TLatex* tex, Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack, Float_t tangle=0);
+  void settex(TLatex* tex, Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack, Float_t talpha=1, Float_t tangle=0);
   TLatex* drawtex(Double_t x, Double_t y, const char *text,
-                  Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack, Float_t tangle=0, bool draw = true);
+                  Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack, Float_t talpha=1, Float_t tangle=0,
+                  bool draw = true);
   TLatex* drawtexnum(Double_t x, Double_t y, const char *text,
-                     Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack, Float_t tangle=0, bool draw = true);
+                     Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack, Float_t talpha=1, Float_t tangle=0,
+                     bool draw = true);
   void drawtexgroup(Double_t x, Double_t y, std::vector<std::string> text, Float_t tsize=0.04, Short_t align=12, Style_t font=42,
                     int ncol=1, Double_t colwid=0.2,
                     std::vector<Color_t> color=std::vector<Color_t>(10, kBlack)); // colorlist_middle
   void setleg(TLegend* leg, Float_t tsize=0.04);
   void setlegndraw(TLegend* leg, Float_t tsize=0.04);
+  void movelegndraw(TLegend* leg, float x1=-1, float y2=-1);
+  void autolegndraw(TLegend* leg, float x1=-1, float y2=-1, float tsize=-1, float fline=1.1);
+  void rewidthleg(TLegend* leg, int ncol);
   void addentrybystyle(TLegend* leg, std::string text, std::string opt,
                        Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1,
                        Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1,
@@ -139,15 +144,15 @@ namespace xjjroot
 
 /* ---------- */
 
-void xjjroot::setgstyle(Int_t padtick/*=0*/, Width_t lwidth/*=2*/)
+void xjjroot::setgstyle(Int_t padtick/*=0*/, Width_t lwidth/*=2*/, Int_t opt/*=0*/)
 {
   gStyle->SetOptTitle(0);
   gStyle->SetOptStat(0);
   gStyle->SetEndErrorSize(0);
   gStyle->SetTextSize(0.05);
   gStyle->SetTextFont(42);
-  gStyle->SetPadRightMargin(xjjroot::margin_pad_right);
-  gStyle->SetPadLeftMargin(xjjroot::margin_pad_left);
+  gStyle->SetPadRightMargin(xjjroot::margin_pad_right * (opt==1?4:1));
+  gStyle->SetPadLeftMargin(xjjroot::margin_pad_left * (opt==1?0.7:1));
   gStyle->SetPadTopMargin(xjjroot::margin_pad_top);
   gStyle->SetPadBottomMargin(xjjroot::margin_pad_bottom);
   gStyle->SetTitleX(.0f);
@@ -306,32 +311,35 @@ void xjjroot::drawCMSright(TString content/*="#sqrt{s_{NN}} = 5.02 TeV"*/,
 }
 
 void xjjroot::settex(TLatex* tex, Float_t tsize/*=0.04*/, Short_t align/*=12*/,
-                     Style_t font/*=42*/, Color_t color/*=kBlack*/, Float_t tangle/*=0*/)
+                     Style_t font/*=42*/, Color_t color/*=kBlack*/, Float_t talpha/*=1*/, Float_t tangle/*=0*/)
 {
   tex->SetNDC();
   tex->SetTextFont(font);
   tex->SetTextAlign(align);
   tex->SetTextSize(tsize);
   tex->SetTextColor(color);
+  tex->SetTextColorAlpha(color, talpha);
   tex->SetTextAngle(tangle);
 }
 
 TLatex* xjjroot::drawtex(Double_t x, Double_t y, const char* text,
                          Float_t tsize/*=0.04*/, Short_t align/*=12*/, Style_t font/*=42*/,
-                         Color_t color/*=kBlack*/, Float_t tangle/*=0*/, bool draw/*=true*/)
+                         Color_t color/*=kBlack*/, Float_t talpha/*=1*/, Float_t tangle/*=0*/, 
+                         bool draw/*=true*/)
 {
   TLatex* tex = new TLatex(x, y, text);
-  xjjroot::settex(tex, tsize, align, font, color, tangle);
+  xjjroot::settex(tex, tsize, align, font, color, talpha, tangle);
   if(draw) tex->Draw();
   return tex;
 }
 
 TLatex* xjjroot::drawtexnum(Double_t x, Double_t y, const char* text,
                             Float_t tsize/*=0.04*/, Short_t align/*=12*/, Style_t font/*=42*/,
-                            Color_t color/*=kBlack*/, Float_t tangle/*=0*/, bool draw/*=true*/)
+                            Color_t color/*=kBlack*/, Float_t talpha/*=1*/, Float_t tangle/*=0*/,
+                            bool draw/*=true*/)
 {
   TLatex* tex = new TLatex(x, y, text);
-  xjjroot::settex(tex, tsize, align, font, color, tangle);
+  xjjroot::settex(tex, tsize, align, font, color, talpha, tangle);
   tex->SetNDC(false);
   if(draw) tex->Draw();
   return tex;
@@ -369,6 +377,41 @@ void xjjroot::setlegndraw(TLegend* leg, Float_t tsize/*=0.04*/)
 {
   xjjroot::setleg(leg, tsize);
   leg->Draw();
+}
+
+void xjjroot::movelegndraw(TLegend* leg, float x1/*=-1*/, float y2/*=-1*/) {
+  if (x1 < 0) x1 = leg->GetX1NDC();
+  if (y2 < 0) y2 = leg->GetY2NDC();
+  auto delta_x = leg->GetX2NDC() - leg->GetX1NDC();
+  float x2 = x1 + delta_x;
+  auto delta_y = leg->GetY2NDC() - leg->GetY1NDC();
+  float y1 = y2 - delta_y;
+  leg->SetX1NDC(x1);
+  leg->SetY1NDC(y1);
+  leg->SetX2NDC(x2);
+  leg->SetY2NDC(y2);
+  leg->Draw();
+}
+
+void xjjroot::autolegndraw(TLegend* leg, float x1/*=-1*/, float y2/*=-1*/, float tsize/*=-1*/, float fline/*=1.1*/) {
+  if (x1 < 0) x1 = leg->GetX1NDC();
+  if (y2 < 0) y2 = leg->GetY2NDC();
+  if (tsize > 0) leg->SetTextSize(tsize);
+  auto ncol = leg->GetNColumns();
+  auto nent = leg->GetListOfPrimitives()->GetSize();
+  int nrow = std::ceil(nent*1. / ncol);
+  float delta_y = leg->GetTextSize() * fline * nrow;
+  leg->SetY2NDC(y2);
+  leg->SetY1NDC(y2 - delta_y);
+  movelegndraw(leg, x1, y2);
+}
+
+void xjjroot::rewidthleg(TLegend* leg, int ncol) {
+  auto delta_x = leg->GetX2NDC() - leg->GetX1NDC();
+  auto ncol_original = leg->GetNColumns();
+  delta_x = delta_x / ncol_original * ncol;
+  leg->SetNColumns(ncol);
+  leg->SetX2NDC(leg->GetX1NDC() + delta_x);
 }
 
 void xjjroot::addentrybystyle(TLegend* leg, std::string text, std::string opt,
