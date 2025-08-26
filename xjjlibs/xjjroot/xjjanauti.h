@@ -69,10 +69,12 @@ namespace xjjana
   void setbranchaddress(TTree* nt, const char* bname, void* addr);
   template <class T> T* copyobject(const T* obj, TString objname);
 
-  bool tree_exist(TFile* inf, std::string treename);
+  bool tree_exist(TDirectory* inf, std::string treename);
   bool ismc_hievt(TTree* root);
 
-  template<class T> std::vector<T*> get_regexp(TDirectory* d, const std::string& pattern = "*");
+  template<class T> T* getobj(TDirectory* inf, std::string name, bool silence=false);
+  template<class T> T* getobj(std::string name, bool silence=false);
+  template<class T> std::vector<T*> getobj_regexp(TDirectory* d, const std::string& pattern = "*");
 }
 
 /* ---------- */
@@ -503,7 +505,7 @@ void xjjana::grzero(T* gr) {
   }
 }
 
-bool xjjana::tree_exist(TFile* inf, std::string treename) {
+bool xjjana::tree_exist(TDirectory* inf, std::string treename) {
   if (!inf) return false;
   auto paths = xjjc::str_divide(treename, "/");
   TDirectory* dr = (TDirectory*)inf;
@@ -525,19 +527,36 @@ bool xjjana::ismc_hievt(TTree* root) {
 }
 
 template<class T>
-std::vector<T*> xjjana::get_regexp(TDirectory* d, const std::string& pattern/* = "*"*/) {
-  std::string classname = T::Class()->GetName();
+T* xjjana::getobj(TDirectory* inf, std::string name, bool silence) {
+  T* hh = 0;
+  if(!inf) { std::cout<<std::left<<"\e[31m(x) "<<name<<"\e[0m"<<std::endl; return hh; }
+  hh = (T*)inf->Get(name.c_str());
+  if(!hh) { std::cout<<std::left<<"\e[31m(x) "<<name<<"\e[0m"<<std::endl; return hh; }
+  if(!silence) printobject(hh);
+  return hh;
+}
+
+template<class T>
+T* xjjana::getobj(std::string name, bool silence) {
+  auto inputname = xjjc::str_divide_trim(name, "::");
+  auto inf = TFile::Open(inputname[0].c_str());
+  return getobj<T>(inf, inputname[1], silence);
+}
+
+template<class T>
+std::vector<T*> xjjana::getobj_regexp(TDirectory* d, const std::string& pattern/* = "*"*/) {
+  auto classname = T::Class()->GetName();
   TIter next(d->GetListOfKeys());
   TKey* key;
   std::vector<T*> rs;
   std::regex re(pattern);
   while ((key = (TKey*)next())) {
     auto* obj = key->ReadObj();
-    if (!obj->InheritsFrom(classname.c_str()))
+    if (!obj->InheritsFrom(classname))
       continue;
     auto* r = (T*)obj;
     if (std::regex_match(r->GetName(), re)) {
-      std::cout<<"\e[2m"<<r->GetName()<<"\e[0m"<<std::endl;
+      std::cout<<"\e[2m("<<classname<<")\e[0m "<<r->GetName()<<"\e[0m"<<std::endl;
       rs.push_back(r);
     }
   }
