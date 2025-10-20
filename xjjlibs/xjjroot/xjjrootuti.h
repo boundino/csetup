@@ -71,6 +71,7 @@ namespace xjjroot
   
   void setgstyle(Int_t padtick=0, Width_t lwidth=2, Int_t opt=0);
   void adjustmargin(float tt=1, float rr=1, float bb=1, float ll=1);
+  float getccenter(std::string title = "X");
   template <class T> void sethempty(T* hempty, Float_t xoffset=0, Float_t yoffset=0, Float_t xsize=1, Float_t ysize=1);
   template <class T> void setthgr(T* hempty, Float_t xoffset=0, Float_t yoffset=0);
   template <class T> void setthgrstyle(T* h, Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1,
@@ -95,10 +96,11 @@ namespace xjjroot
   void drawtexgroup(Double_t x, Double_t y, std::vector<std::string> text, Float_t tsize=0.04, Short_t align=12, Style_t font=42,
                     int ncol=1, Double_t colwid=0.2,
                     std::vector<Color_t> color=std::vector<Color_t>(10, kBlack)); // colorlist_middle
+  void movetex_n_draw(TLatex* tex, float x1=-1, float y2=-1, Short_t align = 0);
   void setleg(TLegend* leg, Float_t tsize=0.04);
-  void setlegndraw(TLegend* leg, Float_t tsize=0.04);
-  void movelegndraw(TLegend* leg, float x1=-1, float y2=-1);
-  void autolegndraw(TLegend* leg, float x1=-1, float y2=-1, float tsize=-1, float fline=1.1);
+  void setleg_n_draw(TLegend* leg, Float_t tsize=0.04);
+  void moveleg_n_draw(TLegend* leg, float x1=-1, float y2=-1);
+  void autoleg_n_draw(TLegend* leg, float x1=-1, float y2=-1, float tsize=-1, float fline=1.1);
   void rewidthleg(TLegend* leg, int ncol);
   void addentrybystyle(TLegend* leg, std::string text, std::string opt,
                        Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1,
@@ -126,8 +128,8 @@ namespace xjjroot
   void setaxisstyle(TAxis* axis, TGaxis* axis_mom);
   TGraph* drawpoint(Double_t x, Double_t y, Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1);
 
-  template<class T> void printobj(T* hh, int w=10);
-  template<class T> void writehist(T* hh, int w=10) { if(!silence__) { printobj(hh, w); } hh->Write(); }
+  template<class T> void printobj(T* hh, int w=0);
+  template<class T> void writehist(T* hh, int w=0) { if(!silence__) { printobj(hh, w); } hh->Write(); }
   void printhistvalue(TH1* hh, std::vector<int> bins={});
   void printgrvalue(TGraphErrors* gr);
   void printgrvalue(TGraph* gr);
@@ -173,6 +175,16 @@ void xjjroot::adjustmargin(float tt, float rr, float bb, float ll) {
   gStyle->SetPadLeftMargin(xjjroot::margin_pad_left*ll);
   gStyle->SetPadTopMargin(xjjroot::margin_pad_top*tt);
   gStyle->SetPadBottomMargin(xjjroot::margin_pad_bottom*bb);
+}
+
+float xjjroot::getccenter(std::string title) {
+  float result = 0.5;
+  if (xjjc::str_contains(xjjc::str_tolower(title), "x")) {
+    result = gStyle->GetPadLeftMargin() + (1 -  gStyle->GetPadLeftMargin() -  gStyle->GetPadRightMargin()) / 2.;
+  } else if (xjjc::str_contains(xjjc::str_tolower(title), "y")) {
+    result = gStyle->GetPadBottomMargin() + (1 -  gStyle->GetPadBottomMargin() -  gStyle->GetPadTopMargin()) / 2.;
+  }
+  return result;
 }
 
 template <class T>
@@ -343,6 +355,16 @@ void xjjroot::drawtexgroup(Double_t x, Double_t y, std::vector<std::string> text
   }
 }
 
+void xjjroot::movetex_n_draw(TLatex* tex, float x1/*=-1*/, float y2/*=-1*/, Short_t align/*=0*/) {
+  if (align > 0)
+    tex->SetTextAlign(31);
+  if (x1 >= 0)
+    tex->SetX(x1);
+  if (y2 >= 0)
+    tex->SetY(y2);
+  tex->Draw();
+}
+
 void xjjroot::setleg(TLegend* leg, Float_t tsize/*=0.04*/) {
   leg->SetBorderSize(0);
   leg->SetFillStyle(0);
@@ -350,12 +372,12 @@ void xjjroot::setleg(TLegend* leg, Float_t tsize/*=0.04*/) {
   leg->SetTextSize(tsize);
 }
 
-void xjjroot::setlegndraw(TLegend* leg, Float_t tsize/*=0.04*/) {
+void xjjroot::setleg_n_draw(TLegend* leg, Float_t tsize/*=0.04*/) {
   xjjroot::setleg(leg, tsize);
   leg->Draw();
 }
 
-void xjjroot::movelegndraw(TLegend* leg, float x1/*=-1*/, float y2/*=-1*/) {
+void xjjroot::moveleg_n_draw(TLegend* leg, float x1/*=-1*/, float y2/*=-1*/) {
   if (x1 < 0) x1 = leg->GetX1NDC();
   if (y2 < 0) y2 = leg->GetY2NDC();
   auto delta_x = leg->GetX2NDC() - leg->GetX1NDC();
@@ -369,7 +391,7 @@ void xjjroot::movelegndraw(TLegend* leg, float x1/*=-1*/, float y2/*=-1*/) {
   leg->Draw();
 }
 
-void xjjroot::autolegndraw(TLegend* leg, float x1/*=-1*/, float y2/*=-1*/, float tsize/*=-1*/, float fline/*=1.1*/) {
+void xjjroot::autoleg_n_draw(TLegend* leg, float x1/*=-1*/, float y2/*=-1*/, float tsize/*=-1*/, float fline/*=1.1*/) {
   if (x1 < 0) x1 = leg->GetX1NDC();
   if (y2 < 0) y2 = leg->GetY2NDC();
   if (tsize > 0) leg->SetTextSize(tsize);
@@ -379,7 +401,7 @@ void xjjroot::autolegndraw(TLegend* leg, float x1/*=-1*/, float y2/*=-1*/, float
   float delta_y = leg->GetTextSize() * fline * nrow;
   leg->SetY2NDC(y2);
   leg->SetY1NDC(y2 - delta_y);
-  movelegndraw(leg, x1, y2);
+  moveleg_n_draw(leg, x1, y2);
 }
 
 void xjjroot::rewidthleg(TLegend* leg, int ncol) {
@@ -578,18 +600,25 @@ void xjjroot::printgrvalue(TGraph* gr) {
   }
 }
 
+template<typename T>
+class HasGetEntries {
+    template<typename U> 
+    static auto test(int) -> decltype(std::declval<U>().GetEntries(), std::true_type{});
+    
+    template<typename U> 
+    static std::false_type test(...);
+    
+public:
+    static constexpr bool value = decltype(test<T>(0))::value;
+};
+
 template<class T> 
 void xjjroot::printobj(T* hh, int w) {
   if (!hh) { std::cout<<"error: bad object."<<std::endl; return; }
   std::cout<<std::left
-           <<std::setw(10)<<"\e[2m("<<hh->GetClassName()<<")\e[0m "
+           <<"\e[2m"<<Form("(%s)", hh->ClassName())<<"\e[0m "
            <<std::setw(w)<<"\e[0m"<<hh->GetName()<<"\e[0m";
-  if (hh->InheritsFrom(TH1::Class()) ||
-      hh->InheritsFrom(TH2::Class()) ||
-      hh->InheritsFrom(TH3::Class()) ||
-      hh->InheritsFrom(TTree::Class()) ||
-      hh->InheritsFrom(TChain::Class()) ||
-      hh->InheritsFrom(TEntryList::Class()) ) {
+  if constexpr (HasGetEntries<T>::value) {
     std::cout<<" \e[36;1m("<<hh->GetEntries()<<")\e[0m";
   }
   std::cout<<std::endl;
@@ -663,7 +692,6 @@ void xjjroot::twopads(TCanvas *c, TPad*& p1, TPad*& p2, TH1 *hempty, TH1 *hempty
   hempty_ratio->GetXaxis()->SetNdivisions(510);
   hempty_ratio->GetYaxis()->SetNdivisions(505);
 
-
   hempty->GetYaxis()->SetTitleSize(hempty->GetYaxis()->GetTitleSize() * (1./yupdiv) * 0.9);
   hempty->GetXaxis()->SetTitleSize(hempty->GetXaxis()->GetTitleSize() * (1./yupdiv) * 0.9);
   hempty->GetYaxis()->SetLabelSize(hempty->GetYaxis()->GetLabelSize() * (1./yupdiv) * 0.9);
@@ -677,7 +705,7 @@ void xjjroot::twopads(TCanvas *c, TPad*& p1, TPad*& p2, TH1 *hempty, TH1 *hempty
   hempty_ratio->GetYaxis()->SetLabelSize(hempty->GetYaxis()->GetLabelSize() * (yupdiv / ydowndiv));
   hempty_ratio->GetXaxis()->SetLabelSize(hempty->GetXaxis()->GetLabelSize() * (yupdiv / ydowndiv));
   hempty_ratio->GetYaxis()->SetTitleOffset(hempty->GetYaxis()->GetTitleOffset() / (yupdiv / ydowndiv));
-  hempty_ratio->GetXaxis()->SetTitleOffset(hempty->GetXaxis()->GetTitleOffset() / (yupdiv / ydowndiv) * (1+2));
+  hempty_ratio->GetXaxis()->SetTitleOffset(hempty->GetXaxis()->GetTitleOffset() / (yupdiv / ydowndiv) * (1+1.4));
   hempty_ratio->GetYaxis()->SetLabelOffset(hempty->GetYaxis()->GetLabelOffset() / (yupdiv / ydowndiv) * (1+1.8));
   hempty_ratio->GetXaxis()->SetLabelOffset(hempty->GetXaxis()->GetLabelOffset() / (yupdiv / ydowndiv));
   hempty_ratio->GetXaxis()->SetTickLength(hempty->GetXaxis()->GetTickLength() * (yupdiv / ydowndiv) );

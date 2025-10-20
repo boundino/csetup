@@ -13,7 +13,7 @@ namespace xjjc
   class sconfig
   {
   public:
-    sconfig(std::string input, std::string tok1=",", std::string tok2="#", std::string opt="") :
+    sconfig(std::string input, std::string tok1=",", std::string tok2="#", std::string opt="v") :
       input_(input), t1_(tok1), t2_(tok2), opt_(opt) { parse(); }
     int n() { return value.size(); }
     std::vector<std::vector<std::string>> value;
@@ -27,10 +27,10 @@ namespace xjjc
 
 void xjjc::sconfig::parse()
 {
-  auto inputs = xjjc::str_divide(input_, t1_);
+  auto inputs = xjjc::str_divide_trim(input_, t1_);
   for(int i=0; i<inputs.size(); i++)
     {
-      auto params = xjjc::str_divide(inputs[i], t2_);
+      auto params = xjjc::str_divide_trim(inputs[i], t2_);
       value.push_back(params);
       if(!i) size_.resize(params.size(), 0);
       for(int j=0; j<size_.size(); j++)

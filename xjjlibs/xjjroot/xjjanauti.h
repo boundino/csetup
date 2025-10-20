@@ -532,7 +532,7 @@ T* xjjana::getobj(TDirectory* inf, std::string name, bool silence) {
   if(!inf) { std::cout<<std::left<<"\e[31m(x) "<<name<<"\e[0m"<<std::endl; return hh; }
   hh = (T*)inf->Get(name.c_str());
   if(!hh) { std::cout<<std::left<<"\e[31m(x) "<<name<<"\e[0m"<<std::endl; return hh; }
-  if(!silence) printobject(hh);
+  if(!silence) xjjroot::printobj(hh);
   return hh;
 }
 
