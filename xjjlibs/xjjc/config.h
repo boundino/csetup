@@ -13,78 +13,58 @@ namespace xjjc
   class config
   {
   public:
-    config(std::string input, std::string escape="%%") : input_(input), escape_(escape) { parse(); print(); }
-    bool goodkey(std::string key) { return value_.find(key) != value_.end(); }
-    std::string v(std::string key) { return goodkey(key)?value_[key]:""; }
-    std::string operator[](std::string key) { return v(key); }
-    float vf(std::string key) { return atof(v(key).c_str()); }
-    int vi(std::string key) { return atoi(v(key).c_str()); }
-    std::vector<std::string> vv(std::string key) { return str_divide(v(key), ","); }
-    std::vector<float> vvf(std::string key);
-    std::vector<int> vvi(std::string key);
-    void print(std::string div2 = ",");
+    config(const std::string& input, const std::string& escape="%%")
+      : input_(std::move(input)), escape_(std::move(escape)) { parse(); print(); }
+    bool has(const std::string& key) const { return value_.find(key) != value_.end(); }
+    // get single value
+    template <typename T = std::string> T get(const std::string& key) const { return str_convert<T>(v(key)); }
+    std::string operator[](const std::string& key) const { return get(key); }
+    // get vector
+    template <typename T> std::vector<T> get_vec(const std::string& key) const { return str_convert_vector<T>(v(key)); }
+    // service
+    void print(const std::string& div2 = ",") const;
   private:
-    std::string input_;
     std::map<std::string, std::string> value_;
-    std::string escape_;
+    std::string input_, escape_;
+    // start from string
+    std::string v(const std::string& key) const { return has(key) ? value_.at(key) : ""; }
     void parse();
   };
 }
 
-void xjjc::config::parse()
-{
+void xjjc::config::parse() {
   std::ifstream filein(input_.c_str());
   std::string line_now, key_now;
-  for(std::string line; std::getline(filein, line);)
-    {
-      line = xjjc::str_trim( xjjc::str_erasestar(line, "#*") );
-      if (line == "") continue;
+  for (std::string line; std::getline(filein, line);) {
+    line = xjjc::str_trim( xjjc::str_erasestar(line, "#*") );
+    if (line == "") continue;
 
-      bool endp = line[line.length()-1] != '\\';
-      if (!endp) line.pop_back();
+    bool endp = line[line.length()-1] != '\\';
+    if (!endp) line.pop_back();
       
-      auto content = line;
-      if (xjjc::str_contains(line, "=")) {
-        auto vline = xjjc::str_divide_trim(line, "=");
-        key_now = vline[0];
-        content = vline[1];
-      }
-      line_now += xjjc::str_trim(content);
-
-      if (endp) {
-        line_now = xjjc::str_replaceall(line_now, escape_, "#");
-        value_[key_now] = line_now;
-        key_now.clear();
-        line_now.clear();
-      }
+    auto content = line;
+    if (xjjc::str_contains(line, "=")) {
+      auto vline = xjjc::str_divide_trim(line, "=");
+      key_now = vline[0];
+      content = vline[1];
     }
+    line_now += xjjc::str_trim(content);
+
+    if (endp) {
+      line_now = xjjc::str_replaceall(line_now, escape_, "#");
+      value_[key_now] = line_now;
+      key_now.clear();
+      line_now.clear();
+    }
+  }
 }
 
-std::vector<float> xjjc::config::vvf(std::string key)
-{
-  std::vector<std::string> vv = str_divide_trim(v(key), ",");
-  std::vector<float> v_result;
-  for(auto& iv : vv)
-    v_result.push_back(atof(iv.c_str()));
-  return v_result;
-}
-
-std::vector<int> xjjc::config::vvi(std::string key)
-{
-  std::vector<std::string> vv = str_divide_trim(v(key), ",");
-  std::vector<int> v_result;
-  for(auto& iv : vv)
-    v_result.push_back(atoi(iv.c_str()));
-  return v_result;
-}
-
-void xjjc::config::print(std::string div2)
-{
+void xjjc::config::print(const std::string& div2) const {
   auto maxk = std::string("").length();
-  for(auto& iv : value_) {
+  for (auto& iv : value_) {
     maxk = std::max(maxk, iv.first.length());
   }
-  for(auto& iv : value_) {
+  for (auto& iv : value_) {
     std::cout << std::left << " \e[4;3m" << std::setw(maxk) << iv.first << "\e[0m"
               << "\e[2m => \e[0m";
     auto vl2 = str_divide_trim(iv.second, div2);

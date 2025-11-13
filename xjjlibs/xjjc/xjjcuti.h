@@ -35,6 +35,8 @@ namespace xjjc
   template<typename T> std::string number_range_string(T val1_, T val2_, std::string var, std::string opt);
   template<typename T> std::string number_range_string(T val1_, T val2_, std::string var, T over1_=0, T over2_=1.e+3, std::string unit="");
   int number_digit(int i, int n);
+  template<typename T> T str_convert(const std::string& s);
+  template<typename T> std::vector<T> str_convert_vector(const std::string& s);
 
   void progressbar(int index_, int total_, int step=10000, int morespace_=0);
   void progressslide(int index_, int total_, int step=10000, char done='=', char yet='.', char arrow='>');
@@ -187,8 +189,8 @@ std::string xjjc::number_range_string(T val1_, T val2_, std::string var, std::st
 template<typename T>
 std::string xjjc::number_range_string(T val1_, T val2_, std::string var, T over1_/*=0*/, T over2_/*=1.e+3*/, std::string unit/*=""*/)
 {
-  if (val2_ >= over2_) return number_range_string(val1_, val2_, var, "fmax");
-  else if (val1_ <= over1_) return number_range_string(val1_, val2_, var, "fmin");
+  if (val2_ >= over2_) return number_range_string(val1_, val2_, var, "fmax")+" "+unit;
+  else if (val1_ <= over1_) return number_range_string(val1_, val2_, var, "fmin")+" "+unit;
   return number_range_string(val1_, val2_, var, "")+" "+unit;
 }
 
@@ -200,6 +202,27 @@ int xjjc::number_digit(int i, int n)
   if(n==0) return i1;
   int i2 = std::floor(float(i1/std::pow(10, n-1)));
   return i2;
+}
+
+template<typename T>
+T xjjc::str_convert(const std::string& s) {
+  if constexpr (std::is_same_v<T, std::string>)
+                 return s;
+  else if constexpr (std::is_same_v<T, int>)
+                      return s.empty() ? 0 : std::stoi(s);
+  else if constexpr (std::is_same_v<T, float>)
+                      return s.empty() ? 0.f : std::stof(s);
+  else
+    static_assert(!sizeof(T*), "Unsupported type for safeConvert()");
+}
+
+template<typename T>
+std::vector<T> xjjc::str_convert_vector(const std::string& s) {
+  std::vector<T> r;
+  for (const auto& st : str_divide_trim(s, ",")) {
+    r.push_back(str_convert<T>(st));
+  }
+  return r;
 }
 
 void xjjc::progressbar(int index_, int total_, int step, int morespace_/*=0*/)
