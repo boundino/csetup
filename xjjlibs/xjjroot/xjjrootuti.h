@@ -93,7 +93,7 @@ namespace xjjroot
   TLatex* drawtexnum(Double_t x, Double_t y, const char *text,
                      Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack, Float_t talpha=1, Float_t tangle=0,
                      bool draw = true);
-  void drawtexgroup(Double_t x, Double_t y, std::vector<std::string> text, Float_t tsize=0.04, Short_t align=12, Style_t font=42,
+  void drawtexgroup(Double_t x, Double_t y, std::vector<std::string> text, Float_t tsize=0.04, Short_t align=12, Style_t font=42, float lspacescale = 1.15,
                     int ncol=1, Double_t colwid=0.2,
                     std::vector<Color_t> color=std::vector<Color_t>(10, kBlack)); // colorlist_middle
   void movetex_n_draw(TLatex* tex, float x1=-1, float y2=-1, Short_t align = 0);
@@ -338,9 +338,10 @@ TLatex* xjjroot::drawtexnum(Double_t x, Double_t y, const char* text,
 }
 
 void xjjroot::drawtexgroup(Double_t x, Double_t y, std::vector<std::string> text, Float_t tsize/*=0.04*/, Short_t align/*=12*/, Style_t font/*=42*/,
+                           float lspacescale/*=1.15*/,
                            int ncol/*=1*/, Double_t colwid/*=0.2*/,
                            std::vector<Color_t> color/*=std::vector<Color_t>(10, kBlack)*/) {
-  double lspace = tsize+0.005;
+  double lspace = tsize * lspacescale;
   bool left = true, top = true;
   if(align == 31 || align == 33) left = false;
   if(align == 11 || align == 31) top = false;
