@@ -20,7 +20,7 @@ namespace xjjc
     template <typename T = std::string> T get(const std::string& key) const { return str_convert<T>(v(key)); }
     std::string operator[](const std::string& key) const { return get(key); }
     // get vector
-    template <typename T> std::vector<T> get_vec(const std::string& key) const { return str_convert_vector<T>(v(key)); }
+    template <typename T = std::string> std::vector<T> get_vec(const std::string& key) const { return str_convert_vector<T>(v(key)); }
     // service
     void print(const std::string& div2 = ",") const;
   private:
