@@ -342,14 +342,19 @@ void xjjroot::drawtexgroup(Double_t x, Double_t y, std::vector<std::string> text
                            int ncol/*=1*/, Double_t colwid/*=0.2*/,
                            std::vector<Color_t> color/*=std::vector<Color_t>(10, kBlack)*/) {
   double lspace = tsize * lspacescale;
+  auto nrow = std::ceil(text.size()/ncol);
   bool left = true, top = true;
-  if(align == 31 || align == 33) left = false;
-  if(align == 11 || align == 31) top = false;
+  if(align == 31 || align == 32 || align == 33) left = false;
+  Short_t vertical = 3;
+  if(align == 11 || align == 21 || align == 31) vertical = 1;
+  if(align == 12 || align == 22 || align == 32) vertical = 2;
+  float y1 = y; // vertical = 3, top
+  if(vertical = 1) y1 = y + lspace*nrow; // vertical = 1, bottom
+  if(vertical = 2) y1 = y + lspace*nrow/2. - tsize/2.; // vertical = 2, middle
   for(unsigned t=0; t<text.size(); t++) {
     double xx = x + colwid*(t%ncol);
     if(!left) xx = x - colwid*(t%ncol);
-    double yy = y - lspace*(t/ncol);
-    if(!top) yy = y + lspace*(t/ncol);
+    double yy = y1 - lspace*(t/ncol); 
     constexpr unsigned fallback = kBlack;
     Color_t cc = t<color.size()?color[t]:fallback;
     drawtex(xx, yy, text[t].c_str(), tsize, align, font, cc);
