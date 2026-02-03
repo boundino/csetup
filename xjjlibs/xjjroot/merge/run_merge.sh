@@ -1,12 +1,12 @@
 #!/bin/bash
 
-skim=0
+skim=1
 ntotal=10
 
 ## ifs
 inputdirs=(
-    /eos/cms/store/group/phys_heavyions/wangj/L1PbPb2022/crab_forest_20220512_HIForward_HIRun2018A_HIZeroBiasv1_run327327/,
-    # /export/d00/scratch/jwang/L1PbPb2021/crab_L1_20200322_HIZeroBiasReducedFormat_HIRun2018A_v1_2/,
+    /eos/cms/store/group/phys_heavyions/wangj/L1PbPb2022/crab_forest_20220512_HIForward_HIRun2018A_HIZeroBiasv1_run327327
+    # /export/d00/scratch/jwang/L1PbPb2021/crab_L1_20200322_HIZeroBiasReducedFormat_HIRun2018A_v1_2,
     # /eos/cms/store/group/phys_heavyions/mitaylor/L1MenuStudies/HIForward/ZeroBias_HIRun2018A_MiniAOD_Run326776_v1_1240_HF_14_19_v1/220905_223546/0000/,/eos/cms/store/group/phys_heavyions/wangj/L1PbPb2022/ZeroBias_HIRun2018A_MiniAOD_Run326776_v1_1240_HF_14_19_v1/
 )
 
@@ -23,12 +23,12 @@ do
     IFS=','; parse=($i); unset IFS;
     
     inputdir=${parse[0]}
+    [[ ! -d $inputdir ]] && { echo -e "\e[31;1mBad input:\e[0m $inputdir." ; continue ; }
+
     outputdir=${parse[1]}
     IFS='/'; subdir=($inputdir); unset IFS;
     request=${subdir[${#subdir[@]}-1]}
     [[ x${outputdir} == x ]] && primedir=${inputdir%%${request}*} || primedir=$outputdir
-
-    [[ ! -d $inputdir ]] && { echo -e "\e[31;1mBad input:\e[0m $inputdir." ; continue ; }
 
     ## ======================================== #
 
