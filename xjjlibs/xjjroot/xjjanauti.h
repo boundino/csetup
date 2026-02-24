@@ -4,6 +4,7 @@
 /* xjjanauti.h */
 
 #include <TTree.h>
+#include <TChain.h>
 #include <TLatex.h>
 #include <TLegend.h>
 #include <TLine.h>
@@ -48,7 +49,6 @@ namespace xjjana
   template<class T> double sethsmax(std::vector<T>& h, float factor=1);
   template<class T1, class T2> double sethsmax(std::map<T1, T2>& h, float factor=1);
   template<class T1, class T2> double sethsmax(std::vector<std::pair<T1, T2>>& h, float factor=1);
-  void sethsminmax(std::vector<TH1*>& h, float factor_min, float factor_max);
 
   TGraphErrors* shifthistcenter(TH1* hh, std::string name); // TH1 -> TGraphErrors with the original bins
   TGraphErrors* shifthistcenter(TH1* hh, std::string name, int option); // -1: binlowedge, 0: bincenter, 1: binhighedge | zero x err
@@ -66,23 +66,30 @@ namespace xjjana
 
   template <class T> void grzero(T* gr);
   
-  void setbranchaddress(TTree* nt, const char* bname, void* addr);
   template <class T> T* copyobject(const T* obj, TString objname);
 
-  bool tree_exist(TDirectory* inf, std::string treename);
+  bool tree_exist(const TDirectory *inf, std::string treename);
   bool ismc_hievt(TTree* root);
+  TChain* chain_files(const std::vector<std::string>& files, std::string treename);
 
-  template<class T> T* getobj(TDirectory* inf, std::string name, bool silence=false);
+  template<class T> T* getobj(TDirectory *inf, std::string name, bool silence=false);
   template<class T> T* getobj(std::string name, bool silence=false);
-  template<class T> std::vector<T*> getobj_regexp(TDirectory* d, const std::string& pattern = "*");
+  template<class T> std::vector<T*> getobj_regexp(const TDirectory *dir, const std::string& pattern = "*", const std::string& classfilter = "");
+  std::map<std::string, std::string> getstr_regexp(TTree *tr, const std::string& pattern = "*");
+
+  struct variable
+  {
+    std::string varname;
+    std::string var;
+    std::string vartex;
+    float varmin;
+    float varmax;
+    int nbin = 50;
+  };
+  void print_var(const variable &v);
 }
 
 /* ---------- */
-
-void xjjana::setbranchaddress(TTree* nt, const char* bname, void* addr) {
-  nt->SetBranchStatus(bname, 1);
-  nt->SetBranchAddress(bname, addr);
-}
 
 void xjjana::dividebinwid(TH1* h) {
   for(int i=0;i<h->GetNbinsX();i++) {
@@ -174,7 +181,7 @@ void xjjana::drawhoutline(TH2* h, Color_t lcolor/*=1*/, Style_t lstyle/*=1*/, Wi
 }
 
 TH2* xjjana::gethratiozero(TH2* h1, TH2* h2, int opt) {
-  TH2* hzero = (TH2*)h1->Clone(xjjc::currenttime().c_str());
+  TH2* hzero = (TH2*)h1->Clone(xjjc::current_time().c_str());
   auto nx = hzero->GetXaxis()->GetNbins(), ny = hzero->GetYaxis()->GetNbins();
   for(int i=0; i<nx; i++)
     for(int j=0; j<ny; j++) {
@@ -327,20 +334,6 @@ double xjjana::sethsmax(std::vector<std::pair<T1, T2>>& h, float factor) {
     hs.push_back(hh.second);
   }
   return sethsmax(hs, factor);
-}
-
-void xjjana::sethsminmax(std::vector<TH1*>& h, float factor_min, float factor_max) {
-  double ymax = -1.e+10, ymin = 1.e+10;
-  for(auto& hh : h)
-    {
-      ymin = std::min(ymin, gethminimum(hh));
-      ymax = std::max(ymax, gethmaximum(hh));
-    }
-  for(auto& hh : h)
-    {
-      hh->SetMinimum(ymin * factor_min);
-      hh->SetMaximum(ymax * factor_max);
-    }
 }
 
 TGraphErrors* xjjana::shifthistcenter(TH1* hh, std::string name) {
@@ -505,7 +498,7 @@ void xjjana::grzero(T* gr) {
   }
 }
 
-bool xjjana::tree_exist(TDirectory* inf, std::string treename) {
+bool xjjana::tree_exist(const TDirectory *inf, std::string treename) {
   if (!inf) return false;
   auto paths = xjjc::str_divide(treename, "/");
   TDirectory* dr = (TDirectory*)inf;
@@ -526,13 +519,26 @@ bool xjjana::ismc_hievt(TTree* root) {
   return (run < 2);
 }
 
+TChain* xjjana::chain_files(const std::vector<std::string>& files,
+                            std::string treename) {
+  TTree::SetMaxTreeSize(1LL * 1024 * 1024 * 1024 * 1024);
+  auto *t = new TChain(treename.c_str());
+  std::cout<<"\e[2m";
+  for(auto& f : files) {
+    t->Add(f.c_str());
+    std::cout<<""<<f<<std::endl;
+  }
+  std::cout<<"Merged \e[0m"<<files.size()<<"\e[2m files.\e[0m"<<std::endl;
+  return t;
+}
+
 template<class T>
-T* xjjana::getobj(TDirectory* inf, std::string name, bool silence) {
+T* xjjana::getobj(TDirectory *inf, std::string name, bool silence) {
   T* hh = 0;
   if(!inf) { std::cout<<std::left<<"\e[31m(x) "<<name<<"\e[0m"<<std::endl; return hh; }
   hh = (T*)inf->Get(name.c_str());
   if(!hh) { std::cout<<std::left<<"\e[31m(x) "<<name<<"\e[0m"<<std::endl; return hh; }
-  if(!silence) xjjroot::printobj(hh);
+  if(!silence) xjjroot::print_obj(hh);
   return hh;
 }
 
@@ -544,9 +550,10 @@ T* xjjana::getobj(std::string name, bool silence) {
 }
 
 template<class T>
-std::vector<T*> xjjana::getobj_regexp(TDirectory* d, const std::string& pattern/* = "*"*/) {
-  auto classname = T::Class()->GetName();
-  TIter next(d->GetListOfKeys());
+std::vector<T*> xjjana::getobj_regexp(const TDirectory *dir, const std::string& pattern/* = "*"*/,
+                                      const std::string& classfilter/* = ""*/) {
+  auto classname = classfilter.empty() ? T::Class()->GetName() : classfilter.c_str();
+  TIter next(dir->GetListOfKeys());
   TKey* key;
   std::vector<T*> rs;
   std::regex re(pattern);
@@ -554,16 +561,61 @@ std::vector<T*> xjjana::getobj_regexp(TDirectory* d, const std::string& pattern/
     auto* obj = key->ReadObj();
     if (!obj->InheritsFrom(classname))
       continue;
+    if (!std::regex_match(obj->GetName(), re))
+      continue;
     auto* r = (T*)obj;
-    if (std::regex_match(r->GetName(), re)) {
-      std::cout<<"\e[2m("<<classname<<")\e[0m "<<r->GetName()<<"\e[0m"<<std::endl;
-      rs.push_back(r);
-    }
+    xjjroot::print_obj(r);
+    rs.push_back(r);
   }
   if (rs.empty()) {
     std::cout<<"warning: no \e[1;4m"<<classname<<"\e[0m matching regexp \e[1;4m"<<pattern<<"\e[0m."<<std::endl;
   }
   return rs;
+}
+
+std::map<std::string, std::string> xjjana::getstr_regexp(TTree *tr, const std::string& pattern/* = "*"*/) {
+  std::map<std::string, std::string> rs;
+  if (!tr) return rs;
+  std::map<std::string, std::string*> pstr;
+  std::map<std::string, TString*> pTstr;
+  std::regex re(pattern);
+
+  TObjArray* branches = tr->GetListOfBranches();
+  for (size_t i=0; i<branches->GetEntries(); ++i) {
+    auto* br = (TBranch*)branches->At(i);
+    const auto* className = br->GetClassName();
+    if (!className) continue;
+    std::string bname = br->GetName();
+    if (!std::regex_match(bname.c_str(), re)) continue;
+    if (std::string(className) == "TString") {
+      pTstr[bname] = nullptr; //
+      tr->SetBranchAddress(bname.c_str(), &pTstr[bname]);
+    }
+    if (std::string(className) == "string" ||
+        std::string(className) == "std::string") {
+      pstr[bname] = nullptr; //
+      tr->SetBranchAddress(bname.c_str(), &pstr.at(bname));
+    }
+  }
+  tr->GetEntry(0);
+  for (const auto& [bname, sptr] : pstr) {
+    rs[bname] = *sptr; //
+  }
+  for (const auto& [bname, sptr] : pTstr) {
+    rs[bname] = *sptr; //
+  }
+  return rs;
+}
+  
+void xjjana::print_var(const variable &v) {
+  std::cout << std::endl
+            << " \e[1m[ " << v.varname << " ]\e[0m "
+            << " \e[2m(var)\e[0m \e[32m" << v.var << "\e[0m"
+            << " \e[2m(vartex)\e[0m \e[32m" << v.vartex << "\e[0m"
+            << " \e[2m(varmin)\e[0m \e[32m" << v.varmin << "\e[0m"
+            << " \e[2m(varmax)\e[0m \e[32m" << v.varmax << "\e[0m"
+            << " \e[2m(nbin) " << v.nbin << "\e[0m"
+            << std::endl;
 }
 
 #endif

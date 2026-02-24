@@ -23,7 +23,7 @@ namespace xjjroot
     void write(std::string pngname = "", std::string opt = "");
     void close() { fc->Print(Form("%s]", ffname.c_str())); delete fc; }
     TCanvas* getc() { return fc; }
-    void draw_cover(std::vector<std::string> title, Size_t tsize=0.045);
+    void draw_cover(std::vector<std::string> title, Size_t tsize=0.04);
     std::string getfilename() { return ffname; }
   private:
     TCanvas* fc;
@@ -63,8 +63,7 @@ void xjjroot::mypdf::write(std::string pngname, std::string opt) {
 
 void xjjroot::mypdf::draw_cover(std::vector<std::string> title, Size_t tsize) {
   if (title.empty()) return;
-  title[0] = "#bf{" + title[0] + "}";
   prepare();
-  xjjroot::drawtexgroup(0.5, 0.5, title, tsize, 22, 42, 1.15);
+  xjjroot::drawtexgroup_wrap(0.5, 0.5, title, tsize, 22, 42, 1.15, 2./tsize);
   write();
 }
