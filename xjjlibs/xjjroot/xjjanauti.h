@@ -74,7 +74,9 @@ namespace xjjana
 
   template<class T> T* getobj(TDirectory *inf, std::string name, bool silence=false);
   template<class T> T* getobj(std::string name, bool silence=false);
-  template<class T> std::vector<T*> getobj_regexp(const TDirectory *dir, const std::string& pattern = "*", const std::string& classfilter = "");
+  template<class T> std::vector<T*> getobj_regexp(const TDirectory *dir, const std::string& pattern = ".*", const std::string& classfilter = "");
+  template<class T> void getobj_regexp_recur(const TDirectory *dir, std::vector<T*> &result, const std::string& pattern = ".*", const std::string& classfilter = "");
+  template<class T> std::vector<T*> getobj_regexp_recur(const TDirectory *dir, const std::string& pattern = ".*", const std::string& classfilter = "");
   std::map<std::string, std::string> getstr_regexp(TTree *tr, const std::string& pattern = "*");
 
   struct variable
@@ -570,6 +572,37 @@ std::vector<T*> xjjana::getobj_regexp(const TDirectory *dir, const std::string& 
   if (rs.empty()) {
     std::cout<<"warning: no \e[1;4m"<<classname<<"\e[0m matching regexp \e[1;4m"<<pattern<<"\e[0m."<<std::endl;
   }
+  return rs;
+}
+
+template<class T>
+void xjjana::getobj_regexp_recur(const TDirectory *dir, std::vector<T*> &rs,
+                                 const std::string& pattern/* = "*"*/,
+                                 const std::string& classfilter/* = ""*/) {
+  auto classname = classfilter.empty() ? T::Class()->GetName() : classfilter.c_str();
+  TIter next(dir->GetListOfKeys());
+  TKey* key;
+  std::regex re(pattern);
+  while ((key = (TKey*)next())) {
+    auto* obj = key->ReadObj();
+    if (obj->InheritsFrom(TDirectory::Class())) {
+      getobj_regexp_recur((TDirectory*)obj, rs, pattern, classfilter); //
+    } else {
+      if (!obj->InheritsFrom(classname)) continue;
+      if (!std::regex_match(obj->GetName(), re)) continue;
+      auto* r = (T*)obj;
+      xjjroot::print_obj(r);
+      rs.push_back(r);
+    }
+  }
+}
+
+template<class T>
+std::vector<T*> xjjana::getobj_regexp_recur(const TDirectory *dir,
+                                            const std::string& pattern/* = "*"*/,
+                                            const std::string& classfilter/* = ""*/) {
+  std::vector<T*> rs;
+  getobj_regexp_recur(dir, rs, pattern, classfilter);
   return rs;
 }
 

@@ -25,6 +25,10 @@
   struct has_method_##method<T, std::void_t<decltype(std::declval<const T&>().method())>> \
     : std::true_type {};
 
+#ifndef __XJJLOG
+#define __XJJLOG std::cout<<__FUNCTION__<<": "
+#endif
+
 namespace xjjc
 {
   const std::vector<std::string> speciallist = { " ", "/", "(", ")", "^", "#", "%", "$", ",", ".", "*", "&", ":", "{", "}", ";", "|" };
@@ -93,11 +97,11 @@ namespace xjjc
   std::string current_time();
   std::string unique_str();
 
-  void print_tab_base(const std::vector<std::vector<std::string>>& vstrs, uint8_t opt = 3);
-  template<typename T> void print_tab(const std::vector<std::vector<T>>& vstrs, uint8_t opt = 3);
-  template<typename T1, typename T2> void xjjc::print_tab(const std::map<T1, T2>& vstrs, uint8_t opt = 3);
-  template<typename T> void print_vec_v(const std::vector<T>& vstrs, uint8_t opt = 1);
-  template<typename T> void print_vec_h(const std::vector<T>& vstrs, uint8_t opt = 1);
+  void print_tab_base(const std::vector<std::vector<std::string>>& vstrs, int8_t opt = 3);
+  template<typename T> void print_tab(const std::vector<std::vector<T>>& vstrs, int8_t opt = 3);
+  template<typename T1, typename T2> void xjjc::print_tab(const std::map<T1, T2>& vstrs, int8_t opt = 3);
+  template<typename T> void print_vec_v(const std::vector<T>& vstrs, int8_t opt = 1);
+  template<typename T> void print_vec_h(const std::vector<T>& vstrs, int8_t opt = 1);
 
   void prt_divider(const std::string& color="\e[0m", int len=35) { std::cout<<color<<std::string(len, '-')<<"\e[0m"<<std::endl; }
 }
@@ -487,11 +491,13 @@ std::string xjjc::unique_str() {
   return uniqueString.str();
 }
 
-void xjjc::print_tab_base(const std::vector<std::vector<std::string>>& vstrs, uint8_t opt) {
+void xjjc::print_tab_base(const std::vector<std::vector<std::string>>& vstrs, int8_t opt) {
   //
   if (vstrs.empty()) return;
   bool has_hline = opt == 1 || opt == 3,
-    has_vline = opt == 2 || opt == 3;
+    has_vline = opt == 2 || opt == 3,
+    has_frame = opt >= 0,
+    has_align = opt >= 0;
 
   size_t ncols = 0;
   for (const auto& row : vstrs)
@@ -513,24 +519,27 @@ void xjjc::print_tab_base(const std::vector<std::vector<std::string>>& vstrs, ui
     std::cout << "+" << std::endl;
   };
 
-  print_border();
+  if (has_frame) print_border();
   for (const auto& row : vstrs) {
-    std::cout << '|';
+    if (has_frame) std::cout << '|';
     for (size_t c = 0; c < ncols; ++c) {
       std::string cell = (c < row.size()) ? row[c] : "";
-      std::cout << ' ' << cell
-                << std::string(widths[c] - cell.size(), ' ')
+      std::cout << ' '
+                << ((has_align || !c) ? "" : "\e[2m")
+                << cell
+                << ((has_align || !c) ? std::string(widths[c] - cell.size(), ' ') : "\e[0m")
                 << ' ';
-      if (c + 1 < ncols) std::cout << (has_vline?'|':' ');
+      if (c + 1 < ncols) std::cout << (has_vline ? '|' : ' ');
     }
-    std::cout << "|" << std::endl;
+    if (has_frame) std::cout << "|";
+    std::cout << std::endl;
     if (has_hline) print_border();
   }
-  if (!has_hline) print_border();
+  if (!has_hline && has_frame) print_border();
 }
 
 template<typename T>
-void xjjc::print_tab(const std::vector<std::vector<T>>& vstrs, uint8_t opt) {
+void xjjc::print_tab(const std::vector<std::vector<T>>& vstrs, int8_t opt) {
   std::vector<std::vector<std::string>> a2d;
   for (const auto& str : vstrs) {
     a2d.push_back({});
@@ -541,7 +550,7 @@ void xjjc::print_tab(const std::vector<std::vector<T>>& vstrs, uint8_t opt) {
 }
 
 template<typename T1, typename T2>
-void xjjc::print_tab(const std::map<T1, T2>& vstrs, uint8_t opt) {
+void xjjc::print_tab(const std::map<T1, T2>& vstrs, int8_t opt) {
   std::vector<std::vector<std::string>> a2d;
   for (const auto& str : vstrs) {
     a2d.push_back({ to_string(str.first), to_string(str.second) });
@@ -550,7 +559,7 @@ void xjjc::print_tab(const std::map<T1, T2>& vstrs, uint8_t opt) {
 }
 
 template<typename T>
-void xjjc::print_vec_v(const std::vector<T>& vstrs, uint8_t opt) {
+void xjjc::print_vec_v(const std::vector<T>& vstrs, int8_t opt) {
   std::vector<std::vector<std::string>> a2d;
   for (const auto& str : vstrs) {
     a2d.push_back({ to_string(str) });
@@ -559,7 +568,7 @@ void xjjc::print_vec_v(const std::vector<T>& vstrs, uint8_t opt) {
 }
 
 template<typename T>
-void xjjc::print_vec_h(const std::vector<T>& vstrs, uint8_t opt) {
+void xjjc::print_vec_h(const std::vector<T>& vstrs, int8_t opt) {
   std::vector<std::vector<std::string>> a2d(1);
   for (const auto& str : vstrs) {
     a2d.back().push_back(to_string(str));
@@ -584,6 +593,3 @@ template<class T> std::vector<std::vector<std::vector<T>>> xjjc::array3d(int n1,
   return v;
 }
 
-#ifndef __PRMYERR
-#define __PRMYERR(info) { std::cout<<"\e[42m("<<__FUNCTION__<<")\e[0m \e[31;1merror: \e[0m"<<#info<<std::endl; }
-#endif
