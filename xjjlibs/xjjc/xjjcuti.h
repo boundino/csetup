@@ -74,7 +74,7 @@ namespace xjjc
   std::vector<std::string> str_trim(const std::vector<std::string>& strs);
   bool str_contains(const std::string& str1, const std::string& str2) { return str1.find(str2) != std::string::npos; }
   bool str_startsby(const std::string& str1, const std::string& str2) { return str1.find(str2) == 0; }
-  bool str_endsby(const std::string& str1, const std::string& str2) { return str1.ends_with(str2); }
+  // bool str_endsby(const std::string& str1, const std::string& str2) { return str1.ends_with(str2); }
   bool str_isnumber(const std::string& strs) { return (std::regex_match(strs, std::regex("-?[0-9]+([.][0-9]*)?")) || std::regex_match(strs, std::regex("-?[0-9]*[.][0-9]+"))); }
   bool str_isinteger(const std::string& strs) { return std::regex_match(strs, std::regex("-?[0-9]+")); }
   std::vector<std::string> str_divide(const std::string& str, const std::string& div);
@@ -99,7 +99,7 @@ namespace xjjc
 
   void print_tab_base(const std::vector<std::vector<std::string>>& vstrs, int8_t opt = 3);
   template<typename T> void print_tab(const std::vector<std::vector<T>>& vstrs, int8_t opt = 3);
-  template<typename T1, typename T2> void xjjc::print_tab(const std::map<T1, T2>& vstrs, int8_t opt = 3);
+  template<typename T1, typename T2> void print_tab(const std::map<T1, T2>& vstrs, int8_t opt = 3);
   template<typename T> void print_vec_v(const std::vector<T>& vstrs, int8_t opt = 1);
   template<typename T> void print_vec_h(const std::vector<T>& vstrs, int8_t opt = 1);
 
