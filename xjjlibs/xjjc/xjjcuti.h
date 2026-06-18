@@ -26,7 +26,7 @@
     : std::true_type {};
 
 #ifndef __XJJLOG
-#define __XJJLOG std::cout<<__FUNCTION__<<": "
+#define __XJJLOG std::cout << std::left << std::setw(13) << __FUNCTION__ << ": "
 #endif
 
 namespace xjjc
@@ -55,13 +55,6 @@ namespace xjjc
   void progressbar_summary(const int& total);
 
   template<typename T> char* gettype(T exp);
-
-  template<class T> bool sortbydes(const T &a, const T &b) { return a > b; }
-  template<class T1, class T2> bool sortbyfirst_des(const std::pair<T1,T2> &a, const std::pair<T1,T2> &b) { return a.first > b.first; }
-  template<class T1, class T2> bool sortbyfirst_as(const std::pair<T1,T2> &a, const std::pair<T1,T2> &b) { return a.first < b.first; }
-  template<class T1, class T2> bool sortbysecond_des(const std::pair<T1,T2> &a, const std::pair<T1,T2> &b) { return a.second > b.second; }
-  template<class T1, class T2> bool sortbysecond_as(const std::pair<T1,T2> &a, const std::pair<T1,T2> &b) { return a.second < b.second; }
-  // template<class T1, class T2> std::map<T1, T2>::iterator findbysecond(std::map<T1, T2>& map_, T2 value_);
 
   template<class T> void vec_append(std::vector<T>& a, const std::vector<T>& b) { a.insert(a.end(), b.begin(), b.end()); }
   template<class T1, class T2> std::vector<T2> vec_cast(const std::vector<T1>& a);

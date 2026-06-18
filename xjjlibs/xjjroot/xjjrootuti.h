@@ -45,7 +45,8 @@ namespace xjjroot
     Color_t fcolor=-1; Float_t falpha=-1; Style_t fstyle=-1;
     Float_t lalpha=-1; Float_t malpha=-1;
   };
-  
+
+  enum Gpreset { Standard, Colz };
   const float margin_pad_left = 0.18;
   const float margin_pad_right = 0.043;
   const float margin_pad_bottom = 0.145;
@@ -69,7 +70,7 @@ namespace xjjroot
     std::string snn = "#sqrt{s_{NN}} = ";
   }
   
-  void setgstyle(Int_t padtick=0, Width_t lwidth=2, Int_t opt=0);
+  void setgstyle(Int_t padtick=0, Width_t lwidth=2, Gpreset opt=Standard);
   void adjust_margin(float tt=1, float rr=1, float bb=1, float ll=1);
   float get_pad_center(char d = 'X'); // 'X' or 'Y'
   template <class T> void sethempty(T* hempty, Float_t xoffset=0, Float_t yoffset=0, Float_t xsize=1, Float_t ysize=1);
@@ -85,7 +86,7 @@ namespace xjjroot
                                      Color_t fcolor=-1, Float_t falpha=-1, Style_t fstyle=-1);
   void drawCMSleft(TString content=CMS::internal, Float_t xpos=0, Float_t ypos=0, Float_t tsize=0.04);
   void drawCMSright(TString content="PbPb (5.36 TeV)", Float_t xpos=0, Float_t ypos=0, Float_t tsize=0.04);
-  void drawCMS(TString contentleft=CMS::internal, TString contentright="PbPb (5.36 TeV)");
+  void drawCMS(TString contentleft=CMS::internal, TString contentright="PbPb (5.36 TeV)", Float_t tsizef=1);
   void settex(TLatex* tex, Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack, Float_t talpha=1, Float_t tangle=0);
   TLatex* drawtex(Double_t x, Double_t y, const char *text,
                   Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack, Float_t talpha=1, Float_t tangle=0,
@@ -108,6 +109,7 @@ namespace xjjroot
                        Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1,
                        Color_t fcolor=-1, Float_t falpha=-1, Style_t fstyle=-1,
                        Float_t lalpha=-1, Float_t malpha=-1);
+  void addentrybystyle(TLegend* leg, std::string text, std::string opt, const thgrstyle& style);
   TLine* drawline(Double_t x1, Double_t y1, Double_t x2, Double_t y2,
                   Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=2, Float_t lalpha=1);
   TArrow* drawarrow(Double_t x1, Double_t y1, Double_t x2, Double_t y2,
@@ -130,9 +132,16 @@ namespace xjjroot
   TGraph* drawpoint(Double_t x, Double_t y, Color_t mcolor=-1, Style_t mstyle=-1, Size_t msize=-1, std::string gopt="p same");
 
   template<class T> void print_obj(T* hh, int w=0);
+  template<typename T> void print_tab(const std::vector<std::vector<T>>& vstrs, int8_t opt = 3);
+  template<typename T1, typename T2> void print_tab(const std::map<T1, T2>& vstrs, int8_t opt = 3);
+  template<typename T> void print_tab(const std::map<std::string, std::vector<T>>& vstrs, int8_t opt = 3);
+  template<typename T> void print_vec_v(const std::vector<T>& vstrs, int8_t opt = 1);
+  template<typename T> void print_vec_h(const std::vector<T>& vstrs, int8_t opt = 1);
+  
   template<class T> void writehist(T* hh, int w=0) { if(!silence__) { print_obj(hh, w); } hh->Write(); }
 
   void print_gr(TGraph* gr);
+  void print_th(TH1* h);
   
   void mkdir(std::string outputfile);
   void saveas(TCanvas* c, std::string outputfile, std::string opt="WT");
@@ -143,19 +152,21 @@ namespace xjjroot
   void writetex(std::string tr, std::string br, std::string str);
   std::string readtex(TTree* t, std::string br);
 
-  void twopads(TCanvas* c, TPad*& p1, TPad*& p2, TH1* hempty, TH1* hempty_ratio, float yupdiv = 1.9/3);
+  std::vector<TPad*> twopads(TCanvas* c, TH1* hempty, TH1* hempty_ratio, float yupdiv = 1.9/3);
+  // std::vector<TPad*> divide_canvas(TCanvas* c, int nx, int ny);
+  std::vector<std::pair<TPad*, unsigned int>> divide_canvas(TCanvas* c, int nx, int ny);
 }
 
 /* ---------- */
 
-void xjjroot::setgstyle(Int_t padtick/*=0*/, Width_t lwidth/*=2*/, Int_t opt/*=0*/) {
+void xjjroot::setgstyle(Int_t padtick/*=0*/, Width_t lwidth/*=2*/, Gpreset opt/*=Standard*/) {
   gStyle->SetOptTitle(0);
   gStyle->SetOptStat(0);
-  gStyle->SetEndErrorSize(0);
+  // gStyle->SetEndErrorSize(0);
   gStyle->SetTextSize(0.05);
   gStyle->SetTextFont(42);
-  gStyle->SetPadRightMargin(xjjroot::margin_pad_right * (opt==1?4:1));
-  gStyle->SetPadLeftMargin(xjjroot::margin_pad_left * (opt==1?0.7:1));
+  gStyle->SetPadRightMargin(xjjroot::margin_pad_right * (opt==Colz?4:1));
+  gStyle->SetPadLeftMargin(xjjroot::margin_pad_left * (opt==Colz?0.7:1));
   gStyle->SetPadTopMargin(xjjroot::margin_pad_top);
   gStyle->SetPadBottomMargin(xjjroot::margin_pad_bottom);
   gStyle->SetTitleX(.0f);
@@ -163,11 +174,11 @@ void xjjroot::setgstyle(Int_t padtick/*=0*/, Width_t lwidth/*=2*/, Int_t opt/*=0
   gStyle->SetPadTickY(0);
   gStyle->SetLineWidth(1);
   gStyle->SetFrameLineWidth(1);
-  if(padtick==1 || padtick==3) {
+  if (padtick==1 || padtick==3) {
     gStyle->SetPadTickX(1);
     gStyle->SetPadTickY(1);
   }
-  if(padtick==2 || padtick==3) { gStyle->SetLineWidth(lwidth); gStyle->SetFrameLineWidth(lwidth);}
+  if (padtick==2 || padtick==3) { gStyle->SetLineWidth(lwidth); gStyle->SetFrameLineWidth(lwidth);}
 }
 
 void xjjroot::adjust_margin(float tt, float rr, float bb, float ll) {
@@ -280,9 +291,9 @@ void xjjroot::settfstyle(T* h, Color_t lcolor/*=-1*/, Style_t lstyle/*=-1*/, Wid
 }
 
 void xjjroot::drawCMS(TString contentleft/*="#scale[1.25]{#bf{CMS}} #it{Internal}"*/,
-                      TString contentright/*="PbPb #sqrt{s_{NN}} = 5.02 TeV"*/) {
-  drawCMSleft(contentleft);
-  drawCMSright(contentright);
+                      TString contentright/*="PbPb #sqrt{s_{NN}} = 5.02 TeV"*/, Float_t tsizef/* = 1*/) {
+  drawCMSleft(contentleft, 0, 0, 0.04*tsizef);
+  drawCMSright(contentright, 0, 0, 0.04*tsizef);
 }
 
 void xjjroot::drawCMSleft(TString content/*="#scale[1.25]{#bf{CMS}} #it{Internal}"*/,
@@ -373,7 +384,7 @@ void xjjroot::drawtexgroup_wrap(Double_t x, Double_t y, std::vector<std::string>
 
 void xjjroot::movetex_n_draw(TLatex* tex, float x1/*=-1*/, float y2/*=-1*/, Short_t align/*=0*/) {
   if (align > 0)
-    tex->SetTextAlign(31);
+    tex->SetTextAlign(align);
   if (x1 >= 0)
     tex->SetX(x1);
   if (y2 >= 0)
@@ -438,6 +449,12 @@ void xjjroot::addentrybystyle(TLegend* leg, std::string text, std::string opt,
                lcolor, lstyle, lwidth,
                fcolor, falpha, fstyle,
                lalpha, malpha);
+  leg->AddEntry(h, text.c_str(), opt.c_str());
+}
+
+void xjjroot::addentrybystyle(TLegend* leg, std::string text, std::string opt, const thgrstyle& style) {
+  auto h = new TH1F(Form("dummyh_%s", xjjc::unique_str().c_str()), "", 1, 0, 1);
+  setthgrstyle(h, style);
   leg->AddEntry(h, text.c_str(), opt.c_str());
 }
 
@@ -546,45 +563,123 @@ void xjjroot::print_obj(T* hh, int w) {
   std::cout<<std::endl;
 }
 
+template<typename T>
+void xjjroot::print_tab(const std::vector<std::vector<T>>& vstrs, int8_t opt) {
+  std::vector<std::vector<std::string>> rs;
+  for (const auto& h : vstrs) {
+    std::vector<std::string> rss;
+    for (const auto& hh : h)
+      rss.push_back(hh->GetName());
+    rs.push_back(rss);
+  }
+  xjjc::print_tab(rs, opt);
+}
+
+template<typename T1, typename T2>
+void xjjroot::print_tab(const std::map<T1, T2>& vstrs, int8_t opt) {
+  std::map<T1, std::string> rs;
+  for (const auto& [key, h] : vstrs) {
+    rs[key] = h->GetName(); //
+  }
+  xjjc::print_tab(rs, opt);
+}
+
+template<typename T>
+void xjjroot::print_tab(const std::map<std::string, std::vector<T>>& vstrs, int8_t opt) {
+  std::vector<std::vector<std::string>> rs;
+  for (const auto& [key, h] : vstrs) {
+    std::vector<std::string> rss;
+    rss.push_back(key);
+    for (const auto& hh : h)
+      rss.push_back(hh->GetName());
+    rs.push_back(rss);
+  }
+  xjjc::print_tab(rs, opt);
+}
+
+template<typename T>
+void xjjroot::print_vec_v(const std::vector<T>& vstrs, int8_t opt) {
+  std::vector<std::string> rs;
+  for (const auto& h : vstrs) rs.push_back(h->GetName());
+  xjjc::print_vec_v(rs, opt);
+}
+
+template<typename T>
+void xjjroot::print_vec_h(const std::vector<T>& vstrs, int8_t opt) {
+  std::vector<std::string> rs;
+  for (const auto& h : vstrs) rs.push_back(h->GetName());
+  xjjc::print_vec_h(rs, opt);
+}
+
 void xjjroot::print_gr(TGraph *gr) {
-  std::vector<std::vector<float>> out;
+  std::vector<std::vector<std::string>> out;
   if (!gr) return;
 
-    const auto n = gr->GetN();
-    out.reserve(n);
-    const auto* gre  = dynamic_cast<const TGraphErrors*>(gr);
-    const auto* grae = dynamic_cast<const TGraphAsymmErrors*>(gr);
+  const auto n = gr->GetN();
+  out.reserve(n+1);
+  const auto* gre  = dynamic_cast<const TGraphErrors*>(gr);
+  const auto* grae = dynamic_cast<const TGraphAsymmErrors*>(gr);
 
-    for (int i = 0; i < n; ++i) {
-        double x, y;
-        gr->GetPoint(i, x, y);
+  if (grae) {
+    out.push_back({ "X", "Y", "ErrorXlow", "ErrorXhigh", "ErrorYlow", "ErrorYhigh" });
+  } else if (gre) {
+    out.push_back({ "X", "Y", "ErrorX", "ErrorY" });
+  } else {
+    out.push_back({ "X", "Y" });
+  }
+    
+  for (int i = 0; i < n; ++i) {
+    double x, y;
+    gr->GetPoint(i, x, y);
 
-        if (grae) {
-            out.push_back({
-                static_cast<float>(x),
-                static_cast<float>(y),
-                static_cast<float>(grae->GetErrorXlow(i)),
-                static_cast<float>(grae->GetErrorXhigh(i)),
-                static_cast<float>(grae->GetErrorYlow(i)),
-                static_cast<float>(grae->GetErrorYhigh(i))
-            });
-        } else if (gre) {
-            out.push_back({
-                static_cast<float>(x),
-                static_cast<float>(y),
-                static_cast<float>(gre->GetErrorX(i)),
-                static_cast<float>(gre->GetErrorY(i))
-            });
-        } else {
-            out.push_back({
-                static_cast<float>(x),
-                static_cast<float>(y)
-            });
-        }
+    if (grae) {
+      out.push_back({
+          xjjc::to_string(x),
+          xjjc::to_string(y),
+          xjjc::to_string(grae->GetErrorXlow(i)),
+          xjjc::to_string(grae->GetErrorXhigh(i)),
+          xjjc::to_string(grae->GetErrorYlow(i)),
+          xjjc::to_string(grae->GetErrorYhigh(i))
+        });
+    } else if (gre) {
+      out.push_back({
+          xjjc::to_string(x),
+          xjjc::to_string(y),
+          xjjc::to_string(gre->GetErrorX(i)),
+          xjjc::to_string(gre->GetErrorY(i))
+        });
+    } else {
+      out.push_back({
+          xjjc::to_string(x),
+          xjjc::to_string(y)
+        });
     }
+  }
 
-    print_obj(gr);
-    xjjc::print_tab(out, 0);
+  print_obj(gr);
+  xjjc::print_tab(out, 0);
+}
+
+void xjjroot::print_th(TH1 *h) {
+  std::vector<std::vector<std::string>> out;
+  if (!h) return;
+
+  const auto n = h->GetEntries();
+  out.reserve(n+1);
+  out.push_back({ "Center", "LowEdge", "HighEdge", "Content", "Error" });
+  
+  for (int i = 0; i < n; ++i) {
+    out.push_back({
+        xjjc::to_string(h->GetBinCenter(i+1)),
+        xjjc::to_string(h->GetBinLowEdge(i+1)),
+        xjjc::to_string(h->GetBinLowEdge(i+1) + h->GetBinWidth(i+1)),
+        xjjc::to_string(h->GetBinContent(i+1)),
+        xjjc::to_string(h->GetBinError(i+1))
+      });
+  }
+
+  print_obj(h);
+  xjjc::print_tab(out, 0);
 }
 
 void xjjroot::mkdir(std::string outputfile) {
@@ -622,6 +717,7 @@ TFile* xjjroot::newfile(std::string outputfile) {
   mkdir(outputfile);
   auto* outf = new TFile(outputfile.c_str(), "recreate");
   outf->cd();
+  __XJJLOG << ">> "<<outputfile<<std::endl;
   return outf;
 }
 
@@ -641,7 +737,7 @@ std::string xjjroot::readtex(TTree* t, std::string br) {
   return ss;
 }
 
-void xjjroot::twopads(TCanvas *c, TPad*& p1, TPad*& p2, TH1 *hempty, TH1 *hempty_ratio, float yupdiv/*= 1.9/3*/) {
+std::vector<TPad*> xjjroot::twopads(TCanvas *c, TH1 *hempty, TH1 *hempty_ratio, float yupdiv/*= 1.9/3*/) {
   float ydowndiv = 1-yupdiv;
 
   xjjroot::setgstyle(1);
@@ -673,7 +769,7 @@ void xjjroot::twopads(TCanvas *c, TPad*& p1, TPad*& p2, TH1 *hempty, TH1 *hempty
   hempty_ratio->GetXaxis()->SetTickLength(hempty->GetXaxis()->GetTickLength() * (yupdiv / ydowndiv) );
 
   c->cd();
-  p1 = new TPad("p1", "", 0, ydowndiv, 1, 1);
+  auto* p1 = new TPad("p1", "", 0, ydowndiv, 1, 1);
   p1->SetMargin(xjjroot::margin_pad_left, xjjroot::margin_pad_right, 0, xjjroot::margin_pad_top);
   // p1->SetLogy();
   p1->Draw("axis");
@@ -681,11 +777,41 @@ void xjjroot::twopads(TCanvas *c, TPad*& p1, TPad*& p2, TH1 *hempty, TH1 *hempty
   hempty->Draw("axis");
 
   c->cd();
-  p2 = new TPad("p2", "", 0, 0, 1, ydowndiv);
+  auto* p2 = new TPad("p2", "", 0, 0, 1, ydowndiv);
   p2->SetMargin(xjjroot::margin_pad_left, xjjroot::margin_pad_right, xjjroot::margin_pad_bottom * (yupdiv / ydowndiv) * 1.2, 0);
   p2->Draw("axis");
   p2->cd();
   hempty_ratio->Draw("axis");
+
+  c->cd();
+  std::vector<TPad*> pads = { p1, p2 };
+  return pads;
+}
+
+std::vector<std::pair<TPad*, unsigned int>> xjjroot::divide_canvas(TCanvas* c, int nx, int ny) {
+  // auto pads = xjjc::array2d<TPad*>(nx, ny);
+  std::vector<std::pair<TPad*, unsigned int>> pads;
+  float m_top = xjjroot::margin_pad_top/nx, m_bottom = xjjroot::margin_pad_bottom/ny, m_left = xjjroot::margin_pad_left/nx, m_right = xjjroot::margin_pad_right/ny;
+  float fwidth = (1-m_left-m_right)/nx, fheight = (1-m_bottom-m_top)/ny;
+  for (int j=0; j<ny; j++) {
+    for (int i=nx-1; i>=0; i--) {
+      c->cd();
+      float px1 = i*fwidth, // left
+        px2 = m_left + (i+1)*fwidth + m_right, // right
+        py1 = 1 - (m_top + (j+1)*fheight + m_bottom), // bottom
+        py2 = 1 - j*fheight; // top
+      auto* pij = new TPad(Form("p-%d-%d", i, j), "", px1, py1, px2, py2);
+      pij->SetMargin(m_left/(m_left+fwidth+m_right), m_right/(m_left+fwidth+m_right),
+                     m_bottom/(m_top+fheight+m_bottom), m_top/(m_top+fheight+m_bottom));
+      pij->SetFillStyle(4000);
+      pij->Draw("axis");
+      // pads[i][j] = pij;
+      auto flag = ((i == 0) ? 1u : 0u) | ((j == ny-1) ? 2u : 0u);
+      std::cout<<i<<" "<<j<<" => "<<flag<<" => "<<(flag & 2u)<<(flag & 1u)<<std::endl;
+      pads.push_back({ pij, flag });
+    }
+  }
+  return pads;
 }
 
 namespace xjjroot
