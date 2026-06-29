@@ -36,16 +36,20 @@ namespace xjjana
   TH2* gethratiozero(TH2* h1, TH2* h2, int opt); // opt = -1, 0, 1
   void drawhratiozero(TH2* h1, TH2* h2, Color_t lcolor_minus=kRed, Color_t lcolor_plus=kGreen);
   void drawgroutline(TGraphErrors* gr, Color_t lcolor=1, Style_t lstyle=2, Width_t lwidth=1);
+  void sethunivalue(TH1* h, double content, double error);
 
   void rmgrbins(TGraph* gr, float bincontent=0);
   template<class T> T* rmthemptybins(T*, std::string);
+  // template<class T> std::vector<double> fixedbin_to_edges(T* h);
   
   std::map<std::string, double> chi2test(TH1* h1, TH1* h2, const char* opt="UW");
   double gethminimum(TH1* h);
   double gethnonzerominimum(TH1* h);
   double gethmaximum(TH1* h);
   void sethabsminmax(TH1* h, float ymin, float ymax);
+  void sethminmax(TH1* h, float ymin, float ymax);
   template<class T> double sethsmin(std::vector<T>& h, float factor=1);
+  template<class T> double sethsnonzeromin(std::vector<T>& h, float factor=1);
   template<class T1, class T2> double sethsmin(std::map<T1, T2>& h, float factor=1);
   template<class T1, class T2> double sethsmin(std::vector<std::pair<T1, T2>>& h, float factor=1);
   template<class T> double sethsmax(std::vector<T>& h, float factor=1);
@@ -236,6 +240,13 @@ void xjjana::drawgroutline(TGraphErrors* gr, Color_t lcolor/*=1*/, Style_t lstyl
   g2->Draw("l same");
 }
 
+void xjjana::sethunivalue(TH1* h, double content, double error) {
+  for (int i=0; i<h->GetXaxis()->GetNbins(); i++) {
+    h->SetBinContent(i+1, content);
+    h->SetBinError(i+1, error);
+  }
+}
+
 void xjjana::rmgrbins(TGraph* gr, float bincontent/*=0*/) {
   bool havezero = true;
   while (havezero) {
@@ -323,10 +334,23 @@ void xjjana::sethabsminmax(TH1* h, float ymin, float ymax) {
   h->SetMaximum(ymax);
 }
 
+void xjjana::sethminmax(TH1* h, float ymin, float ymax) {
+  h->SetMinimum(gethminimum(h) * ymin);
+  h->SetMaximum(gethmaximum(h) * ymax);
+}
+
 template <class T>
 double xjjana::sethsmin(std::vector<T>& h, float factor) {
   double ymin = 1.e+10;
   for(auto& hh : h) ymin = std::min(ymin, gethminimum(hh));
+  for(auto& hh : h) hh->SetMinimum(ymin * factor);
+  return ymin;
+}
+
+template <class T>
+double xjjana::sethsnonzeromin(std::vector<T>& h, float factor) {
+  double ymin = 1.e+10;
+  for(auto& hh : h) ymin = std::min(ymin, gethnonzerominimum(hh));
   for(auto& hh : h) hh->SetMinimum(ymin * factor);
   return ymin;
 }

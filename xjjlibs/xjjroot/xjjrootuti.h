@@ -68,9 +68,11 @@ namespace xjjroot
     const char* preliminary = "#scale[1.2]{#bf{CMS}}#scale[0.4]{ }#scale[1.04]{#it{Preliminary}}";
     const char* cms = "#scale[1.3]{#bf{CMS}}";
     std::string snn = "#sqrt{s_{NN}} = ";
+    std::string D0 = "D^{0}";
   }
   
   void setgstyle(Int_t padtick=0, Width_t lwidth=2, Gpreset opt=Standard);
+  void setcstyle(TCanvas* c, Int_t padtick=0, Gpreset opt=Standard);
   void adjust_margin(float tt=1, float rr=1, float bb=1, float ll=1);
   float get_pad_center(char d = 'X'); // 'X' or 'Y'
   template <class T> void sethempty(T* hempty, Float_t xoffset=0, Float_t yoffset=0, Float_t xsize=1, Float_t ysize=1);
@@ -162,7 +164,7 @@ namespace xjjroot
 void xjjroot::setgstyle(Int_t padtick/*=0*/, Width_t lwidth/*=2*/, Gpreset opt/*=Standard*/) {
   gStyle->SetOptTitle(0);
   gStyle->SetOptStat(0);
-  // gStyle->SetEndErrorSize(0);
+  gStyle->SetEndErrorSize(4); // need to pair with Draw("e1")
   gStyle->SetTextSize(0.05);
   gStyle->SetTextFont(42);
   gStyle->SetPadRightMargin(xjjroot::margin_pad_right * (opt==Colz?4:1));
@@ -179,6 +181,17 @@ void xjjroot::setgstyle(Int_t padtick/*=0*/, Width_t lwidth/*=2*/, Gpreset opt/*
     gStyle->SetPadTickY(1);
   }
   if (padtick==2 || padtick==3) { gStyle->SetLineWidth(lwidth); gStyle->SetFrameLineWidth(lwidth);}
+}
+
+void xjjroot::setcstyle(TCanvas* c, Int_t padtick/*=0*/, Gpreset opt/*=Standard*/) {
+  c->SetRightMargin(xjjroot::margin_pad_right * (opt==Colz?4:1));
+  c->SetLeftMargin(xjjroot::margin_pad_left * (opt==Colz?0.7:1));
+  c->SetTopMargin(xjjroot::margin_pad_top);
+  c->SetBottomMargin(xjjroot::margin_pad_bottom);
+  if (padtick==1 || padtick==3) {
+    c->SetTickx(1);
+    c->SetTicky(1);
+  }
 }
 
 void xjjroot::adjust_margin(float tt, float rr, float bb, float ll) {
