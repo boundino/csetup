@@ -39,7 +39,8 @@ namespace xjjc
   template<typename T> int find_ibin(const std::vector<T> &array, T value); // overflow: -1
   template<typename T, size_t N> int find_iedge(const T (&array)[N], T value); // overflow: -1
   template<typename T> int find_iedge(const std::vector<T> &array, T value); // overflow: -1
-
+  template<class T> std::vector<double> fixedbin_to_edges(int nbin, T binmin, T binmax);
+  
   template<typename T> std::string number_to_string(T param);
   float string_to_number(const std::string& param);
   template<typename T> std::string number_remove_zero(T param);
@@ -60,9 +61,12 @@ namespace xjjc
   template<class T1, class T2> std::vector<T2> vec_cast(const std::vector<T1>& a);
   
   std::string str_replaceall(const std::string& strs, const std::string& sub, const std::string& newsub);
+  std::string str_replaceall(const std::string& strs, const std::vector<std::pair<std::string, std::string>>& sub_to_new);
   std::string str_replaceallspecial(const std::string& strs, const std::string& newsub = "_");
   std::string str_eraseall(const std::string& strs, const std::string& sub) { return str_replaceall(strs, sub, ""); }
+  std::string str_eraseall(const std::string& strs, const std::vector<std::string>& sub);
   std::string str_erasestar(const std::string& strs, const std::string& sub); // e.g. sub = */ or .*
+  std::string str_removecut(const std::string& cut, const std::string& cut_to_remove);
   std::string str_trim(const std::string& strs);
   std::vector<std::string> str_trim(const std::vector<std::string>& strs);
   bool str_contains(const std::string& str1, const std::string& str2) { return str1.find(str2) != std::string::npos; }
@@ -141,6 +145,17 @@ int xjjc::find_iedge(const std::vector<T> &array, T value) {
       return static_cast<int>(i);
   }
   return -1;
+}
+
+template<class T>
+std::vector<double> xjjc::fixedbin_to_edges(int nbin, T binmin, T binmax) {
+  std::vector<double> result;
+  for (int i=0; i<nbin; i++) {
+    double edge = binmin + i*(binmax-binmin)/nbin;
+    result.push_back(edge);
+  }
+  result.push_back(static_cast<double>(binmax));
+  return result;
 }
 
 template<typename T>
@@ -356,6 +371,39 @@ std::vector<std::string> xjjc::str_trim(const std::vector<std::string>& strs) {
   return result;
 }
 
+std::string xjjc::str_removecut(const std::string& cut,
+                                const std::string& cutToRemove) {
+  auto trim = [](const std::string& s) -> std::string
+  {
+    const auto first = s.find_first_not_of(" \t");
+    if (first == std::string::npos) return "";
+
+    const auto last = s.find_last_not_of(" \t");
+    return s.substr(first, last - first + 1);
+  };
+
+  static const std::regex sep(R"(\s*&&\s*)");
+
+  std::vector<std::string> cuts;
+  std::sregex_token_iterator it(cut.begin(), cut.end(), sep, -1);
+  std::sregex_token_iterator end;
+
+  for (; it != end; ++it) {
+    std::string token = trim(it->str());
+    if (!token.empty() && token != cutToRemove)
+      cuts.push_back(token);
+  }
+
+  std::string result;
+  for (size_t i = 0; i < cuts.size(); ++i) {
+    if (i) result += " && ";
+    result += cuts[i];
+  }
+  if (result.empty()) result = "1";
+
+  return result;
+}
+
 std::string xjjc::str_replaceall(const std::string& strs, const std::string& sub, const std::string& newsub) {
   std::string result(strs), str(strs);
   auto pos = str.find(sub, 0);
@@ -368,9 +416,25 @@ std::string xjjc::str_replaceall(const std::string& strs, const std::string& sub
   return result;
 }
 
+std::string xjjc::str_replaceall(const std::string& strs, const std::vector<std::pair<std::string, std::string>>& sub_to_new) {
+  std::string result(strs);
+  for (auto& rr : sub_to_new) {
+    result = str_replaceall(result, rr.first, rr.second);
+  }
+  return result;
+}
+
 std::string xjjc::str_replaceallspecial(const std::string& strs, const std::string& newsub) {
   std::string result(strs);
   for(auto& isp : speciallist) { result = xjjc::str_replaceall(result, isp, newsub); }
+  return result;
+}
+
+std::string xjjc::str_eraseall(const std::string& strs, const std::vector<std::string>& sub) {
+  std::string result(strs);
+  for (auto& rr : sub) {
+    result = str_replaceall(result, rr, "");
+  }
   return result;
 }
 
