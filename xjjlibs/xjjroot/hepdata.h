@@ -64,7 +64,7 @@ namespace xjjroot {
       for (auto& q : qualifiers)
         print_hep_nuv(q, true);
     }
-    void print(std::ostream& out, int fx = 0, int fy = 0, float range_l = 99, float range_h = -99, bool hide_x = false);
+    void print(std::ostream& out, int fx = 0, int fy = 0, float range_l = 99, float range_h = -99, bool hide_x = false, bool reverse_x = false);
     
   private:
     TH1* hstat;
@@ -78,7 +78,8 @@ namespace xjjroot {
 
 void xjjroot::hepdata::print(std::ostream &out,
                              int fx, int fy,
-                             float range_l, float range_h, bool hide_x) {
+                             float range_l, float range_h,
+                             bool hide_x, bool reverse_x) {
   int nx = hstat?hstat->GetNbinsX():gstat->GetN();
 
   if (! hide_x) {
@@ -86,7 +87,9 @@ void xjjroot::hepdata::print(std::ostream &out,
     out << "- header: " << print_hep_nuv(x_header) << std::endl;
     out << "  values:" << std::endl;
 
-    for (int i=0; i<nx; i++) {
+    
+    for (int k=0; k<nx; k++) {
+      int i = reverse_x ? (nx - 1 - k) : k;
       auto xval = hstat?hstat->GetBinCenter(i+1):gstat->GetPointX(i);
       if ((range_l < range_h) && (xval < range_l || xval > range_h)) continue;
       if (hstat) {
@@ -106,7 +109,8 @@ void xjjroot::hepdata::print(std::ostream &out,
     out << "  - " << print_hep_nuv(q) << std::endl;
   }
   out << "  values:" << std::endl;
-  for (int i=0; i<nx; i++) {
+  for (int k=0; k<nx; k++) {
+      int i = reverse_x ? (nx - 1 - k) : k;
     auto xval = hstat?hstat->GetBinCenter(i+1):gstat->GetPointX(i),
       yval = hstat?hstat->GetBinContent(i+1):gstat->GetPointY(i),
       ystat = hstat?hstat->GetBinError(i+1):gstat->GetErrorY(i);
@@ -128,6 +132,6 @@ void xjjroot::hepdata::print(std::ostream &out,
 
 int xjjroot::hepdata::findhsystbin(double xval) {
   std::vector<double> vx(hsyst->GetX(), hsyst->GetX() + hsyst->GetN());
-  auto j = xjjc::findibin(vx, xval);
+  auto j = xjjc::find_ibin(vx, xval);
   return j;
 }
