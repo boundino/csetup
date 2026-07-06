@@ -67,8 +67,12 @@ namespace xjjroot
     const char* simulation = "#scale[1.2]{#bf{CMS}}#scale[0.4]{ }#scale[1.04]{#it{Simulation}}";
     const char* preliminary = "#scale[1.2]{#bf{CMS}}#scale[0.4]{ }#scale[1.04]{#it{Preliminary}}";
     const char* cms = "#scale[1.3]{#bf{CMS}}";
-    std::string snn = "#sqrt{s_{NN}} = ";
-    std::string D0 = "D^{0}";
+    std::string snn = "#sqrt{s_{NN}}";
+    std::string Dz = "D#scale[0.6]{#lower[-0.7]{0}}",
+      Dzbar = "#bar{D}#scale[0.6]{#lower[-0.7]{0}}",
+      DzDzbar = CMS::Dz + " (" + CMS::Dzbar + ")",
+      DznDzbar = CMS::Dz + " +#scale[0.5]{ }" + CMS::Dzbar,
+      DzDzbar2 = "#frac{" + DznDzbar + "}{2}"; // D#scale[0.6]{#lower[-0.7]{0}} + #bar{D}#scale[0.6]{#lower[-0.7]{0}}"
   }
   
   void setgstyle(Int_t padtick=0, Width_t lwidth=2, Gpreset opt=Standard);

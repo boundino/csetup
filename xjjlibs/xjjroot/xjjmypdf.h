@@ -50,15 +50,19 @@ void xjjroot::mypdf::write(std::string pngname, std::string opt) {
     datetime.resize(std::strftime(&datetime[0], datetime.size(), 
                                   "%b %d %a %-H:%M:%S %Z %Y", std::localtime(&t)));
     drawcomment(datetime, "rb");
-    drawcomment(pngname);
+    // drawcomment(pngname);
   }
 
-  fc->Print(Form("%s", ffname.c_str()));
+  auto oldLevel = gErrorIgnoreLevel;
+  gErrorIgnoreLevel = kError;
 
+  fc->Print(Form("%s", ffname.c_str()));
   if (pngname != "" && opt.find("X") == std::string::npos) {
     mkdir(pngname);
     fc->SaveAs(pngname.c_str());
   }
+
+  gErrorIgnoreLevel = oldLevel;
 }
 
 void xjjroot::mypdf::draw_cover(std::vector<std::string> title, Size_t tsize) {

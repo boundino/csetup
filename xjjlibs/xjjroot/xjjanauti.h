@@ -41,8 +41,14 @@ namespace xjjana
   void rmgrbins(TGraph* gr, float bincontent=0);
   template<class T> T* rmthemptybins(T*, std::string);
   // template<class T> std::vector<double> fixedbin_to_edges(T* h);
-  
+
+  // statistics
   std::map<std::string, double> chi2test(TH1* h1, TH1* h2, const char* opt="UW");
+  //
+  const double frac_1sigma = 0.682689, frac_2sigma = 0.954499;
+  double tf_width_only(const TF1* f, double center, double fraction = frac_1sigma, double xmin = 1., double xmax = 0., double tol = 1e-6);
+  std::pair<double, double> tf_width(const TF1* f, double center, double fraction = frac_1sigma, const std::vector<int>& fixparams = {}, double xmin = 1., double xmax = 0., double tol = 1e-6);
+  
   double gethminimum(TH1* h);
   double gethnonzerominimum(TH1* h);
   double gethmaximum(TH1* h);
@@ -305,6 +311,60 @@ std::map<std::string, double> xjjana::chi2test(TH1* h1, TH1* h2, const char* opt
   result["ndf"] = ndf;
   result["chi2prob"] = TMath::Prob(chi2, ndf);
   return result;
+}
+
+double xjjana::tf_width_only(const TF1 *f1, double center, double fraction,
+                             double xmin, double xmax, double tol) {
+  std::unique_ptr<TF1> f(static_cast<TF1*>(f1->Clone()));
+  if (xmin >= xmax) {
+    xmin = f->GetXmin();
+    xmax = f->GetXmax();
+  }
+  auto total = f->Integral(xmin, xmax);
+  if (total <= 0) {
+    __XJJLOG << "!! the function has negative integral, abort." << std::endl;
+    return -1.;
+  }
+  auto high = std::max(center - xmin, xmax - center), low = 0.;
+  while (high - low > tol) {
+    auto w = 0.5 * (low + high),
+      left  = std::max(center - w, xmin),
+      right = std::min(center + w, xmax);
+    auto frac = f->Integral(left, right) / total;
+
+    if (frac < fraction)
+      low = w;
+    else
+      high = w;
+  }
+
+  return 0.5 * (low + high);  
+}
+
+std::pair<double, double> xjjana::tf_width(const TF1 *f1, double center, double fraction, const std::vector<int>& fixparams,
+                                           double xmin, double xmax, double tol) {
+  auto width = tf_width_only(f1, center, fraction, xmin, xmax, tol);
+  TF1* f(static_cast<TF1*>(f1->Clone()));
+  double err2 = 0.;
+  for (int i=0; i<f->GetNpar(); i++) {
+    if (std::ranges::find(fixparams, i) != fixparams.end())
+      continue;
+
+    auto p  = f->GetParameter(i),
+      dp = f->GetParError(i);
+    if (dp <= 0.) continue;
+
+    f->SetParameter(i, p + dp);
+    auto wplus = tf_width_only(f, center, fraction, xmin, xmax, tol);
+    f->SetParameter(i, p - dp);
+    auto wminus = tf_width_only(f, center, fraction, xmin, xmax, tol);
+    f->SetParameter(i, p);
+
+    double dw = 0.5 * (wplus - wminus);
+    err2 += (dw * dw);
+  }
+  delete f;
+  return { width, std::sqrt(err2) };
 }
 
 double xjjana::gethminimum(TH1* h) {
@@ -591,7 +651,12 @@ TChain* xjjana::chain_files(const std::vector<std::string>& files,
     t->Add(f.c_str());
     std::cout<<""<<f<<std::endl;
   }
-  std::cout<<"Merged \e[0m"<<files.size()<<"\e[2m files.\e[0m"<<std::endl;
+  std::cout<<"\e[0m";
+  if (t->LoadTree(0) >= 0) {
+    std::cout<<"\e[2mMerged \e[0m"<<files.size()<<"\e[2m files.\e[0m"<<std::endl;
+  } else {
+    t = nullptr;
+  }
   return t;
 }
 

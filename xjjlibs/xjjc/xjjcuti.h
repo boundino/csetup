@@ -54,6 +54,7 @@ namespace xjjc
   void progressbar(int index, const int& total, int step=10000, int morespace=0);
   void progressslide(int index, const int& total, int step=10000, char done='=', char yet='.', char arrow='>');
   void progressbar_summary(const int& total);
+  void saywait() { std::cout << "wait...\r" << std::flush; }
 
   template<typename T> char* gettype(T exp);
 
@@ -214,7 +215,8 @@ std::string xjjc::number_range_string(T val1, T val2, const std::string& var, co
   std::string sign = val1 < val2 ? "<" : ">";
   if(str_tolower(opt) != "fmax" && str_tolower(opt) != "fmin") { str += (number_remove_zero(val1) + " " + sign + " "); }
   str += var;
-  str += (" "+sign+" "+number_remove_zero(val2)); 
+  str += (" "+sign+" "+number_remove_zero(val2));
+  str = str_replaceall(str, " #", "#scale[0.5]{ }#");
   return str;
 }
 
@@ -271,6 +273,8 @@ T xjjc::str_convert(const std::string& s) {
     return s.empty() ? 0 : std::stoi(s);
   } else if constexpr (std::is_same_v<T, float>) {
     return s.empty() ? 0.f : std::stof(s);
+  } else if constexpr (std::is_same_v<T, double>) {
+    return s.empty() ? 0.d : std::stof(s);
   } else {
     static_assert(!sizeof(T*),
                   "error: unsupported type for xjjc::str_convert.");
