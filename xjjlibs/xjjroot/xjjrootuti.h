@@ -34,6 +34,7 @@
 #include "xjjcuti.h"
 
 MAKE_HAS_METHOD(GetEntries);
+MAKE_HAS_METHOD(numEntries);
 MAKE_HAS_METHOD(GetN);
 MAKE_HAS_METHOD(SetStats);
 
@@ -579,6 +580,8 @@ void xjjroot::print_obj(T* hh, int w) {
     std::cout<<" \e[36;1m("<<hh->GetEntries()<<")\e[0m";
   } else if constexpr (has_method_GetN<T>::value) {
     std::cout<<" \e[36;1m("<<hh->GetN()<<")\e[0m";
+  } else if constexpr (has_method_numEntries<T>::value) {
+    std::cout<<" \e[36;1m("<<hh->numEntries()<<")\e[0m";
   }
   std::cout<<std::endl;
 }
