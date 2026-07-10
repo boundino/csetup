@@ -35,6 +35,7 @@
 
 MAKE_HAS_METHOD(GetEntries);
 MAKE_HAS_METHOD(GetN);
+MAKE_HAS_METHOD(SetStats);
 
 namespace xjjroot
 {
@@ -229,7 +230,9 @@ void xjjroot::sethempty(T* hempty, Float_t xoffset/*=0*/, Float_t yoffset/*=0*/,
   hempty->GetYaxis()->SetLabelFont(42);
   hempty->GetXaxis()->SetLabelSize(0.045 * xsize);
   hempty->GetYaxis()->SetLabelSize(0.045 * ysize);
-  hempty->SetStats(0);
+  if constexpr (has_method_SetStats<T>::value) {
+    hempty->SetStats(0);
+  }
 }
 
 template <class T>

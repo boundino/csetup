@@ -57,6 +57,7 @@ void xjjroot::mypdf::write(std::string pngname, std::string opt) {
   gErrorIgnoreLevel = kError;
 
   fc->Print(Form("%s", ffname.c_str()));
+  // save individual page
   if (pngname != "" && opt.find("X") == std::string::npos) {
     mkdir(pngname);
     fc->SaveAs(pngname.c_str());
