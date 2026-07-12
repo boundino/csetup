@@ -347,7 +347,7 @@ std::pair<double, double> xjjana::tf_width(const TF1 *f1, double center, double 
   TF1* f(static_cast<TF1*>(f1->Clone()));
   double err2 = 0.;
   for (int i=0; i<f->GetNpar(); i++) {
-    if (std::ranges::find(fixparams, i) != fixparams.end())
+    if (std::find(fixparams.begin(), fixparams.end(), i) != fixparams.end())
       continue;
 
     auto p  = f->GetParameter(i),

@@ -271,10 +271,8 @@ T xjjc::str_convert(const std::string& s) {
     return false;
   } else if constexpr (std::is_same_v<T, int>) {
     return s.empty() ? 0 : std::stoi(s);
-  } else if constexpr (std::is_same_v<T, float>) {
+  } else if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>) {
     return s.empty() ? 0.f : std::stof(s);
-  } else if constexpr (std::is_same_v<T, double>) {
-    return s.empty() ? 0.d : std::stof(s);
   } else {
     static_assert(!sizeof(T*),
                   "error: unsupported type for xjjc::str_convert.");
