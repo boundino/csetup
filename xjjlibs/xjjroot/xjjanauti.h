@@ -49,9 +49,9 @@ namespace xjjana
   double tf_width_only(const TF1* f, double center, double fraction = frac_1sigma, double xmin = 1., double xmax = 0., double tol = 1e-6);
   std::pair<double, double> tf_width(const TF1* f, double center, double fraction = frac_1sigma, const std::vector<int>& fixparams = {}, double xmin = 1., double xmax = 0., double tol = 1e-6);
   
-  double gethminimum(TH1* h);
-  double gethnonzerominimum(TH1* h);
-  double gethmaximum(TH1* h);
+  template<class T> double gethminimum(T* h);
+  template<class T> double gethnonzerominimum(T* h);
+  template<class T> double gethmaximum(T* h);
   void sethabsminmax(TH1* h, float ymin, float ymax);
   void sethminmax(TH1* h, float ymin, float ymax);
   template<class T> double sethsmin(std::vector<T>& h, float factor=1);
@@ -367,25 +367,53 @@ std::pair<double, double> xjjana::tf_width(const TF1 *f1, double center, double 
   return { width, std::sqrt(err2) };
 }
 
-double xjjana::gethminimum(TH1* h) {
+template<class T>
+double xjjana::gethminimum(T* h) {
   double ymin = 1.e+10;
-  for(int i=0; i<h->GetXaxis()->GetNbins(); i++)
-    ymin = std::min(ymin, h->GetBinContent(i+1));
-  return ymin;
-}
-
-double xjjana::gethnonzerominimum(TH1* h) {
-  double ymin = gethmaximum(h);
-  for(int i=0; i<h->GetXaxis()->GetNbins(); i++)
-    if(h->GetBinContent(i+1) > 0)
+  if constexpr (has_method_GetN<T>::value) {
+    for (int i=0; i<h->GetN(); i++) {
+      double x, y;
+      h->GetPoint(i, x, y);
+      ymin = std::min(ymin, y);
+    }
+  } else {
+    for (int i=0; i<h->GetXaxis()->GetNbins(); i++)
       ymin = std::min(ymin, h->GetBinContent(i+1));
+  }
   return ymin;
 }
 
-double xjjana::gethmaximum(TH1* h) {
+template<class T>
+double xjjana::gethnonzerominimum(T* h) {
+  double ymin = gethmaximum(h);
+  if constexpr (has_method_GetN<T>::value) {
+    for (int i=0; i<h->GetN(); i++) {
+      double x, y;
+      h->GetPoint(i, x, y);
+      if (y > 0)
+        ymin = std::min(ymin, h->GetBinContent(i+1));
+    }
+  } else {
+    for (int i=0; i<h->GetXaxis()->GetNbins(); i++)
+      if (h->GetBinContent(i+1) > 0)
+        ymin = std::min(ymin, h->GetBinContent(i+1));
+  }
+  return ymin;
+}
+
+template<class T>
+double xjjana::gethmaximum(T* h) {
   double ymax = -1.e+10;
-  for(int i=0; i<h->GetXaxis()->GetNbins(); i++)
-    ymax = std::max(ymax, h->GetBinContent(i+1));
+  if constexpr (has_method_GetN<T>::value) {
+    for (int i=0; i<h->GetN(); i++) {
+      double x, y;
+      h->GetPoint(i, x, y);
+      ymax = std::max(ymax, y);
+    }
+  } else {
+    for (int i=0; i<h->GetXaxis()->GetNbins(); i++)
+      ymax = std::max(ymax, h->GetBinContent(i+1));
+  }
   return ymax;
 }
 
