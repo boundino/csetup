@@ -92,6 +92,8 @@ namespace xjjc
   template<class T> std::vector<std::vector<T>> array2d(int n1, int n2);
   template<class T> std::vector<std::vector<std::vector<T>>> array3d(int n1, int n2, int n3);
 
+  using info = std::map<std::string, std::string>;
+
   std::string current_time();
   std::string unique_str();
 
