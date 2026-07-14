@@ -45,7 +45,7 @@ namespace xjjana
   // statistics
   std::map<std::string, double> chi2test(TH1* h1, TH1* h2, const char* opt="UW");
   //
-  const double frac_1sigma = 0.682689, frac_2sigma = 0.954499;
+  const double frac_1sigma = 0.682689, frac_2sigma = 0.954499, frac_3sigma = 0.997300;
   double tf_width_only(const TF1* f, double center, double fraction = frac_1sigma, double xmin = 1., double xmax = 0., double tol = 1e-6);
   std::pair<double, double> tf_width(const TF1* f, double center, double fraction = frac_1sigma, const std::vector<int>& fixparams = {}, double xmin = 1., double xmax = 0., double tol = 1e-6);
   
@@ -54,11 +54,11 @@ namespace xjjana
   template<class T> double gethmaximum(T* h);
   void sethabsminmax(TH1* h, float ymin, float ymax);
   void sethminmax(TH1* h, float ymin, float ymax);
-  template<class T> double sethsmin(std::vector<T>& h, float factor=1);
-  template<class T> double sethsnonzeromin(std::vector<T>& h, float factor=1);
+  template<class T> double sethsmin(std::vector<T> h, float factor=1);
+  template<class T> double sethsnonzeromin(std::vector<T> h, float factor=1);
   template<class T1, class T2> double sethsmin(std::map<T1, T2>& h, float factor=1);
   template<class T1, class T2> double sethsmin(std::vector<std::pair<T1, T2>>& h, float factor=1);
-  template<class T> double sethsmax(std::vector<T>& h, float factor=1);
+  template<class T> double sethsmax(std::vector<T> h, float factor=1);
   template<class T1, class T2> double sethsmax(std::map<T1, T2>& h, float factor=1);
   template<class T1, class T2> double sethsmax(std::vector<std::pair<T1, T2>>& h, float factor=1);
 
@@ -390,12 +390,12 @@ double xjjana::gethnonzerominimum(T* h) {
     for (int i=0; i<h->GetN(); i++) {
       double x, y;
       h->GetPoint(i, x, y);
-      if (y > 0)
+      if (y > 1.e-8)
         ymin = std::min(ymin, h->GetBinContent(i+1));
     }
   } else {
     for (int i=0; i<h->GetXaxis()->GetNbins(); i++)
-      if (h->GetBinContent(i+1) > 0)
+      if (h->GetBinContent(i+1) > 1.e-8)
         ymin = std::min(ymin, h->GetBinContent(i+1));
   }
   return ymin;
@@ -428,7 +428,7 @@ void xjjana::sethminmax(TH1* h, float ymin, float ymax) {
 }
 
 template <class T>
-double xjjana::sethsmin(std::vector<T>& h, float factor) {
+double xjjana::sethsmin(std::vector<T> h, float factor) {
   double ymin = 1.e+10;
   for(auto& hh : h) ymin = std::min(ymin, gethminimum(hh));
   for(auto& hh : h) hh->SetMinimum(ymin * factor);
@@ -436,7 +436,7 @@ double xjjana::sethsmin(std::vector<T>& h, float factor) {
 }
 
 template <class T>
-double xjjana::sethsnonzeromin(std::vector<T>& h, float factor) {
+double xjjana::sethsnonzeromin(std::vector<T> h, float factor) {
   double ymin = 1.e+10;
   for(auto& hh : h) ymin = std::min(ymin, gethnonzerominimum(hh));
   for(auto& hh : h) hh->SetMinimum(ymin * factor);
@@ -462,7 +462,7 @@ double xjjana::sethsmin(std::vector<std::pair<T1, T2>>& h, float factor) {
 }
 
 template <class T>
-double xjjana::sethsmax(std::vector<T>& h, float factor) {
+double xjjana::sethsmax(std::vector<T> h, float factor) {
   double ymax = -1.e+10;
   for(auto& hh : h) ymax = std::max(ymax, gethmaximum(hh));
   for(auto& hh : h) hh->SetMaximum(ymax * factor);
