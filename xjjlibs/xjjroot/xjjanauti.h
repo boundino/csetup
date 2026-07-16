@@ -705,7 +705,7 @@ template<class T>
 T* xjjana::getobj(TDirectory *inf, std::string name, bool verbose) {
   T* hh = 0;
   if(!inf) { std::cout<<std::left<<"\e[31m(x) "<<name<<"\e[0m"<<std::endl; return hh; }
-  hh = (T*)inf->Get(name.c_str());
+  hh = dynamic_cast<T*>(inf->Get(name.c_str()));
   if(!hh) { std::cout<<std::left<<"\e[31m(x) "<<name<<"\e[0m"<<std::endl; return hh; }
   if(verbose) xjjroot::print_obj(hh);
   return hh;
@@ -732,7 +732,7 @@ std::vector<T*> xjjana::getobj_regexp(const TDirectory *dir, const std::string& 
       continue;
     if (!std::regex_match(obj->GetName(), re))
       continue;
-    auto* r = (T*)obj;
+    auto* r = dynamic_cast<T*>(obj);
     if (verbose) xjjroot::print_obj(r);
     rs.push_back(r);
   }
@@ -758,7 +758,7 @@ void xjjana::getobj_regexp_recur(const TDirectory *dir, std::vector<T*> &rs,
     } else {
       if (!obj->InheritsFrom(classname)) continue;
       if (!std::regex_match(obj->GetName(), re)) continue;
-      auto* r = (T*)obj;
+      auto* r = dynamic_cast<T*>(obj);
       if (verbose) xjjroot::print_obj(r);
       rs.push_back(r);
     }

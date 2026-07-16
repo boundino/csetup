@@ -154,6 +154,7 @@ namespace xjjroot
   void mkdir(std::string outputfile);
   void saveas(TCanvas* c, std::string outputfile, std::string opt="WT");
   TFile* newfile(std::string outputfile);
+  void closefile(TFile*);
   void drawcomment(std::string comment, std::string opt="lb") {
     xjjroot::drawtex((opt.front()=='r'?1:0), (opt.back()=='t'?1:0), comment.c_str(), 0.024,
                      ((opt.front()=='r')*2+1)*10+((opt.back()=='t')*2+1), 42, kGray); }
@@ -742,6 +743,11 @@ TFile* xjjroot::newfile(std::string outputfile) {
   outf->cd();
   __XJJLOG << ">> "<<outputfile<<std::endl;
   return outf;
+}
+
+void xjjroot::closefile(TFile* outf) {
+  __XJJLOG << ">> "<<outf->GetName()<<std::endl;
+  outf->Close();
 }
 
 void xjjroot::writetex(std::string tr, std::string br, std::string str) {
