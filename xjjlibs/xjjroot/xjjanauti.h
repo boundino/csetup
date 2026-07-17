@@ -53,7 +53,8 @@ namespace xjjana
   template<class T> double gethnonzerominimum(T* h);
   template<class T> double gethmaximum(T* h);
   void sethabsminmax(TH1* h, float ymin, float ymax);
-  void sethminmax(TH1* h, float ymin, float ymax);
+  void sethminmax(TH1* h, float factormin, float factormax);
+  void sethnonzerominmax(TH1* h, float factormin, float factormax);
   template<class T> double sethsmin(std::vector<T> h, float factor=1);
   template<class T> double sethsnonzeromin(std::vector<T> h, float factor=1);
   template<class T1, class T2> double sethsmin(std::map<T1, T2>& h, float factor=1);
@@ -94,6 +95,7 @@ namespace xjjana
   template<typename T = std::string> std::map<std::string, T> getval_regexp(TTree *tr, const std::string& pattern = ".*");
   std::map<std::string, std::string> getstr_regexp(TTree *tr, const std::string& pattern = "*");
   TTree* write_info(const std::map<std::string, std::string>& values, const std::string& treename = "info");
+  std::map<std::string, std::string> get_info(TFile*, const std::string& treename);
 
   struct variable
   {
@@ -423,10 +425,16 @@ void xjjana::sethabsminmax(TH1* h, float ymin, float ymax) {
   h->SetMaximum(ymax);
 }
 
-void xjjana::sethminmax(TH1* h, float ymin, float ymax) {
+void xjjana::sethminmax(TH1* h, float factormin, float factormax) {
   if (!h) return;
-  h->SetMinimum(gethminimum(h) * ymin);
-  h->SetMaximum(gethmaximum(h) * ymax);
+  h->SetMinimum(gethminimum(h) * factormin);
+  h->SetMaximum(gethmaximum(h) * factormax);
+}
+
+void xjjana::sethnonzerominmax(TH1* h, float factormin, float factormax) {
+  if (!h) return;
+  h->SetMinimum(gethnonzerominimum(h) * factormin);
+  h->SetMaximum(gethmaximum(h) * factormax);
 }
 
 template <class T>
@@ -883,6 +891,11 @@ TTree* xjjana::write_info(const std::map<std::string, std::string>& values, cons
     tinfo->Branch(v.first.c_str(), tr);
   }
   return tinfo;
+}
+
+std::map<std::string, std::string> xjjana::get_info(TFile* inf, const std::string& treename) {
+  auto info = xjjana::getval_regexp(dynamic_cast<TTree*>(inf->Get(treename.c_str())));
+  return info;
 }
 
 void xjjana::print_var(const variable &v) {

@@ -60,7 +60,9 @@ namespace xjjroot
   // colorlist_bw
   // mycolor_satmiddle[cc], mycolor_light[cc], mycolor_middle[cc], mycolor_dark[cc]
   std::vector<std::string> cc = { "red", "azure", "green", "magenta", "orange", "olive", "pink", "cyan", "yellow", "blue", "violet" };
-
+  Color_t color_alpha(Color_t color, double alpha);
+  Color_t color_alpha_black(Color_t color, double alpha);
+  
   std::vector<Style_t> markerlist_solid = {21, 20, 34, 47, 33, 43, 22, 23};
   std::vector<Style_t> markerlist_open = {24, 25, 26, 27, 28, 30, 32, 42, 46, 44};
 
@@ -841,6 +843,26 @@ std::vector<std::pair<TPad*, unsigned int>> xjjroot::divide_canvas(TCanvas* c, i
     }
   }
   return pads;
+}
+
+Color_t xjjroot::color_alpha(Color_t color, double alpha) {
+  TColor *c = gROOT->GetColor(color);
+  float r, g, b;
+  c->GetRGB(r, g, b);
+  r = alpha * r + (1-alpha);
+  g = alpha * g + (1-alpha);
+  b = alpha * b + (1-alpha);
+  return TColor::GetColor(r, g, b);
+}
+
+Color_t xjjroot::color_alpha_black(Color_t color, double alpha) {
+  TColor* c = gROOT->GetColor(color);
+  float r, g, b;
+  c->GetRGB(r, g, b);
+  r *= alpha;
+  g *= alpha;
+  b *= alpha;
+  return TColor::GetColor(r, g, b);
 }
 
 namespace xjjroot

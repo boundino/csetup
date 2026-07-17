@@ -86,6 +86,8 @@ namespace xjjc
   std::string str_toupper(const std::string& str);
   std::vector<std::string> str_wrap(const std::string& str, size_t n);
   std::vector<std::string> str_wrap(const std::vector<std::string>& str, size_t n);
+
+  template<typename T> bool almost_eq(T a, T b, T rel_tol = std::is_same_v<T, float> ? T{1e-5f} : T{1e-9}, T abs_tol = std::is_same_v<T, float> ? T{1e-7f} : T{1e-12});
   
   template <class T> using array2D = std::vector<std::vector<T>>;
   template <class T> using array3D = std::vector<std::vector<std::vector<T>>>;
@@ -523,6 +525,16 @@ std::vector<std::string> xjjc::str_wrap(const std::vector<std::string>& str, siz
     xjjc::vec_append(result, str_wrap(s, n));
   }
   return result;
+}
+
+template <typename T>
+bool xjjc::almost_eq(T a, T b, T rel_tol, T abs_tol) {
+  static_assert(std::is_floating_point_v<T>,
+                "T must be a floating-point type");
+  T diff = std::abs(a - b);
+  if (diff <= abs_tol)
+    return true;
+  return diff <= rel_tol * std::max(std::abs(a), std::abs(b));
 }
 
 std::string xjjc::current_time() {
