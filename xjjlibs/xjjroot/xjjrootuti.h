@@ -62,6 +62,7 @@ namespace xjjroot
   std::vector<std::string> cc = { "red", "azure", "green", "magenta", "orange", "olive", "pink", "cyan", "yellow", "blue", "violet" };
   Color_t color_alpha(Color_t color, double alpha);
   Color_t color_alpha_black(Color_t color, double alpha);
+  Color_t color_blend(const std::vector<Color_t> colors, const std::vector<float> fracs);
   
   std::vector<Style_t> markerlist_solid = {21, 20, 34, 47, 33, 43, 22, 23};
   std::vector<Style_t> markerlist_open = {24, 25, 26, 27, 28, 30, 32, 42, 46, 44};
@@ -843,6 +844,34 @@ std::vector<std::pair<TPad*, unsigned int>> xjjroot::divide_canvas(TCanvas* c, i
     }
   }
   return pads;
+}
+
+Color_t xjjroot::color_blend(const std::vector<Color_t> colors,
+                             const std::vector<float> fracs) {
+  if (colors.empty() || colors.size() != fracs.size())
+    return kBlack;
+
+  float sum = 0.;
+  for (auto& fr : fracs)
+    sum += fr;
+  if (sum <= 0.)
+    return kBlack;
+
+  float r = 0.f, g = 0.f, b = 0.f;
+  for (size_t i = 0; i < colors.size(); ++i) {
+    TColor* c = gROOT->GetColor(colors[i]);
+    if (!c) continue;
+
+    float rr, gg, bb;
+    c->GetRGB(rr, gg, bb);
+
+    float w = fracs[i] / sum;
+
+    r += w * rr;
+    g += w * gg;
+    b += w * bb;
+  }
+  return TColor::GetColor(r, g, b);
 }
 
 Color_t xjjroot::color_alpha(Color_t color, double alpha) {
