@@ -90,6 +90,7 @@ namespace xjjana
   template<class T> T* getobj(TDirectory *inf, std::string name, bool verbose=true);
   template<class T> T* getobj(std::string name, bool verbose=true);
   template<class T> std::vector<T*> getobj_regexp(const TDirectory *dir, const std::string& pattern = ".*", const std::string& classfilter = "", bool verbose=true);
+  template<class T> T* getobj_regexp_first(const TDirectory *dir, const std::string& pattern = ".*", const std::string& classfilter = "", bool verbose=true);
   template<class T> void getobj_regexp_recur(const TDirectory *dir, std::vector<T*> &result, const std::string& pattern = ".*", const std::string& classfilter = "", bool verbose=true);
   template<class T> std::vector<T*> getobj_regexp_recur(const TDirectory *dir, const std::string& pattern = ".*", const std::string& classfilter = "", bool verbose=true);
   template<typename T = std::string> std::map<std::string, T> getval_regexp(TTree *tr, const std::string& pattern = ".*");
@@ -730,9 +731,10 @@ template<class T>
 std::vector<T*> xjjana::getobj_regexp(const TDirectory *dir, const std::string& pattern/* = "*"*/,
                                       const std::string& classfilter/* = ""*/, bool verbose) {
   auto classname = classfilter.empty() ? T::Class()->GetName() : classfilter.c_str();
+  std::vector<T*> rs;
+  if (!dir) { __XJJLOG << "!! bad directory, return empty vector." << std::endl; return rs; }
   TIter next(dir->GetListOfKeys());
   TKey* key;
-  std::vector<T*> rs;
   std::regex re(pattern);
   while ((key = (TKey*)next())) {
     auto* obj = key->ReadObj();
@@ -748,6 +750,15 @@ std::vector<T*> xjjana::getobj_regexp(const TDirectory *dir, const std::string& 
     std::cout<<"warning: no \e[1;4m"<<classname<<"\e[0m matching regexp \e[1;4m"<<pattern<<"\e[0m."<<std::endl;
   }
   return rs;
+}
+
+template<class T>
+T* xjjana::getobj_regexp_first(const TDirectory *dir, const std::string& pattern/* = "*"*/,
+                               const std::string& classfilter/* = ""*/, bool verbose) {
+  auto hs = getobj_regexp<T>(dir, pattern, classfilter, false);
+  if (hs.empty()) return nullptr;
+  if(verbose) xjjroot::print_obj(hs.front());
+  return hs.front();
 }
 
 template<class T>
