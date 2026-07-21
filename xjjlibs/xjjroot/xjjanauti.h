@@ -62,6 +62,7 @@ namespace xjjana
   template<class T> double sethsmax(std::vector<T> h, float factor=1);
   template<class T1, class T2> double sethsmax(std::map<T1, T2>& h, float factor=1);
   template<class T1, class T2> double sethsmax(std::vector<std::pair<T1, T2>>& h, float factor=1);
+  // template<class T> void sethsminmax(T& hh, float factor_min, float factor_max);
 
   TGraphErrors* shifthistcenter(TH1* hh, std::string name); // TH1 -> TGraphErrors with the original bins
   TGraphErrors* shifthistcenter(TH1* hh, std::string name, int option); // -1: binlowedge, 0: bincenter, 1: binhighedge | zero x err
@@ -76,6 +77,7 @@ namespace xjjana
   void gScale(TGraphAsymmErrors* g, float scale);
   template <class T> T* changeTHtype(TH1* h, std::string name);
   template <class T> T* changebin(T* h, double xmin, double xmax, std::string name);
+  template <class T> T* rebin(T* h, int nx, const Double_t* xbins, int ny, const Double_t* ybins, std::string name = "");  
 
   template <class T> void grzero(T* gr);
   
@@ -665,6 +667,64 @@ T* xjjana::changebin(T* h, double xmin, double xmax, std::string name) {
 }
 
 template <class T>
+T* xjjana::rebin(T* h, int nx, const Double_t* xbins, int ny, const Double_t* ybins, std::string name) {
+  if (!h || !xbins || !ybins || nx <= 0 || ny <= 0)
+    return nullptr;
+
+  auto warn_if_edges_do_not_coincide = [](const TAxis* axis, int nbins, const Double_t* edges) {
+    constexpr double rel_tol = 1e-7;
+    constexpr double abs_tol = 1e-7;
+
+    for (int i = 0; i <= nbins; ++i) {
+      bool found = false;
+      for (int j = 1; j <= axis->GetNbins() + 1; ++j) {
+        const double edge = (j <= axis->GetNbins()) ? axis->GetBinLowEdge(j) : axis->GetBinUpEdge(axis->GetNbins());
+        bool match = xjjc::almost_eq(edge, edges[i], rel_tol, abs_tol);
+        if (match) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        __XJJLOG << "?? Requested axis (" << axis->GetTitle() << ") does not coincide with an original bin edge, please check." << std::endl;
+      }
+    }
+  };
+
+  warn_if_edges_do_not_coincide(h->GetXaxis(), nx, xbins);
+  warn_if_edges_do_not_coincide(h->GetYaxis(), ny, ybins);
+
+  if (name.empty()) name = Form("%s_rebin", h->GetName());
+  auto* hout = new TH2D(name.c_str(), Form("%s;%s;%s;%s", h->GetTitle(), h->GetXaxis()->GetTitle(), h->GetYaxis()->GetTitle(), h->GetZaxis()->GetTitle()),
+                        nx, xbins, ny, ybins);
+  hout->Sumw2();
+  for (int ix = 1; ix <= h->GetNbinsX(); ++ix) {
+    const double x = h->GetXaxis()->GetBinCenter(ix);
+    const int new_ix = hout->GetXaxis()->FindBin(x);
+    if (new_ix < 1 || new_ix > nx)
+      continue;
+
+    for (int iy = 1; iy <= h->GetNbinsY(); ++iy) {
+      const double y = h->GetYaxis()->GetBinCenter(iy);
+      const int new_iy = hout->GetYaxis()->FindBin(y);
+      if (new_iy < 1 || new_iy > ny)
+        continue;
+
+      const double content = h->GetBinContent(ix, iy);
+      const double error = h->GetBinError(ix, iy);
+
+      const int new_bin = hout->GetBin(new_ix, new_iy);
+
+      hout->SetBinContent(new_bin, hout->GetBinContent(new_bin) + content);
+      hout->SetBinError(new_bin, std::hypot(hout->GetBinError(new_bin), error));
+    }
+  }
+  hout->SetEntries(h->GetEntries());
+
+  return hout;
+}
+
+template <class T>
 void xjjana::grzero(T* gr) {
   for (int i=0; i<gr->GetN(); i++) {
     gr->SetPoint(i, 0, 0);
@@ -723,7 +783,8 @@ T* xjjana::getobj(TDirectory *inf, std::string name, bool verbose) {
 template<class T>
 T* xjjana::getobj(std::string name, bool verbose) {
   auto inputname = xjjc::str_divide_trim(name, "::");
-  auto inf = TFile::Open(inputname[0].c_str());
+  if (inputname.size() < 2) return nullptr;
+  auto* inf = TFile::Open(inputname[0].c_str());
   return getobj<T>(inf, inputname[1], verbose);
 }
 

@@ -83,6 +83,7 @@ namespace xjjroot
   void setgstyle(Int_t padtick=0, Width_t lwidth=2, Gpreset opt=Standard);
   void setcstyle(TCanvas* c, Int_t padtick=0, Gpreset opt=Standard);
   void adjust_margin(float tt=1, float rr=1, float bb=1, float ll=1);
+  double scale_pad() { return std::sqrt(std::min(gPad->GetWNDC(), gPad->GetHNDC())); }
   float get_pad_center(char d = 'X'); // 'X' or 'Y'
   template <class T> void sethempty(T* hempty, Float_t xoffset=0, Float_t yoffset=0, Float_t xsize=1, Float_t ysize=1);
   template <class T> void setthgr(T* hempty, Float_t xoffset=0, Float_t yoffset=0);
