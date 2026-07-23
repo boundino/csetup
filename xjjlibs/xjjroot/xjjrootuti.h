@@ -165,7 +165,7 @@ namespace xjjroot
   void writetex(std::string tr, std::string br, std::string str);
   std::string readtex(TTree* t, std::string br);
 
-  std::vector<TPad*> twopads(TCanvas* c, TH1* hempty, TH1* hempty_ratio, float yupdiv = 1.9/3);
+  std::vector<TPad*> twopads(TPad* c, TH1* hempty, TH1* hempty_ratio, float yupdiv = 1.9/3);
   // std::vector<TPad*> divide_canvas(TCanvas* c, int nx, int ny);
   std::vector<std::pair<TPad*, unsigned int>> divide_canvas(TCanvas* c, int nx, int ny);
 }
@@ -770,7 +770,7 @@ std::string xjjroot::readtex(TTree* t, std::string br) {
   return ss;
 }
 
-std::vector<TPad*> xjjroot::twopads(TCanvas *c, TH1 *hempty, TH1 *hempty_ratio, float yupdiv/*= 1.9/3*/) {
+std::vector<TPad*> xjjroot::twopads(TPad *c, TH1 *hempty, TH1 *hempty_ratio, float yupdiv/*= 1.9/3*/) {
   float ydowndiv = 1-yupdiv;
 
   xjjroot::setgstyle(1);
@@ -808,7 +808,7 @@ std::vector<TPad*> xjjroot::twopads(TCanvas *c, TH1 *hempty, TH1 *hempty_ratio, 
   p1->Draw("axis");
   p1->cd();
   hempty->Draw("axis");
-
+    
   c->cd();
   auto* p2 = new TPad("p2", "", 0, 0, 1, ydowndiv);
   p2->SetMargin(xjjroot::margin_pad_left, xjjroot::margin_pad_right, xjjroot::margin_pad_bottom * (yupdiv / ydowndiv) * 1.2, 0);

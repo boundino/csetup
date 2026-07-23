@@ -17,7 +17,8 @@ namespace xjjroot
   class mypdf
   {
   public:
-    mypdf(std::string filename, std::string canvasname="c", int ww=1000, int hh=1000);
+    static const int w_default = 1000, h_default = 1000; // marker size unit: 8 pixels
+    mypdf(std::string filename, std::string canvasname="c", int ww = w_default, int hh = h_default);
     mypdf(TCanvas* cc, std::string filename);
     void prepare() { fc->Clear(); fc->cd(); }
     void write(std::string pngname = "", std::string opt = "");
