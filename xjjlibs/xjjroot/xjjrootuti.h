@@ -106,14 +106,16 @@ namespace xjjroot
   TLatex* drawtexnum(Double_t x, Double_t y, const char *text,
                      Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack, Float_t talpha=1, Float_t tangle=0,
                      bool draw = true);
-  void drawtexgroup(Double_t x, Double_t y, std::vector<std::string> text, Float_t tsize=0.04, Short_t align=12, Style_t font=42, float lspacescale = 1.15,
-                    int ncol=1, Double_t colwid=0.2,
-                    std::vector<Color_t> color = {}); // colorlist_middle
+  std::vector<TLatex*> drawtexgroup(Double_t x, Double_t y, std::vector<std::string> text, Float_t tsize=0.04, Short_t align=12, Style_t font=42, float lspacescale = 1.15,
+                                    int ncol=1, Double_t colwid=0.2,
+                                    std::vector<Color_t> color = {}); // colorlist_middle
   void drawtexgroup_wrap(Double_t x, Double_t y, std::vector<std::string> text, Float_t tsize=0.04, Short_t align=12, Style_t font=42, float lspacescale = 1.15, size_t nchar = 50);
-  void movetex_n_draw(TLatex* tex, float x1=-1, float y2=-1, Short_t align = 0);
+  void movetex_n_draw(TLatex* tex, float x = -1, float y = -1, Short_t align = 0);
+  void movetexgroup_n_draw(std::vector<TLatex*>& tex, float x = -1, float y = -1);
   void setleg(TLegend* leg, Float_t tsize=0.04);
   void setleg_n_draw(TLegend* leg, Float_t tsize=0.04);
   void moveleg_n_draw(TLegend* leg, float x1=-1, float y2=-1);
+  TLegend* cloneleg_n_draw(const TLegend* leg, float x1=-1, float y2=-1);
   void autoleg_n_draw(TLegend* leg, float x1=-1, float y2=-1, float tsize=-1, float fline=1.1);
   void rewidthleg(TLegend* leg, int ncol);
   void addentrybystyle(TLegend* leg, std::string text, std::string opt,
@@ -374,10 +376,10 @@ TLatex* xjjroot::drawtexnum(Double_t x, Double_t y, const char* text,
   return tex;
 }
 
-void xjjroot::drawtexgroup(Double_t x, Double_t y, std::vector<std::string> text, Float_t tsize/*=0.04*/, Short_t align/*=12*/, Style_t font/*=42*/,
-                           float lspacescale/*=1.15*/,
-                           int ncol/*=1*/, Double_t colwid/*=0.2*/,
-                           std::vector<Color_t> color/*=std::vector<Color_t>(10, kBlack)*/) {
+std::vector<TLatex*> xjjroot::drawtexgroup(Double_t x, Double_t y, std::vector<std::string> text, Float_t tsize/*=0.04*/, Short_t align/*=12*/, Style_t font/*=42*/,
+                                           float lspacescale/*=1.15*/,
+                                           int ncol/*=1*/, Double_t colwid/*=0.2*/,
+                                           std::vector<Color_t> color/*=std::vector<Color_t>(10, kBlack)*/) {
   double lspace = tsize * lspacescale;
   auto nrow = std::ceil(text.size()/ncol);
   
@@ -390,6 +392,8 @@ void xjjroot::drawtexgroup(Double_t x, Double_t y, std::vector<std::string> text
   float y1 = y; // vertical = 3, top
   if (vertical == 1) y1 = y + lspace * (nrow-1); // vertical = 1, bottom
   if (vertical == 2) y1 = y + lspace*nrow/2. - tsize/2.; // vertical = 2, middle
+
+  std::vector<TLatex*> vtex;
   for (unsigned t = 0; t < text.size(); t++) {
     auto icol = t%ncol, irow = t/ncol;
     double xx = x + colwid * icol; // horizontal = 1, left
@@ -398,8 +402,9 @@ void xjjroot::drawtexgroup(Double_t x, Double_t y, std::vector<std::string> text
     double yy = y1 - lspace*irow;
     constexpr unsigned fallback = kBlack;
     Color_t cc = t < color.size() ? color[t] : fallback;
-    drawtex(xx, yy, text[t].c_str(), tsize, align, font, cc);
+    vtex.push_back(drawtex(xx, yy, text[t].c_str(), tsize, align, font, cc));
   }
+  return vtex;
 }
 
 void xjjroot::drawtexgroup_wrap(Double_t x, Double_t y, std::vector<std::string> text, Float_t tsize/*=0.04*/, Short_t align/*=12*/, Style_t font/*=42*/,
@@ -416,6 +421,58 @@ void xjjroot::movetex_n_draw(TLatex* tex, float x1/*=-1*/, float y2/*=-1*/, Shor
   if (y2 >= 0)
     tex->SetY(y2);
   tex->Draw();
+}
+
+// #include <algorithm>
+#include <limits>
+
+void xjjroot::movetexgroup_n_draw(std::vector<TLatex*>& gtex, float x, float y) {
+  if (gtex.empty()) return;
+  auto* first = gtex.front();
+  if (!first) return;
+
+  const Short_t align = first->GetTextAlign();
+  const Short_t horizontal = align / 10;
+  const Short_t vertical   = align % 10;
+
+  double xmin =  std::numeric_limits<double>::max();
+  double xmax = -std::numeric_limits<double>::max();
+  double ymin =  std::numeric_limits<double>::max();
+  double ymax = -std::numeric_limits<double>::max();
+
+  for (const auto* tex : gtex) {
+    if (!tex)
+      continue;
+    xmin = std::min(xmin, tex->GetX());
+    xmax = std::max(xmax, tex->GetX());
+    ymin = std::min(ymin, tex->GetY());
+    ymax = std::max(ymax, tex->GetY());
+  }
+
+  // Determine the current group anchor from the text alignment.
+  double oldx = xmin; // left aligned
+  if (horizontal == 2)
+    oldx = 0.5 * (xmin + xmax); // centered
+  else if (horizontal == 3)
+    oldx = xmax; // right aligned
+
+  double oldy = ymin; // bottom aligned
+  if (vertical == 2)
+    oldy = 0.5 * (ymin + ymax); // vertically centered
+  else if (vertical == 3)
+    oldy = ymax; // top aligned
+
+  const double dx = x - oldx;
+  const double dy = y - oldy;
+
+  for (auto* tex : gtex) {
+    if (!tex) continue;
+    if (x >= 0)
+      tex->SetX(tex->GetX() + dx);
+    if (y >= 0)
+      tex->SetY(tex->GetY() + dy);
+    tex->Draw();
+  }
 }
 
 void xjjroot::setleg(TLegend* leg, Float_t tsize/*=0.04*/) {
@@ -442,6 +499,12 @@ void xjjroot::moveleg_n_draw(TLegend* leg, float x1/*=-1*/, float y2/*=-1*/) {
   leg->SetX2NDC(x2);
   leg->SetY2NDC(y2);
   leg->Draw();
+}
+
+TLegend* xjjroot::cloneleg_n_draw(const TLegend* leg, float x1/*=-1*/, float y2/*=-1*/) {
+  auto* leg2 = static_cast<TLegend*>(leg->Clone());
+  moveleg_n_draw(leg2, x1, y2);
+  return leg2;
 }
 
 void xjjroot::autoleg_n_draw(TLegend* leg, float x1/*=-1*/, float y2/*=-1*/, float tsize/*=-1*/, float fline/*=1.1*/) {
