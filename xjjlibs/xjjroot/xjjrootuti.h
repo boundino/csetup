@@ -46,6 +46,11 @@ namespace xjjroot
     Color_t lcolor=-1; Style_t lstyle=-1; Width_t lwidth=-1;
     Color_t fcolor=-1; Float_t falpha=-1; Style_t fstyle=-1;
     Float_t lalpha=-1; Float_t malpha=-1;
+    thgrstyle(Color_t fmcolor=-1, Style_t fmstyle=-1, Size_t fmsize=-1, Color_t flcolor=-1, Style_t flstyle=-1, Width_t flwidth=-1, Color_t ffcolor=-1, Float_t ffalpha=-1, Style_t ffstyle=-1, Float_t flalpha=-1, Float_t fmalpha=-1) :
+      mcolor(fmcolor), mstyle(fmstyle), msize(fmsize),
+      lcolor(flcolor), lstyle(flstyle), lwidth(flwidth),
+      fcolor(ffcolor), falpha(ffalpha), fstyle(ffstyle),
+      lalpha(flalpha), malpha(fmalpha) {}
   };
 
   enum Gpreset { Standard, Colz };
