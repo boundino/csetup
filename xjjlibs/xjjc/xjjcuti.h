@@ -17,6 +17,7 @@
 #include <sstream>
 #include <chrono>
 #include <random>
+#include <stdexcept>
 
 #define MAKE_HAS_METHOD(method)                                         \
   template <typename T, typename = void>                                \
@@ -82,6 +83,7 @@ namespace xjjc
 
   std::string str_getdir(const std::string& filename);
   std::string str_tag_from_file(const std::string& filename) { return str_erasestar(str_erasestar(filename, "*/"), ".*"); }
+  int str_extract_index(const std::string& name, const std::string& key = "__y-");
   std::string str_tolower(const std::string& str);
   std::string str_toupper(const std::string& str);
   std::vector<std::string> str_wrap(const std::string& str, size_t n);
@@ -493,6 +495,22 @@ std::vector<std::string> xjjc::str_divide_once_back(const std::string& str, cons
 
 std::string xjjc::str_getdir(const std::string& filename) {
   return str_replaceall(filename, str_divide(filename, "/").back(), "");
+}
+
+int xjjc::str_extract_index(const std::string& name, const std::string& key) {
+  auto pos = name.find(key);
+  if (pos == std::string::npos)
+    throw std::runtime_error("Pattern <" + key + "> not found");
+
+  pos += key.size();
+  auto end = pos;
+  while (end < name.size() &&
+         std::isdigit(static_cast<unsigned char>(name[end]))) {
+    ++end;
+  }
+  if (end == pos)
+    throw std::runtime_error("No digits after <" + key + ">");
+  return std::stoi(name.substr(pos, end - pos));
 }
 
 std::string xjjc::str_tolower(const std::string& str) {

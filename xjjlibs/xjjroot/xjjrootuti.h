@@ -173,8 +173,8 @@ namespace xjjroot
   std::string readtex(TTree* t, std::string br);
 
   std::vector<TPad*> twopads(TPad* c, TH1* hempty, TH1* hempty_ratio, float yupdiv = 1.9/3);
-  // std::vector<TPad*> divide_canvas(TCanvas* c, int nx, int ny);
-  std::vector<std::pair<TPad*, unsigned int>> divide_canvas(TCanvas* c, int nx, int ny);
+  std::vector<TPad*> divide(int nx, int ny, TCanvas* c = nullptr);  
+  std::vector<std::pair<TPad*, unsigned int>> divide_connect(int nx, int ny, TCanvas* c = nullptr);
 }
 
 /* ---------- */
@@ -889,26 +889,47 @@ std::vector<TPad*> xjjroot::twopads(TPad *c, TH1 *hempty, TH1 *hempty_ratio, flo
   return pads;
 }
 
-std::vector<std::pair<TPad*, unsigned int>> xjjroot::divide_canvas(TCanvas* c, int nx, int ny) {
-  // auto pads = xjjc::array2d<TPad*>(nx, ny);
+std::vector<TPad*> xjjroot::divide(int nx, int ny, TCanvas* c) {
+  if (c) c->cd();
+  std::vector<TPad*> pads;
+  pads.reserve(nx * ny);
+  const double dx = 1.0 / nx;
+  const double dy = 1.0 / ny;
+  for (int iy = 0; iy < ny; ++iy) {
+    for (int ix = 0; ix < nx; ++ix) {
+      const double x1 = ix * dx;
+      const double x2 = (ix + 1) * dx;
+      const double y1 = 1.0 - (iy + 1) * dy;
+      const double y2 = 1.0 - iy * dy;
+      auto* pad = new TPad(Form("%s_%d_%d", (c ? c->GetName() : "p"), ix, iy), "", x1, y1, x2, y2);
+      pad->SetNumber(iy * nx + ix + 1);
+      pad->Draw();
+      pads.push_back(pad);
+    }
+  }
+  return pads;
+}
+
+std::vector<std::pair<TPad*, unsigned int>> xjjroot::divide_connect(int nx, int ny, TCanvas* c) {
+  if (c) c->cd();
   std::vector<std::pair<TPad*, unsigned int>> pads;
-  float m_top = xjjroot::margin_pad_top/nx, m_bottom = xjjroot::margin_pad_bottom/ny, m_left = xjjroot::margin_pad_left/nx, m_right = xjjroot::margin_pad_right/ny;
-  float fwidth = (1-m_left-m_right)/nx, fheight = (1-m_bottom-m_top)/ny;
+  const double m_top = xjjroot::margin_pad_top/nx, m_bottom = xjjroot::margin_pad_bottom/ny, m_left = xjjroot::margin_pad_left/nx, m_right = xjjroot::margin_pad_right/ny;
+  const double fwidth = (1-m_left-m_right)/nx, fheight = (1-m_bottom-m_top)/ny;
   for (int j=0; j<ny; j++) {
     for (int i=nx-1; i>=0; i--) {
       c->cd();
-      float px1 = i*fwidth, // left
+      const double px1 = i*fwidth, // left
         px2 = m_left + (i+1)*fwidth + m_right, // right
         py1 = 1 - (m_top + (j+1)*fheight + m_bottom), // bottom
         py2 = 1 - j*fheight; // top
-      auto* pij = new TPad(Form("p-%d-%d", i, j), "", px1, py1, px2, py2);
+      auto* pij = new TPad(Form("%s_%d_%d", (c ? c->GetName() : "p"), i, j), "", px1, py1, px2, py2);
+      pij->SetNumber(j * nx + i + 1);
       pij->SetMargin(m_left/(m_left+fwidth+m_right), m_right/(m_left+fwidth+m_right),
                      m_bottom/(m_top+fheight+m_bottom), m_top/(m_top+fheight+m_bottom));
       pij->SetFillStyle(4000);
       pij->Draw("axis");
-      // pads[i][j] = pij;
       auto flag = ((i == 0) ? 1u : 0u) | ((j == ny-1) ? 2u : 0u);
-      std::cout<<i<<" "<<j<<" => "<<flag<<" => "<<(flag & 2u)<<(flag & 1u)<<std::endl;
+      // std::cout<<i<<" "<<j<<" => "<<flag<<" => "<<(flag & 2u)<<(flag & 1u)<<std::endl;
       pads.push_back({ pij, flag });
     }
   }
