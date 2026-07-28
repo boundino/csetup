@@ -172,7 +172,7 @@ namespace xjjroot
   void writetex(std::string tr, std::string br, std::string str);
   std::string readtex(TTree* t, std::string br);
 
-  std::vector<TPad*> twopads(TPad* c, TH1* hempty, TH1* hempty_ratio, float yupdiv = 1.9/3);
+  std::vector<TPad*> twopads(TPad* c, TH1* hempty, TH1* hempty_ratio, float yupdiv = 1.9/3, float yoffset = 0.2);
   std::vector<TPad*> divide(int nx, int ny, TCanvas* c = nullptr);  
   std::vector<std::pair<TPad*, unsigned int>> divide_connect(int nx, int ny, TCanvas* c = nullptr);
 }
@@ -838,14 +838,13 @@ std::string xjjroot::readtex(TTree* t, std::string br) {
   return ss;
 }
 
-std::vector<TPad*> xjjroot::twopads(TPad *c, TH1 *hempty, TH1 *hempty_ratio, float yupdiv/*= 1.9/3*/) {
+std::vector<TPad*> xjjroot::twopads(TPad *c, TH1 *hempty, TH1 *hempty_ratio, float yupdiv/*= 1.9/3*/, float yoff) {
   float ydowndiv = 1-yupdiv;
 
   xjjroot::setgstyle(1);
   // gStyle->SetLineWidth(2);
 
-  sethempty(hempty, 0, 0.2);
-  // sethempty(hempty, 0, 0.2, 1./yupdiv, 1./yupdiv);
+  sethempty(hempty, 0, yoff);
   sethempty(hempty_ratio, -0.5, -0);
   hempty->GetXaxis()->SetNdivisions(510);
   hempty_ratio->GetXaxis()->SetNdivisions(510);
