@@ -222,13 +222,12 @@ std::string xjjc::number_range_string(T val1, T val2, const std::string& var, co
   if(str_tolower(opt) != "fmax" && str_tolower(opt) != "fmin") { str += (number_remove_zero(val1) + " " + sign + " "); }
   str += var;
   str += (" "+sign+" "+number_remove_zero(val2));
-  str = str_replaceall(str, " #", "#scale[0.5]{ }#");
   return str;
 }
 
 template<typename T>
 std::string xjjc::number_range_string(T val1, T val2, const std::string& var, T over1/*=0*/, T over2/*=1.e+3*/, const std::string& unit/*=""*/) {
-  auto str_unit = (unit.empty() ? "" : " "+unit);
+  const auto str_unit = (unit.empty() ? "" : " "+unit);
   if (val2 >= over2) return number_range_string(val1, val2, var, "fmax") + str_unit;
   else if (val1 <= over1) return number_range_string(val1, val2, var, "fmin") + str_unit;
   return number_range_string(val1, val2, var, "") + str_unit;

@@ -73,15 +73,15 @@ namespace xjjroot
   std::vector<Style_t> markerlist_open = {24, 25, 26, 27, 28, 30, 32, 42, 46, 44};
 
   namespace CMS {
-    const char* internal = "#scale[1.2]{#bf{CMS}}#scale[0.4]{ }#scale[1.04]{#it{Internal}}";
-    const char* simulation = "#scale[1.2]{#bf{CMS}}#scale[0.4]{ }#scale[1.04]{#it{Simulation}}";
-    const char* preliminary = "#scale[1.2]{#bf{CMS}}#scale[0.4]{ }#scale[1.04]{#it{Preliminary}}";
+    const char* internal = "#scale[1.2]{#bf{CMS}} #scale[1.04]{#it{Internal}}";
+    const char* simulation = "#scale[1.2]{#bf{CMS}} #scale[1.04]{#it{Simulation}}";
+    const char* preliminary = "#scale[1.2]{#bf{CMS}} #scale[1.04]{#it{Preliminary}}";
     const char* cms = "#scale[1.3]{#bf{CMS}}";
     std::string snn = "#sqrt{s_{NN}}";
     std::string Dz = "D#scale[0.6]{#lower[-0.7]{0}}",
       Dzbar = "#bar{D}#scale[0.6]{#lower[-0.7]{0}}",
       DzDzbar = CMS::Dz + " (" + CMS::Dzbar + ")",
-      DznDzbar = CMS::Dz + " +#scale[0.5]{ }" + CMS::Dzbar,
+      DznDzbar = CMS::Dz + " + " + CMS::Dzbar,
       DzDzbar2 = "#frac{" + DznDzbar + "}{2}"; // D#scale[0.6]{#lower[-0.7]{0}} + #bar{D}#scale[0.6]{#lower[-0.7]{0}}"
   }
   
@@ -101,9 +101,9 @@ namespace xjjroot
   template <class T> void setlinestyle(T* h, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1, Float_t lalpha=-1);
   template <class T> void settfstyle(T* h, Color_t lcolor=-1, Style_t lstyle=-1, Width_t lwidth=-1,
                                      Color_t fcolor=-1, Float_t falpha=-1, Style_t fstyle=-1);
-  void drawCMSleft(TString content=CMS::internal, Float_t xpos=0, Float_t ypos=0, Float_t tsize=0.04);
-  void drawCMSright(TString content="PbPb (5.36 TeV)", Float_t xpos=0, Float_t ypos=0, Float_t tsize=0.04);
-  void drawCMS(TString contentleft=CMS::internal, TString contentright="PbPb (5.36 TeV)", Float_t tsizef=1);
+  void drawCMSleft(const std::string& content = CMS::internal, float xpos = 0, float ypos = 0, float tsizef = 1.);
+  void drawCMSright(const std::string& content = "PbPb (5.36 TeV)", float xpos = 0, float ypos = 0, float tsizef = 1.);
+  void drawCMS(const std::string& contentleft = CMS::internal, const std::string& contentright = "PbPb (5.36 TeV)", float tsizef=1);
   void settex(TLatex* tex, Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack, Float_t talpha=1, Float_t tangle=0);
   TLatex* drawtex(Double_t x, Double_t y, const char *text,
                   Float_t tsize=0.04, Short_t align=12, Style_t font=42, Color_t color=kBlack, Float_t talpha=1, Float_t tangle=0,
@@ -323,30 +323,22 @@ void xjjroot::settfstyle(T* h, Color_t lcolor/*=-1*/, Style_t lstyle/*=-1*/, Wid
   if(fstyle>=0) h->SetFillStyle(fstyle);
 }
 
-void xjjroot::drawCMS(TString contentleft/*="#scale[1.25]{#bf{CMS}} #it{Internal}"*/,
-                      TString contentright/*="PbPb #sqrt{s_{NN}} = 5.02 TeV"*/, Float_t tsizef/* = 1*/) {
-  drawCMSleft(contentleft, 0, 0, 0.04*tsizef);
-  drawCMSright(contentright, 0, 0, 0.04*tsizef);
+void xjjroot::drawCMS(const std::string& contentleft/*="#scale[1.25]{#bf{CMS}} #it{Internal}"*/,
+                      const std::string& contentright/*="PbPb #sqrt{s_{NN}} = 5.02 TeV"*/, float tsizef/* = 1*/) {
+  drawCMSleft(contentleft, 0, 0, tsizef);
+  drawCMSright(contentright, 0, 0, tsizef);
 }
 
-void xjjroot::drawCMSleft(TString content/*="#scale[1.25]{#bf{CMS}} #it{Internal}"*/,
-                          Float_t xpos/*=0*/, Float_t ypos/*=0*/, Float_t tsize/*=0.04*/) {
-  auto* texCms = new TLatex(gStyle->GetPadLeftMargin()+xpos,(1-gStyle->GetPadTopMargin())+0.01+ypos, content.Data());
-  texCms->SetNDC();
-  texCms->SetTextAlign(11);
-  texCms->SetTextSize(tsize);
-  texCms->SetTextFont(42);
-  texCms->Draw();
+void xjjroot::drawCMSleft(const std::string& content/*="#scale[1.25]{#bf{CMS}} #it{Internal}"*/,
+                          float xpos/*=0*/, float ypos/*=0*/, float tsizef/*=1*/) {
+  xjjroot::drawtex(gStyle->GetPadLeftMargin()+xpos, (1-gStyle->GetPadTopMargin())+0.01+ypos,
+                   content.c_str(), 0.04 * tsizef, 11, 42);
 }
 
-void xjjroot::drawCMSright(TString content/*="#sqrt{s_{NN}} = 5.02 TeV"*/,
-                           Float_t xpos/*=0*/, Float_t ypos/*=0*/, Float_t tsize/*=0.04*/) {
-  auto* texCol = new TLatex((1-gStyle->GetPadRightMargin())+xpos,(1-gStyle->GetPadTopMargin())+0.01+ypos, content.Data());
-  texCol->SetNDC();
-  texCol->SetTextAlign(31);
-  texCol->SetTextSize(tsize);
-  texCol->SetTextFont(42);
-  texCol->Draw();
+void xjjroot::drawCMSright(const std::string& content/*="#sqrt{s_{NN}} = 5.02 TeV"*/,
+                           float xpos/*=0*/, float ypos/*=0*/, float tsizef/*=1*/) {
+  xjjroot::drawtex((1-gStyle->GetPadRightMargin()) + xpos, (1-gStyle->GetPadTopMargin()) + 0.01 + ypos,
+                   content.c_str(), 0.04 * tsizef, 31, 42);
 }
 
 void xjjroot::settex(TLatex* tex, Float_t tsize/*=0.04*/, Short_t align/*=12*/,
@@ -364,7 +356,8 @@ TLatex* xjjroot::drawtex(Double_t x, Double_t y, const char* text,
                          Float_t tsize/*=0.04*/, Short_t align/*=12*/, Style_t font/*=42*/,
                          Color_t color/*=kBlack*/, Float_t talpha/*=1*/, Float_t tangle/*=0*/, 
                          bool draw/*=true*/) {
-  auto* tex = new TLatex(x, y, text);
+  auto ttex = xjjc::str_replaceall(text, " #", "#scale[0.4]{ }#");
+  auto* tex = new TLatex(x, y, ttex.c_str());
   xjjroot::settex(tex, tsize, align, font, color, talpha, tangle);
   if(draw) tex->Draw();
   return tex;
@@ -374,7 +367,8 @@ TLatex* xjjroot::drawtexnum(Double_t x, Double_t y, const char* text,
                             Float_t tsize/*=0.04*/, Short_t align/*=12*/, Style_t font/*=42*/,
                             Color_t color/*=kBlack*/, Float_t talpha/*=1*/, Float_t tangle/*=0*/,
                             bool draw/*=true*/) {
-  auto* tex = new TLatex(x, y, text);
+  auto ttex = xjjc::str_replaceall(text, " #", "#scale[0.4]{ }#");
+  auto* tex = new TLatex(x, y, ttex.c_str());
   xjjroot::settex(tex, tsize, align, font, color, talpha, tangle);
   tex->SetNDC(false);
   if(draw) tex->Draw();
