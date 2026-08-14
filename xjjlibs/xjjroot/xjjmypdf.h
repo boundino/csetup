@@ -18,7 +18,7 @@ namespace xjjroot
   {
   public:
     static const int w_default = 1000, h_default = 1000; // marker size unit: 8 pixels
-    mypdf(std::string filename, std::string canvasname="c", int ww = w_default, int hh = h_default);
+    mypdf(std::string filename, std::string canvasname="c", int nw = 1, int nh = 1);
     mypdf(TCanvas* cc, std::string filename);
     void prepare() { fc->Clear(); fc->cd(); }
     void write(std::string pngname = "", std::string opt = "");
@@ -34,9 +34,9 @@ namespace xjjroot
 }
 
 xjjroot::mypdf::mypdf(std::string filename, std::string canvasname,
-                      int ww, int hh) : ffname(filename) {
+                      int nw, int nh) : ffname(filename) {
   mkdir(ffname);
-  fc = new TCanvas(canvasname.c_str(), "", ww, hh);
+  fc = new TCanvas(canvasname.c_str(), "", nw * w_default, nh * h_default);
   fc->Print(Form("%s[", ffname.c_str()));
 }
 
@@ -58,6 +58,7 @@ void xjjroot::mypdf::write(std::string pngname, std::string opt) {
   auto oldLevel = gErrorIgnoreLevel;
   gErrorIgnoreLevel = kError;
 
+  fc->cd();
   fc->Print(Form("%s", ffname.c_str()));
   // save individual page
   if (pngname != "" && opt.find("X") == std::string::npos) {

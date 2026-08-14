@@ -173,7 +173,7 @@ namespace xjjroot
   std::string readtex(TTree* t, std::string br);
 
   std::vector<TPad*> twopads(TPad* c, TH1* hempty, TH1* hempty_ratio, float yupdiv = 1.9/3, float yoffset = 0.2);
-  std::vector<TPad*> divide(int nx, int ny, TCanvas* c = nullptr);  
+  xjjc::array2D<TPad*> divide(int nx, int ny, TCanvas* c = nullptr);  
   std::vector<std::pair<TPad*, unsigned int>> divide_connect(int nx, int ny, TCanvas* c = nullptr);
 }
 
@@ -882,9 +882,9 @@ std::vector<TPad*> xjjroot::twopads(TPad *c, TH1 *hempty, TH1 *hempty_ratio, flo
   return pads;
 }
 
-std::vector<TPad*> xjjroot::divide(int nx, int ny, TCanvas* c) {
+xjjc::array2D<TPad*> xjjroot::divide(int nx, int ny, TCanvas* c) {
   if (c) c->cd();
-  std::vector<TPad*> pads;
+  auto pads = xjjc::array2d<TPad*>(nx, ny);
   pads.reserve(nx * ny);
   const double dx = 1.0 / nx;
   const double dy = 1.0 / ny;
@@ -897,7 +897,7 @@ std::vector<TPad*> xjjroot::divide(int nx, int ny, TCanvas* c) {
       auto* pad = new TPad(Form("%s_%d_%d", (c ? c->GetName() : "p"), ix, iy), "", x1, y1, x2, y2);
       pad->SetNumber(iy * nx + ix + 1);
       pad->Draw();
-      pads.push_back(pad);
+      pads[ix][iy] = pad;
     }
   }
   return pads;

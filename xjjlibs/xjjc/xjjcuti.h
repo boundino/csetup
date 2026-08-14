@@ -60,6 +60,7 @@ namespace xjjc
   template<typename T> char* gettype(T exp);
 
   template<class T> void vec_append(std::vector<T>& a, const std::vector<T>& b) { a.insert(a.end(), b.begin(), b.end()); }
+  template<class T1, class T2> void map_append(std::map<T1, T2>& a, const std::map<T1, T2>& b) { a.insert(b.begin(), b.end()); }
   template<class T1, class T2> std::vector<T2> vec_cast(const std::vector<T1>& a);
   
   std::string str_replaceall(const std::string& strs, const std::string& sub, const std::string& newsub);
@@ -104,6 +105,7 @@ namespace xjjc
   void print_tab_base(const std::vector<std::vector<std::string>>& vstrs, int8_t opt = 3);
   template<typename T> void print_tab(const std::vector<std::vector<T>>& vstrs, int8_t opt = 3);
   template<typename T1, typename T2> void print_tab(const std::map<T1, T2>& vstrs, int8_t opt = 3);
+  template<typename T1, typename T2> void print_tab(const std::map<T1, std::vector<T2>>& vstrs, int8_t opt = 3);
   template<typename T> void print_vec_v(const std::vector<T>& vstrs, int8_t opt = 1);
   template<typename T> void print_vec_h(const std::vector<T>& vstrs, int8_t opt = 1);
 
@@ -644,6 +646,18 @@ void xjjc::print_tab(const std::map<T1, T2>& vstrs, int8_t opt) {
   std::vector<std::vector<std::string>> a2d;
   for (const auto& str : vstrs) {
     a2d.push_back({ to_string(str.first), to_string(str.second) });
+  }
+  print_tab_base(a2d, opt);
+}
+
+template<typename T1, typename T2>
+void xjjc::print_tab(const std::map<T1, std::vector<T2>>& vstrs, int8_t opt) {
+  std::vector<std::vector<std::string>> a2d;
+  for (const auto& [key, vstr] : vstrs) {
+    std::vector<std::string> vs = { to_string(key) };
+    for (const auto& str : vstr) 
+      vs.push_back(to_string(str));
+    a2d.push_back(vs);
   }
   print_tab_base(a2d, opt);
 }

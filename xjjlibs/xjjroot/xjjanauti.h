@@ -99,6 +99,8 @@ namespace xjjana
   std::map<std::string, std::string> getstr_regexp(TTree *tr, const std::string& pattern = "*");
   TTree* write_info(const std::map<std::string, std::string>& values, const std::string& treename = "info");
   std::map<std::string, std::string> get_info(TFile*, const std::string& treename);
+  template<typename T> std::map<std::string, T> setbranch_regexp(TTree *tree, const std::string& pattern = ".*");
+  template<typename T> std::map<std::string, std::vector<T>*> setbranchvec_regexp(TTree *tree, const std::string& pattern = ".*");
 
   struct variable
   {
@@ -886,6 +888,59 @@ std::map<std::string, std::string> xjjana::getstr_regexp(TTree *tr, const std::s
   }
   for (const auto& [bname, sptr] : pTstr) {
     rs[bname] = *sptr; //
+  }
+  return rs;
+}
+
+template<typename T>
+std::map<std::string, T> xjjana::setbranch_regexp(TTree *tree, const std::string& pattern/* = "*"*/) {
+  std::map<std::string, T> rs;
+  if (!tree) { __XJJLOG << "!! bad tree, return empty." << std::endl; return rs; }
+
+  std::regex re(pattern);
+  TIter next(tree->GetListOfBranches());
+  TBranch* branch;
+  while ((branch = (TBranch*)next())) {
+    std::string name = branch->GetName();
+
+    if (!std::regex_match(name, re))
+      continue;
+
+    auto [it, inserted] = rs.emplace(branch->GetName(), T{});
+
+    if (tree->SetBranchAddress(branch->GetName(), &it->second) < 0) {
+      rs.erase(it);
+      continue;
+    }
+  }
+  if (rs.empty()) {
+    __XJJLOG << "?? no branches matching regexp \e[1;4m"<<pattern<<"\e[0m."<<std::endl;
+  }
+  return rs;
+}
+
+template<typename T>
+std::map<std::string, std::vector<T>*> xjjana::setbranchvec_regexp(TTree *tree, const std::string& pattern/* = "*"*/) {
+  std::map<std::string, std::vector<T>*> rs;
+  if (!tree) { __XJJLOG << "!! bad tree, return empty." << std::endl; return rs; }
+
+  std::regex re(pattern);
+  TIter next(tree->GetListOfBranches());
+  TBranch* branch;
+  while ((branch = (TBranch*)next())) {
+    std::string name = branch->GetName();
+
+    if (!std::regex_match(name, re))
+      continue;
+
+    rs[name] = nullptr;
+    if (tree->SetBranchAddress(branch->GetName(), &(rs[name])) < 0) {
+      rs.erase(name);
+      continue;
+    }
+  }
+  if (rs.empty()) {
+    __XJJLOG << "?? no branches matching regexp \e[1;4m"<<pattern<<"\e[0m."<<std::endl;
   }
   return rs;
 }
