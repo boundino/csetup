@@ -60,6 +60,7 @@ namespace xjjana
   template<class T1, class T2> double sethsmin(std::map<T1, T2>& h, float factor=1);
   template<class T1, class T2> double sethsmin(std::vector<std::pair<T1, T2>>& h, float factor=1);
   template<class T> double sethsmax(std::vector<T> h, float factor=1);
+  template<class T> double sethsabsmax(std::vector<T> h, float absymax);
   template<class T1, class T2> double sethsmax(std::map<T1, T2>& h, float factor=1);
   template<class T1, class T2> double sethsmax(std::vector<std::pair<T1, T2>>& h, float factor=1);
   // template<class T> void sethsminmax(T& hh, float factor_min, float factor_max);
@@ -493,6 +494,14 @@ double xjjana::sethsmax(std::vector<T> hh, float factor) {
   double ymax = -1.e+10;
   for (auto& h : hh) ymax = std::max(ymax, gethmaximum(h));
   for (auto& h : hh) h->SetMaximum(ymax * factor);
+  return ymax;
+}
+
+template <class T>
+double xjjana::sethsabsmax(std::vector<T> hh, float absymax) {
+  double ymax = -1.e+10;
+  for (auto& h : hh) ymax = std::max(ymax, gethmaximum(h));
+  for (auto& h : hh) h->SetMaximum(ymax);
   return ymax;
 }
 
