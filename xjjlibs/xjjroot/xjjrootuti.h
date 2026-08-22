@@ -62,16 +62,18 @@ namespace xjjroot
   const std::vector<Color_t> colorlist_light  = { kGreen-8, kRed-9, kAzure-9, kOrange-4, kMagenta-8, kCyan-8, kYellow-6, kBlue-8, kPink+1, kViolet-9 };
   const std::vector<Color_t> colorlist_middle = { kGreen+2, kRed-3, kAzure-3, kOrange-3, kMagenta-5, kCyan-2, kYellow+2, kBlue-5, kPink+2, kViolet+7 };
   const std::vector<Color_t> colorlist_dark   = { kGreen+3, kRed+2, kAzure-6, kOrange+5, kMagenta-1, kCyan+3, kYellow+3, kBlue-1, kPink+3, kViolet+4 };
-  // colorlist_bw
-  // mycolor_satmiddle[cc], mycolor_light[cc], mycolor_middle[cc], mycolor_dark[cc]
-  std::vector<std::string> cc = { "red", "azure", "green", "magenta", "orange", "olive", "pink", "cyan", "yellow", "blue", "violet" };
+
   Color_t color_alpha(Color_t color, double alpha);
   Color_t color_alpha_black(Color_t color, double alpha);
   Color_t color_blend(const std::vector<Color_t> colors, const std::vector<float> fracs);
+  std::vector<double> grayscales_alpha(int np, double amin = 0.3, double amax = 1., double gamma = 0.6);
+  std::vector<Color_t> grayscales_color(int np, Color_t basecolor = kBlack, double amin = 0.3, double amax = 1., double gamma = 0.6);
   
-  std::vector<Style_t> markerlist_solid = {21, 20, 34, 47, 33, 43, 22, 23};
-  std::vector<Style_t> markerlist_open = {24, 25, 26, 27, 28, 30, 32, 42, 46, 44};
-
+  const std::vector<Style_t> markerlist_solid = { 21, 20, 47, 33, 34, 43, 22, 23 };
+  const std::vector<Style_t> markerlist_open = { 24, 25, 26, 27, 28, 30, 32, 42, 46, 44 };
+  const std::map<float, std::vector<Style_t>> markersf = { { 1.4, { 46, 47, 48, 49, 34, 28, 33, 27, 29, 30 } },
+                                                           { 1.1, { 20, 24 } } };
+  
   namespace CMS {
     const char* internal = "#scale[1.2]{#bf{CMS}} #scale[1.04]{#it{Internal}}";
     const char* simulation = "#scale[1.2]{#bf{CMS}} #scale[1.04]{#it{Simulation}}";
@@ -84,6 +86,8 @@ namespace xjjroot
       DznDzbar = CMS::Dz + " + " + CMS::Dzbar,
       DzDzbar2 = "#frac{" + DznDzbar + "}{2}"; // D#scale[0.6]{#lower[-0.7]{0}} + #bar{D}#scale[0.6]{#lower[-0.7]{0}}"
   }
+
+  std::string str_fixspace(const std::string& text) { return xjjc::str_replaceall(text, " #", "#scale[0.4]{ }#"); }
   
   void setgstyle(Int_t padtick=0, Width_t lwidth=2, Gpreset opt=Standard);
   void setcstyle(TCanvas* c, Int_t padtick=0, Gpreset opt=Standard);
@@ -274,9 +278,15 @@ void xjjroot::setthgrstyle(T* h, Color_t mcolor/*=-1*/, Style_t mstyle/*=-1*/, S
                            Color_t lcolor/*=-1*/, Style_t lstyle/*=-1*/, Width_t lwidth/*=-1*/,
                            Color_t fcolor/*=-1*/, Float_t falpha/*=-1*/, Style_t fstyle/*=-1*/,
                            Float_t lalpha/*=-1*/, Float_t malpha/*=-1*/) {
+  float msize_scale = 1;
+  for (const auto& [sf, vs] : markersf) {
+    if (std::find(vs.begin(), vs.end(), mstyle) != vs.end()) {
+      msize_scale = sf;
+    }
+  }
   if(mcolor>=0) h->SetMarkerColor(mcolor);
   if(mstyle>=0) h->SetMarkerStyle(mstyle);
-  if(msize>=0)  h->SetMarkerSize(msize);
+  if(msize>=0)  h->SetMarkerSize(msize * msize_scale);
   if(lcolor>=0) h->SetLineColor(lcolor);
   if(lstyle>=0) h->SetLineStyle(lstyle);
   if(lwidth>=0) h->SetLineWidth(lwidth);
@@ -754,7 +764,7 @@ void xjjroot::print_th(TH1 *h) {
   std::vector<std::vector<std::string>> out;
   if (!h) return;
 
-  const auto n = h->GetEntries();
+  const auto n = h->GetXaxis()->GetNbins();
   out.reserve(n+1);
   out.push_back({ "Center", "LowEdge", "HighEdge", "Content", "Error" });
   
@@ -977,16 +987,35 @@ Color_t xjjroot::color_alpha_black(Color_t color, double alpha) {
   return TColor::GetColor(r, g, b);
 }
 
+std::vector<double> xjjroot::grayscales_alpha(int np, double amin, double amax, double gamma) {
+  std::vector<double> a;
+  if (np <= 0)
+    return a;
+  if (np == 1) {
+    a.push_back(amax);
+    return a;
+  }
+  for (int i = 0; i < np; ++i) {
+    double t = double(i) / (np - 1);
+    double alpha = amax - (amax - amin)*std::pow(t, gamma);
+    a.push_back(alpha);
+  }
+  return a;
+}
+
+std::vector<Color_t> xjjroot::grayscales_color(int np, Color_t basecolor, double amin, double amax, double gamma) {
+  std::vector<Color_t> cc;
+  for (const auto& a : grayscales_alpha(np, amin, amax, gamma)) {
+    auto c = color_alpha(basecolor, a);
+    cc.push_back(c);
+  }
+  return cc;
+}
+
 namespace xjjroot
 {
   int dummy = (TColor::SetColorThreshold(0), 0);
   // TColor::GetColor (int), Color_t (short int)
-  const std::vector<Color_t> colorlist_bw =
-    { static_cast<Color_t>(TColor::GetColor("#000000")), static_cast<Color_t>(TColor::GetColor("#191919")), static_cast<Color_t>(TColor::GetColor("#323232")), static_cast<Color_t>(TColor::GetColor("#4c4c4c")),
-      static_cast<Color_t>(TColor::GetColor("#5d5d5d")), static_cast<Color_t>(TColor::GetColor("#666666")), static_cast<Color_t>(TColor::GetColor("#7f7f7f")), static_cast<Color_t>(TColor::GetColor("#999999")),
-      static_cast<Color_t>(TColor::GetColor("#b2b2b2")), static_cast<Color_t>(TColor::GetColor("#cccccc")), static_cast<Color_t>(TColor::GetColor("#d3d3d3")), static_cast<Color_t>(TColor::GetColor("#e2e2e2")) };
-  const std::vector<Color_t> colorlist_wb(colorlist_bw.rbegin(), colorlist_bw.rend());
-  
   std::map<std::string, Color_t> mycolor_middle =
     {
       {"green",     static_cast<Color_t>(TColor::GetColor("#02735E"))},
@@ -1057,6 +1086,17 @@ namespace xjjroot
       {"pink",      static_cast<Color_t>(TColor::GetColor("#F54790"))},
       {"violet",    static_cast<Color_t>(TColor::GetColor("#6B3EEA"))},
     };
+
+  std::vector<Color_t> mycolorlist(const std::vector<std::string>& cc, const std::map<std::string, Color_t>& mycolor = mycolor_middle) {
+    std::vector<Color_t> colors;
+    for (const auto& t : cc) {      
+      if (mycolor.find(t) != mycolor.end())
+        colors.push_back(mycolor.at(t));
+      else
+        colors.push_back(kBlack);
+    }
+    return colors;
+  }
 }
 
 #endif

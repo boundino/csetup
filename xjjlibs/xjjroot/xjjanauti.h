@@ -56,6 +56,7 @@ namespace xjjana
   void sethminmax(TH1* h, float factormin, float factormax);
   void sethnonzerominmax(TH1* h, float factormin, float factormax);
   template<class T> double sethsmin(std::vector<T> h, float factor=1);
+  template<class T> double sethsabsmin(std::vector<T> h, float absymin);
   template<class T> double sethsnonzeromin(std::vector<T> h, float factor=1);
   template<class T1, class T2> double sethsmin(std::map<T1, T2>& h, float factor=1);
   template<class T1, class T2> double sethsmin(std::vector<std::pair<T1, T2>>& h, float factor=1);
@@ -458,6 +459,14 @@ double xjjana::sethsmin(std::vector<T> hh, float factor) {
 }
 
 template <class T>
+double xjjana::sethsabsmin(std::vector<T> hh, float absymin) {
+  double ymin = -1.e+10;
+  for (auto& h : hh) ymin = std::min(ymin, gethminimum(h));
+  for (auto& h : hh) h->SetMinimum(absymin);
+  return ymin;
+}
+
+template <class T>
 double xjjana::sethsnonzeromin(std::vector<T> hh, float factor) {
   double ymin = 1.e+10;
   for (auto& h : hh) {
@@ -501,7 +510,7 @@ template <class T>
 double xjjana::sethsabsmax(std::vector<T> hh, float absymax) {
   double ymax = -1.e+10;
   for (auto& h : hh) ymax = std::max(ymax, gethmaximum(h));
-  for (auto& h : hh) h->SetMaximum(ymax);
+  for (auto& h : hh) h->SetMaximum(absymax);
   return ymax;
 }
 

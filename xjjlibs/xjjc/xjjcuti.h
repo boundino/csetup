@@ -501,7 +501,7 @@ std::string xjjc::str_getdir(const std::string& filename) {
 int xjjc::str_extract_index(const std::string& name, const std::string& key) {
   auto pos = name.find(key);
   if (pos == std::string::npos)
-    throw std::runtime_error("Pattern <" + key + "> not found");
+    return -1;
 
   pos += key.size();
   auto end = pos;
@@ -510,7 +510,7 @@ int xjjc::str_extract_index(const std::string& name, const std::string& key) {
     ++end;
   }
   if (end == pos)
-    throw std::runtime_error("No digits after <" + key + ">");
+    return -1;
   return std::stoi(name.substr(pos, end - pos));
 }
 
