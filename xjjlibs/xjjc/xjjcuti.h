@@ -40,7 +40,7 @@ namespace xjjc
   template<typename T> int find_ibin(const std::vector<T> &array, T value); // overflow: -1
   template<typename T, size_t N> int find_iedge(const T (&array)[N], T value); // overflow: -1
   template<typename T> int find_iedge(const std::vector<T> &array, T value); // overflow: -1
-  template<class T> std::vector<double> fixedbin_to_edges(int nbin, T binmin, T binmax);
+  template<typename T, typename T2 = double> std::vector<T2> fixedbin_to_edges(int nbin, T binmin, T binmax);
   
   template<typename T> std::string number_to_string(T param);
   float string_to_number(const std::string& param);
@@ -60,15 +60,18 @@ namespace xjjc
   template<typename T> char* gettype(T exp);
 
   template<class T> void vec_append(std::vector<T>& a, const std::vector<T>& b) { a.insert(a.end(), b.begin(), b.end()); }
+  template<class T> std::vector<T> vec_append_into(const std::vector<T>& a, const std::vector<T>& b) { std::vector<T> c(a); c.insert(c.end(), b.begin(), b.end()); return c; }
   template<class T1, class T2> void map_append(std::map<T1, T2>& a, const std::map<T1, T2>& b) { a.insert(b.begin(), b.end()); }
   template<class T1, class T2> std::vector<T2> vec_cast(const std::vector<T1>& a);
   
   std::string str_replaceall(const std::string& strs, const std::string& sub, const std::string& newsub);
   std::string str_replaceall(const std::string& strs, const std::vector<std::pair<std::string, std::string>>& sub_to_new);
+  std::string str_replaceall_regex(const std::string& strs, const std::string& pattern, const std::string& newsub);
   std::string str_replaceallspecial(const std::string& strs, const std::string& newsub = "_");
   std::string str_eraseall(const std::string& strs, const std::string& sub) { return str_replaceall(strs, sub, ""); }
   std::string str_eraseall(const std::string& strs, const std::vector<std::string>& sub);
   std::string str_erasestar(const std::string& strs, const std::string& sub); // e.g. sub = */ or .*
+  std::vector<std::string> str_extract_regex(const std::string& strs, const std::string& pattern);
   std::string str_removecut(const std::string& cut, const std::string& cut_to_remove);
   std::string str_trim(const std::string& strs);
   std::vector<std::string> str_trim(const std::vector<std::string>& strs);
@@ -156,14 +159,14 @@ int xjjc::find_iedge(const std::vector<T> &array, T value) {
   return -1;
 }
 
-template<class T>
-std::vector<double> xjjc::fixedbin_to_edges(int nbin, T binmin, T binmax) {
-  std::vector<double> result;
+template<typename T, typename T2>
+std::vector<T2> xjjc::fixedbin_to_edges(int nbin, T binmin, T binmax) {
+  std::vector<T2> result;
   for (int i=0; i<nbin; i++) {
-    double edge = binmin + i*(binmax-binmin)/nbin;
+    T2 edge = binmin + i*(binmax-binmin)/nbin;
     result.push_back(edge);
   }
-  result.push_back(static_cast<double>(binmax));
+  result.push_back(static_cast<T2>(binmax));
   return result;
 }
 
@@ -359,6 +362,21 @@ std::string xjjc::str_erasestar(const std::string& strs, const std::string& sub)
   return result;
 }
 
+std::vector<std::string> xjjc::str_extract_regex(const std::string& strs, const std::string& pattern) {
+  std::regex re(pattern);
+  std::smatch match;
+
+  if (!std::regex_search(strs, match, re))
+    return { "" };
+
+  std::vector<std::string> result;
+  // match[0] is the complete match, so start from 1
+  for (std::size_t i = 1; i < match.size(); ++i)
+    result.push_back(match[i].str());
+
+  return result;
+}
+
 std::string xjjc::str_trim(const std::string& strs) {
   std::string result(strs), str(strs);
   size_t pos_front = str.find_first_not_of(" ");
@@ -415,6 +433,7 @@ std::string xjjc::str_removecut(const std::string& cut,
 
 std::string xjjc::str_replaceall(const std::string& strs, const std::string& sub, const std::string& newsub) {
   std::string result(strs), str(strs);
+  if (sub.empty()) return result;
   auto pos = str.find(sub, 0);
   size_t thispos = 0;
   while (pos != std::string::npos) {
@@ -423,6 +442,11 @@ std::string xjjc::str_replaceall(const std::string& strs, const std::string& sub
     pos = str.find(sub, pos+1);
   }
   return result;
+}
+
+std::string xjjc::str_replaceall_regex(const std::string& strs, const std::string& pattern, const std::string& newsub) {
+  const std::regex re(pattern);
+  return std::regex_replace(strs, re, newsub);
 }
 
 std::string xjjc::str_replaceall(const std::string& strs, const std::vector<std::pair<std::string, std::string>>& sub_to_new) {

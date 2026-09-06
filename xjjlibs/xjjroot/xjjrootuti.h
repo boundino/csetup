@@ -988,6 +988,8 @@ Color_t xjjroot::color_alpha_black(Color_t color, double alpha) {
 }
 
 std::vector<double> xjjroot::grayscales_alpha(int np, double amin, double amax, double gamma) {
+  bool to_reverse = amin > amax;
+  if (to_reverse) std::swap(amin, amax);
   std::vector<double> a;
   if (np <= 0)
     return a;
@@ -1000,6 +1002,8 @@ std::vector<double> xjjroot::grayscales_alpha(int np, double amin, double amax, 
     double alpha = amax - (amax - amin)*std::pow(t, gamma);
     a.push_back(alpha);
   }
+  if (to_reverse)
+    std::reverse(a.begin(), a.end());
   return a;
 }
 

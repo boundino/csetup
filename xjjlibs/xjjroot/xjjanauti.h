@@ -40,7 +40,6 @@ namespace xjjana
 
   void rmgrbins(TGraph* gr, float bincontent=0);
   template<class T> T* rmthemptybins(T*, std::string);
-  // template<class T> std::vector<double> fixedbin_to_edges(T* h);
 
   // statistics
   std::map<std::string, double> chi2test(TH1* h1, TH1* h2, const char* opt="UW");
