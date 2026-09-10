@@ -87,7 +87,7 @@ namespace xjjana
   template<typename T> bool match_branch_type(const std::string& tname, bool inclusive_float = true, bool inclusive_int = true);
 
   bool tree_exist(const TDirectory *inf, std::string treename);
-  bool ismc_hievt(TTree* root);
+  template <typename T = int> int ismc_runnum(TTree* nt, const char* brname = "Run");
   TChain* chain_files(const std::vector<std::string>& files, std::string treename);
 
   template<class T> T* getobj(TDirectory *inf, std::string name, bool verbose=true);
@@ -765,10 +765,23 @@ bool xjjana::tree_exist(const TDirectory *inf, std::string treename) {
   return dr->GetListOfKeys()->Contains(dirname.c_str());
 }
 
-bool xjjana::ismc_hievt(TTree* root) {
-  UInt_t run; root->SetBranchAddress("run", &run);
-  root->GetEntry(0);
-  return (run < 2);
+template <typename T>
+int xjjana::ismc_runnum(TTree* nt, const char* brname) {
+  auto* br = nt->GetBranch(brname);
+  if (!br) {
+    __XJJLOG << "!! bad branch for run number: " << brname << ", abort." << std::endl;
+    return -1;
+  }
+  T Run{};
+  nt->SetBranchAddress(brname, &Run);
+  if (nt->GetEntry(0) <= 0) {
+    __XJJLOG << "!! failed to read entry 0, abort." << std::endl;
+    nt->ResetBranchAddress(br);
+    return -1;
+  }
+  auto result = static_cast<int>(Run < 10000);
+  nt->ResetBranchAddress(br);
+  return result;
 }
 
 TChain* xjjana::chain_files(const std::vector<std::string>& files,

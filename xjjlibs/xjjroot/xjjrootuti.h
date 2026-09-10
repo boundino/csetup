@@ -71,8 +71,10 @@ namespace xjjroot
   
   const std::vector<Style_t> markerlist_solid = { 21, 20, 47, 33, 34, 43, 22, 23 };
   const std::vector<Style_t> markerlist_open = { 24, 25, 26, 27, 28, 30, 32, 42, 46, 44 };
-  const std::map<float, std::vector<Style_t>> markersf = { { 1.4, { 46, 47, 48, 49, 34, 28, 33, 27, 29, 30 } },
-                                                           { 1.1, { 20, 24 } } };
+  const std::map<float, std::vector<Style_t>> markersf = {
+    { 1.8, { 43, 42 } },
+    { 1.4, { 46, 47, 48, 49, 34, 28, 33, 27, 29, 30 } },
+    { 1.1, { 20, 24 } } };
   
   namespace CMS {
     const char* internal = "#scale[1.2]{#bf{CMS}} #scale[1.04]{#it{Internal}}";
