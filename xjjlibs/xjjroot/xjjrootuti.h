@@ -71,6 +71,8 @@ namespace xjjroot
   
   const std::vector<Style_t> markerlist_solid = { 21, 20, 47, 33, 34, 43, 22, 23 };
   const std::vector<Style_t> markerlist_open = { 24, 25, 26, 27, 28, 30, 32, 42, 46, 44 };
+  Style_t mstylelist_solid(size_t i) { return markerlist_solid[i%markerlist_solid.size()]; }
+  Style_t mstylelist_open(size_t i) { return markerlist_open[i%markerlist_open.size()]; }
   const std::map<float, std::vector<Style_t>> markersf = {
     { 1.8, { 43, 42 } },
     { 1.4, { 46, 47, 48, 49, 34, 28, 33, 27, 29, 30 } },

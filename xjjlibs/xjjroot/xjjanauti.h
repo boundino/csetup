@@ -39,6 +39,7 @@ namespace xjjana
   void sethunivalue(TH1* h, double content, double error);
 
   void rmgrbins(TGraph* gr, float bincontent=0);
+  void sortgrx(TGraphErrors* gr);
   template<class T> T* rmthemptybins(T*, std::string);
 
   // statistics
@@ -48,9 +49,11 @@ namespace xjjana
   double tf_width_only(const TF1* f, double center, double fraction = frac_1sigma, double xmin = 1., double xmax = 0., double tol = 1e-6);
   std::pair<double, double> tf_width(const TF1* f, double center, double fraction = frac_1sigma, const std::vector<int>& fixparams = {}, double xmin = 1., double xmax = 0., double tol = 1e-6);
   
-  template<class T> double gethminimum(T* h);
-  template<class T> double gethnonzerominimum(T* h);
-  template<class T> double gethmaximum(T* h);
+  template<class T> double gethminimum(T*);
+  template<class T> double gethsminimum(const std::vector<T*>&);
+  template<class T> double gethnonzerominimum(T*);
+  template<class T> double gethmaximum(T*);
+  template<class T> double gethsmaximum(const std::vector<T*>&);
   void sethabsminmax(TH1* h, float ymin, float ymax);
   void sethminmax(TH1* h, float factormin, float factormax);
   void sethnonzerominmax(TH1* h, float factormin, float factormax);
@@ -275,6 +278,34 @@ void xjjana::rmgrbins(TGraph* gr, float bincontent/*=0*/) {
   }
 }
 
+void xjjana::sortgrx(TGraphErrors* gr) {
+  if (!gr) return;
+  const int n = gr->GetN();
+  struct Point {
+    double x, y, ex, ey;
+  };
+  std::vector<Point> points;
+  points.reserve(n);
+  for (int i = 0; i < n; ++i) {
+    double x, y;
+    gr->GetPoint(i, x, y);
+    points.push_back({
+        x,
+        y,
+        gr->GetErrorX(i),
+        gr->GetErrorY(i)
+      });
+  }
+  std::sort(points.begin(), points.end(),
+            [](const Point& a, const Point& b) {
+              return a.x < b.x;
+            });
+  for (int i = 0; i < n; ++i) {
+    gr->SetPoint(i, points[i].x, points[i].y);
+    gr->SetPointError(i, points[i].ex, points[i].ey);
+  }
+}
+
 template<class T>
 T* xjjana::rmthemptybins(T* hOld, std::string newname) {
   // Count non-empty bins
@@ -423,6 +454,22 @@ double xjjana::gethmaximum(T* h) {
       ymax = std::max(ymax, h->GetBinContent(i+1));
   }
   return ymax;
+}
+
+template<class T>
+double xjjana::gethsmaximum(const std::vector<T*>& hs) {
+  double ymax = std::numeric_limits<double>::lowest();
+  for (const auto& h : hs)
+    ymax = std::max(ymax, gethmaximum(h));
+  return ymax;
+}
+
+template<class T>
+double xjjana::gethsminimum(const std::vector<T*>& hs) {
+  double ymin = std::numeric_limits<double>::max();
+  for (const auto& h : hs)
+    ymin = std::min(ymin, gethminimum(h));
+  return ymin;
 }
 
 void xjjana::sethabsminmax(TH1* h, float ymin, float ymax) {

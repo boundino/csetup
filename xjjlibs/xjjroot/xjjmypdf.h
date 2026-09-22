@@ -24,8 +24,8 @@ namespace xjjroot
     void write(std::string pngname = "", std::string opt = "");
     void close() { fc->Print(Form("%s]", ffname.c_str())); delete fc; }
     TCanvas* getc() { return fc; }
-    void draw_cover(std::vector<std::string> title, Size_t tsize=0.04);
-    void draw_cover_onpad(const std::vector<std::string>& title, Size_t tsize=0.04);
+    void draw_cover(const std::vector<std::string>& content, Size_t tsize=0.04);
+    void draw_cover_onpad(const std::vector<std::string>& content, Size_t tsize=0.04);
     std::string getfilename() { return ffname; }
   private:
     TCanvas* fc;
@@ -69,14 +69,14 @@ void xjjroot::mypdf::write(std::string pngname, std::string opt) {
   gErrorIgnoreLevel = oldLevel;
 }
 
-void xjjroot::mypdf::draw_cover(std::vector<std::string> title, Size_t tsize) {
-  if (title.empty()) return;
+void xjjroot::mypdf::draw_cover(const std::vector<std::string>& content, Size_t tsize) {
+  if (content.empty()) return;
   prepare();
-  xjjroot::drawtexgroup_wrap(0.5, 0.5, title, tsize, 22, 42, 1.15, 2./tsize);
+  xjjroot::drawtexgroup_wrap(0.5, 0.5, content, tsize, 22, 42, 1.15, 2./tsize);
   write();
 }
 
-void xjjroot::mypdf::draw_cover_onpad(const std::vector<std::string>& title, Size_t tsize) {
-  if (title.empty()) return;
-  xjjroot::drawtexgroup_wrap(0.5, 0.5, title, tsize, 22, 42, 1.15, 2./tsize);
+void xjjroot::mypdf::draw_cover_onpad(const std::vector<std::string>& content, Size_t tsize) {
+  if (content.empty()) return;
+  xjjroot::drawtexgroup_wrap(0.5, 0.5, content, tsize, 22, 42, 1.15, 2./tsize);
 }
