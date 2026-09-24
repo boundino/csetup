@@ -36,6 +36,9 @@
 MAKE_HAS_METHOD(GetEntries);
 MAKE_HAS_METHOD(numEntries);
 MAKE_HAS_METHOD(GetN);
+MAKE_HAS_METHOD_1(GetErrorY, int);
+MAKE_HAS_METHOD_1(GetErrorYhigh, int);
+MAKE_HAS_METHOD_1(GetErrorYlow, int);
 MAKE_HAS_METHOD(SetStats);
 
 namespace xjjroot
@@ -851,11 +854,18 @@ std::vector<TPad*> xjjroot::twopads(TPad *c, TH1 *hempty, TH1 *hempty_ratio, flo
 
   xjjroot::setgstyle(1);
   // gStyle->SetLineWidth(2);
+  std::vector<TPad*> pads;
 
   sethempty(hempty, 0, yoff);
+  if (yupdiv >= 1.) {
+    hempty->Draw("axis");
+    pads.push_back(c);
+    return pads;
+  }
+  
   sethempty(hempty_ratio, -0.5, -0);
-  hempty->GetXaxis()->SetNdivisions(510);
-  hempty_ratio->GetXaxis()->SetNdivisions(510);
+  // hempty->GetXaxis()->SetNdivisions(510);
+  // hempty_ratio->GetXaxis()->SetNdivisions(510);
   hempty_ratio->GetYaxis()->SetNdivisions(505);
 
   hempty->GetYaxis()->SetTitleSize(hempty->GetYaxis()->GetTitleSize() * (1./yupdiv) * 0.9);
@@ -877,12 +887,14 @@ std::vector<TPad*> xjjroot::twopads(TPad *c, TH1 *hempty, TH1 *hempty_ratio, flo
   hempty_ratio->GetXaxis()->SetTickLength(hempty->GetXaxis()->GetTickLength() * (yupdiv / ydowndiv) );
 
   c->cd();
+
   auto* p1 = new TPad("p1", "", 0, ydowndiv, 1, 1);
   p1->SetMargin(xjjroot::margin_pad_left, xjjroot::margin_pad_right, 0, xjjroot::margin_pad_top);
   // p1->SetLogy();
   p1->Draw("axis");
   p1->cd();
   hempty->Draw("axis");
+  pads.push_back(p1);
     
   c->cd();
   auto* p2 = new TPad("p2", "", 0, 0, 1, ydowndiv);
@@ -890,9 +902,9 @@ std::vector<TPad*> xjjroot::twopads(TPad *c, TH1 *hempty, TH1 *hempty_ratio, flo
   p2->Draw("axis");
   p2->cd();
   hempty_ratio->Draw("axis");
+  pads.push_back(p2);
 
   c->cd();
-  std::vector<TPad*> pads = { p1, p2 };
   return pads;
 }
 

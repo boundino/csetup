@@ -25,6 +25,15 @@
   template <typename T>                                                 \
   struct has_method_##method<T, std::void_t<decltype(std::declval<const T&>().method())>> \
     : std::true_type {};
+#define MAKE_HAS_METHOD_1(method, Arg)                                 \
+  template <typename T, typename = void>                               \
+  struct has_method_##method : std::false_type {};                     \
+  template <typename T>                                                \
+  struct has_method_##method<                                          \
+      T, std::void_t<decltype(                                         \
+          std::declval<const T&>().method(std::declval<Arg>())         \
+      )>>                                                              \
+      : std::true_type {};
 
 #ifndef __XJJLOG
 #define __XJJLOG std::cout << std::left << std::setw(13) << __FUNCTION__ << ": "

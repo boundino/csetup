@@ -50,10 +50,12 @@ namespace xjjana
   std::pair<double, double> tf_width(const TF1* f, double center, double fraction = frac_1sigma, const std::vector<int>& fixparams = {}, double xmin = 1., double xmax = 0., double tol = 1e-6);
   
   template<class T> double gethminimum(T*);
-  template<class T> double gethsminimum(const std::vector<T*>&);
-  template<class T> double gethnonzerominimum(T*);
   template<class T> double gethmaximum(T*);
+  template<class T> double gethsminimum(const std::vector<T*>&);
   template<class T> double gethsmaximum(const std::vector<T*>&);
+  template<class T> double gethwerrminimum(T*);
+  template<class T> double gethwerrmaximum(T*);
+  template<class T> double gethnonzerominimum(T*);
   void sethabsminmax(TH1* h, float ymin, float ymax);
   void sethminmax(TH1* h, float factormin, float factormax);
   void sethnonzerominmax(TH1* h, float factormin, float factormax);
@@ -454,6 +456,50 @@ double xjjana::gethmaximum(T* h) {
       ymax = std::max(ymax, h->GetBinContent(i+1));
   }
   return ymax;
+}
+
+template<class T>
+double xjjana::gethwerrmaximum(T* h) {
+  double ymax = -1.e+10;
+  if constexpr (has_method_GetN<T>::value) {
+    for (int i=0; i<h->GetN(); i++) {
+      double x, y;
+      h->GetPoint(i, x, y);
+      if constexpr (has_method_GetErrorYhigh<T>::value) {
+        ymax = std::max(ymax, y + h->GetErrorYhigh(i));
+      } else if constexpr (has_method_GetErrorY<T>::value) {
+        ymax = std::max(ymax, y + h->GetErrorY(i));
+      } else {
+        ymax = std::max(ymax, y);        
+      }
+    }
+  } else {
+    for (int i=0; i<h->GetXaxis()->GetNbins(); i++)
+      ymax = std::max(ymax, h->GetBinContent(i+1) + h->GetBinError(i+1));
+  }
+  return ymax;
+}
+
+template<class T>
+double xjjana::gethwerrminimum(T* h) {
+  double ymin = 1.e+10;
+  if constexpr (has_method_GetN<T>::value) {
+    for (int i=0; i<h->GetN(); i++) {
+      double x, y;
+      h->GetPoint(i, x, y);
+      if constexpr (has_method_GetErrorYlow<T>::value) {
+        ymin = std::min(ymin, y - h->GetErrorYlow(i));
+      } else if constexpr (has_method_GetErrorY<T>::value) {
+        ymin = std::min(ymin, y - h->GetErrorY(i));
+      } else {
+        ymin = std::min(ymin, y);        
+      }
+    }
+  } else {
+    for (int i=0; i<h->GetXaxis()->GetNbins(); i++)
+      ymin = std::min(ymin, h->GetBinContent(i+1) - h->GetBinError(i+1));
+  }
+  return ymin;
 }
 
 template<class T>
