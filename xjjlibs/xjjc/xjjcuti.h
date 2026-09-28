@@ -119,6 +119,7 @@ namespace xjjc
   void print_tab_base(const std::vector<std::vector<std::string>>& vstrs, int8_t opt = 3);
   template<typename T> void print_tab(const std::vector<std::vector<T>>& vstrs, int8_t opt = 3);
   template<typename T1, typename T2> void print_tab(const std::map<T1, T2>& vstrs, int8_t opt = 3);
+  template<typename T1, typename T2> void print_tab(const std::vector<std::pair<T1, T2>>& vstrs, int8_t opt = 3);
   template<typename T1, typename T2> void print_tab(const std::map<T1, std::vector<T2>>& vstrs, int8_t opt = 3);
   template<typename T> void print_vec_v(const std::vector<T>& vstrs, int8_t opt = 1);
   template<typename T> void print_vec_h(const std::vector<T>& vstrs, int8_t opt = 1);
@@ -714,6 +715,15 @@ void xjjc::print_tab(const std::map<T1, T2>& vstrs, int8_t opt) {
   std::vector<std::vector<std::string>> a2d;
   for (const auto& str : vstrs) {
     a2d.push_back({ to_string(str.first), to_string(str.second) });
+  }
+  print_tab_base(a2d, opt);
+}
+
+template<typename T1, typename T2>
+void xjjc::print_tab(const std::vector<std::pair<T1, T2>>& vstrs, int8_t opt) {
+  std::vector<std::vector<std::string>> a2d;
+  for (const auto& str : vstrs) {
+        a2d.push_back({ to_string(str.first), to_string(str.second) });
   }
   print_tab_base(a2d, opt);
 }

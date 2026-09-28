@@ -45,15 +45,15 @@ namespace xjjroot
 {
   bool silence__ = false; void silence(bool s = true) { silence__ = s; }
   struct thgrstyle {
-    Color_t mcolor=-1; Style_t mstyle=-1; Size_t msize=-1;
-    Color_t lcolor=-1; Style_t lstyle=-1; Width_t lwidth=-1;
-    Color_t fcolor=-1; Float_t falpha=-1; Style_t fstyle=-1;
-    Float_t lalpha=-1; Float_t malpha=-1;
-    thgrstyle(Color_t fmcolor=-1, Style_t fmstyle=-1, Size_t fmsize=-1, Color_t flcolor=-1, Style_t flstyle=-1, Width_t flwidth=-1, Color_t ffcolor=-1, Float_t ffalpha=-1, Style_t ffstyle=-1, Float_t flalpha=-1, Float_t fmalpha=-1) :
-      mcolor(fmcolor), mstyle(fmstyle), msize(fmsize),
-      lcolor(flcolor), lstyle(flstyle), lwidth(flwidth),
-      fcolor(ffcolor), falpha(ffalpha), fstyle(ffstyle),
-      lalpha(flalpha), malpha(fmalpha) {}
+    Color_t mcolor = -1; Style_t mstyle = -1; Size_t msize = -1;
+    Color_t lcolor = -1; Style_t lstyle = -1; Width_t lwidth = -1;
+    Color_t fcolor = -1; Float_t falpha = -1; Style_t fstyle = -1;
+    Float_t lalpha = -1; Float_t malpha = -1;
+    // thgrstyle(Color_t fmcolor=-1, Style_t fmstyle=-1, Size_t fmsize=-1, Color_t flcolor=-1, Style_t flstyle=-1, Width_t flwidth=-1, Color_t ffcolor=-1, Float_t ffalpha=-1, Style_t ffstyle=-1, Float_t flalpha=-1, Float_t fmalpha=-1) :
+    //   mcolor(fmcolor), mstyle(fmstyle), msize(fmsize),
+    //   lcolor(flcolor), lstyle(flstyle), lwidth(flwidth),
+    //   fcolor(ffcolor), falpha(ffalpha), fstyle(ffstyle),
+    //   lalpha(flalpha), malpha(fmalpha) {}
   };
 
   enum Gpreset { Standard, Colz };
@@ -177,6 +177,7 @@ namespace xjjroot
   void saveas(TCanvas* c, std::string outputfile, std::string opt="WT");
   TFile* newfile(std::string outputfile);
   void closefile(TFile*);
+  bool failfile(TFile* inf);
   void drawcomment(std::string comment, std::string opt="lb") {
     xjjroot::drawtex((opt.front()=='r'?1:0), (opt.back()=='t'?1:0), comment.c_str(), 0.024,
                      ((opt.front()=='r')*2+1)*10+((opt.back()=='t')*2+1), 42, kGray); }
@@ -831,6 +832,13 @@ TFile* xjjroot::newfile(std::string outputfile) {
 void xjjroot::closefile(TFile* outf) {
   __XJJLOG << ">> "<<outf->GetName()<<std::endl;
   outf->Close();
+}
+
+bool xjjroot::failfile(TFile* inf) {
+  auto fail = !inf || inf->IsZombie();
+  if (fail)
+    __XJJLOG << "!! failed to open input file, abort." << std::endl;
+  return fail;
 }
 
 void xjjroot::writetex(std::string tr, std::string br, std::string str) {

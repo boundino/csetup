@@ -18,34 +18,34 @@ namespace xjjroot
   {
   public:
     static const int w_default = 1000, h_default = 1000; // marker size unit: 8 pixels
-    mypdf(std::string filename, std::string canvasname="c", int nw = 1, int nh = 1);
-    mypdf(TCanvas* cc, std::string filename);
+    mypdf(const std::string& filename, const std::string& canvasname="c", int nw = 1, int nh = 1);
+    mypdf(TCanvas* cc, const std::string& filename);
     void prepare() { fc->Clear(); fc->cd(); }
-    void write(std::string pngname = "", std::string opt = "");
+    void write(const std::string& pngname = "", const std::string& opt = "");
     void close() { fc->Print(Form("%s]", ffname.c_str())); delete fc; }
     TCanvas* getc() { return fc; }
     void draw_cover(const std::vector<std::string>& content, Size_t tsize=0.04);
     void draw_cover_onpad(const std::vector<std::string>& content, Size_t tsize=0.04);
-    std::string getfilename() { return ffname; }
+    std::string getfilename() const { return ffname; }
   private:
     TCanvas* fc;
     std::string ffname;
   };
 }
 
-xjjroot::mypdf::mypdf(std::string filename, std::string canvasname,
+xjjroot::mypdf::mypdf(const std::string& filename, const std::string& canvasname,
                       int nw, int nh) : ffname(filename) {
   mkdir(ffname);
   fc = new TCanvas(canvasname.c_str(), "", nw * w_default, nh * h_default);
   fc->Print(Form("%s[", ffname.c_str()));
 }
 
-xjjroot::mypdf::mypdf(TCanvas* cc, std::string filename)
+xjjroot::mypdf::mypdf(TCanvas* cc, const std::string& filename)
   : ffname(filename), fc(cc) {
   fc->Print(Form("%s[", ffname.c_str()));
 }
 
-void xjjroot::mypdf::write(std::string pngname, std::string opt) {
+void xjjroot::mypdf::write(const std::string& pngname, const std::string& opt) {
   if (opt.find("Q") == std::string::npos) {
     std::time_t t = std::time(0);
     std::string datetime(100,0);
