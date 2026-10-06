@@ -175,7 +175,8 @@ namespace xjjroot
   
   void mkdir(std::string outputfile);
   void saveas(TCanvas* c, std::string outputfile, std::string opt="WT");
-  TFile* newfile(std::string outputfile);
+  TFile* newfile(const std::string& outputfile);
+  TFile* readfile(const std::string& inputname);
   void closefile(TFile*);
   bool failfile(TFile* inf);
   void drawcomment(std::string comment, std::string opt="lb") {
@@ -821,12 +822,19 @@ void xjjroot::saveas(TCanvas* c, std::string outputfile, std::string opt) {
   std::cout<<"\e[0m";
 }
 
-TFile* xjjroot::newfile(std::string outputfile) {
+TFile* xjjroot::newfile(const std::string& outputfile) {
   mkdir(outputfile);
   auto* outf = new TFile(outputfile.c_str(), "recreate");
   outf->cd();
   __XJJLOG << ">> "<<outputfile<<std::endl;
   return outf;
+}
+
+TFile* xjjroot::readfile(const std::string& inputname) {
+  auto* inf = TFile::Open(inputname.c_str());
+  __XJJLOG << ">> " << inputname << std::endl;
+  if (failfile(inf)) return nullptr;
+  return inf;
 }
 
 void xjjroot::closefile(TFile* outf) {
@@ -835,7 +843,7 @@ void xjjroot::closefile(TFile* outf) {
 }
 
 bool xjjroot::failfile(TFile* inf) {
-  auto fail = !inf || inf->IsZombie();
+  const auto fail = !inf || inf->IsZombie();
   if (fail)
     __XJJLOG << "!! failed to open input file, abort." << std::endl;
   return fail;
