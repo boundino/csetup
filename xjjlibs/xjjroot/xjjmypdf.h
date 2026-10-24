@@ -1,3 +1,5 @@
+#pragma once
+
 #include <TCanvas.h>
 #include <string>
 

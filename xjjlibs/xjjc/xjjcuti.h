@@ -94,6 +94,7 @@ namespace xjjc
   std::vector<std::string> str_divide_trim(const std::string& str, const std::string& div);
   std::vector<std::string> str_divide_once(const std::string& str, const std::string& div);
   std::vector<std::string> str_divide_once_back(const std::string& str, const std::string& div);
+  std::string str_undivide(const std::vector<std::string>& vstr, const std::string& div = ", ", int skip_empty = 1);
 
   std::string str_getdir(const std::string& filename);
   std::string str_tag_from_file(const std::string& filename) { return str_erasestar(str_erasestar(filename, "*/"), ".*"); }
@@ -561,6 +562,15 @@ std::vector<std::string> xjjc::str_divide_once_back(const std::string& str, cons
     token.push_back(str.substr(pos + div.size()));
   }
   return token;
+}
+
+std::string xjjc::str_undivide(const std::vector<std::string>& vstr, const std::string& div, int skip_empty) {
+  std::string r;
+  for (const auto& t : vstr) {
+    if (skip_empty && t.empty()) continue;
+    r += ((r.empty() ? "" : div) + t);
+  }
+  return r;
 }
 
 std::string xjjc::str_getdir(const std::string& filename) {

@@ -176,7 +176,7 @@ namespace xjjroot
   void mkdir(std::string outputfile);
   void saveas(TCanvas* c, std::string outputfile, std::string opt="WT");
   TFile* newfile(const std::string& outputfile);
-  TFile* readfile(const std::string& inputname);
+  TFile* openfile(const std::string& inputname);
   void closefile(TFile*);
   bool failfile(TFile* inf);
   void drawcomment(std::string comment, std::string opt="lb") {
@@ -830,7 +830,7 @@ TFile* xjjroot::newfile(const std::string& outputfile) {
   return outf;
 }
 
-TFile* xjjroot::readfile(const std::string& inputname) {
+TFile* xjjroot::openfile(const std::string& inputname) {
   auto* inf = TFile::Open(inputname.c_str());
   __XJJLOG << ">> " << inputname << std::endl;
   if (failfile(inf)) return nullptr;
