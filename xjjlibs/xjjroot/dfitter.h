@@ -1,578 +1,771 @@
-#ifndef _XJJROOT_DFITTER_H_
-#define _XJJROOT_DFITTER_H_
+#pragma once
 
-// Created by Jing Wang (7/26/2017)
-
-/******************************************************************************************
- * Class : xjjroot::dfitter                                                               * 
- * This class provides tools fitting Dzero invariant mass spectra.                        * 
- * The object to be used can be declared by                                               * 
- *                                                                                        * 
- *    xjjroot::dfitter obj(options);                                                      * 
- *                                                                                        * 
- * Options supported are listed below                                                     * 
- *                                                                                        * 
- *   "3" : Using 3-Gaussian function to model signal (default is 2-Gaussian function)     * 
- *   "Y" : Draw yield info                                                                * 
- *   "C" : Draw chi2 info                                                                 * 
- *   "L" : Draw lines at signal region and side bands                                     * 
- *   "S" : Draw significance info and lines at signal region                              * 
- *   "D" : Draw all details                                                               * 
- *   "V" : Switch off Quiet mode of fitting                                               * 
- *   "X" : Do not save plots                                                              * 
- *                                                                                        * 
- * The core function of this class is                                                     * 
- *                                                                                        * 
- *    TF1* fit(TH1*, TH1*, TH1*, TString, TString, std::vector<TString>)                  * 
- *                                                                                        * 
+/*******************************************************************************************
+ * Class : xjjroot::dfitter                                                                * 
+ * This class provides tools fitting Dzero invariant mass spectra.                         * 
+ * The object to be used can be declared by                                                * 
+ *                                                                                         * 
+ *    xjjroot::dfitter obj(options);                                                       * 
+ *                                                                                         * 
+ * Options supported are listed below                                                      * 
+ *                                                                                         * 
+ *   "3G"  : Using 3-Gaussian function to model signal (default is 2-Gaussian function)    *
+ *   "Peaky"  : Have peaky background                                                      *
+ *   "Exp"  : Have peaky background                                                        *
+ *   "Sig"  : Draw significance info and lines at signal region                            *
+ *   "V"  : Switch off Quiet mode of fitting                                               * 
+ *                                                                                         * 
+ * The core function of this class is                                                      * 
+ *                                                                                         * 
+ *    TF1* fit(TH1*, TH1*, TH1*, std::string, std::string, std::vector<std::string>)       * 
+ *                                                                                         * 
  ******************************************************************************************/
 
-#include <TF1.h>
-#include <TH1.h>
 #include <TString.h>
-#include <TLine.h>
-#include <TCanvas.h>
-#include <TStyle.h>
-#include <TLegend.h>
-#include <TLatex.h>
 #include <TMath.h>
 #include <TFitResult.h>
+#include <Math/DistFunc.h>
 
-namespace xjjroot
-{
-  const Double_t n_hist_dzero = 56;
-  const Double_t min_hist_dzero = 1.72;
-  const Double_t max_hist_dzero = 2.0;
-  const Double_t binwid_hist_dzero = (max_hist_dzero-min_hist_dzero)/n_hist_dzero;
+namespace xjjroot {
+  const std::map<std::string, thgrstyle> fstyle = {
+    { "h", thgrstyle(kBlack, 20, 1.4, kBlack, 1, 1) },
+    { "f", thgrstyle(-1, -1, -1, kRed+1, 1, 3) },
+    { "match", thgrstyle(kBlack, 20, 1.4, kOrange-3, 2, 3, kOrange-3, 0.2, 1001) },
+    { "matchtot", thgrstyle(kBlack, 20, 1.4, kOrange-3, 1, 3, kOrange-3, 0.2, 1001) },
+    { "swap", thgrstyle(kCyan+3, 20, 1.4, kCyan+3, 1, 3, kCyan+3, 1, 3004, -1, 0.6) },
+    { "kk", thgrstyle(kMagenta-5, 20, 1.4, kMagenta-5, 1, 3, kMagenta-5, 1, 3005, -1, 0.6) },
+    { "pipi", thgrstyle(kBlue-5, 20, 1.4, kBlue-5, 1, 3, kBlue-5, 1, 3006, -1, 0.6) },
+    { "background", thgrstyle(kAzure-6, 20, 1.4, kAzure-6, 2, 3) },
+    { "notmatch", thgrstyle(kGray, -1, -1, kGray, 2, 3) },
+  };
 
   class dfitter
   {
   public:
-    dfitter(Option_t* option="") {foption = option; resolveoption(); init();}
+    dfitter(Option_t* option = "");
     ~dfitter() {};
 
-    TF1* fit(const TH1* hmass, const TH1* hmassMCSignal, const TH1* hmassMCSwapped, TString collisionsyst="", TString outputname="cmass", const std::vector<TString>& vtex=std::vector<TString>());
-    Bool_t isFitted() const {return fparamfuns;}
+    void fit(const TH1* hmass, const TH1* hmassMCSignal, const TH1* hmassMCSwapped,
+             const TH1* hmassMCKK, const TH1* hmassMCPiPi);
+    // Cache/restore the state after the template fits and before the data fit.
+    // This is used by toy studies to avoid repeating the template fits.
+    void fit_data_only(const TH1* hmass);
+    bool fitted() const { return fitted_; }
+    void reset();
 
-    Double_t GetS() const {return S;}
-    Double_t GetB() const {return B;}
-    Double_t GetSig() const {return Sig;}
-    Double_t GetY() const {return yield;}
-    Double_t GetYE() const {return yieldErr;}
-    Double_t GetChi2() const {return Chi2;}
-    Double_t GetNDF() const {return NDF;}
-    Double_t GetChi2Prob() const {return Chi2Prob;}
+    static void set_hist(TH1* h);
 
-    TF1* GetFun_f(TString name="Fun_f") const {if(!fparamfuns){return 0;} return clonefun(fun_f, name);}
-    TF1* GetFun_mass(TString name="Fun_mass") const {if(!fparamfuns){return 0;} return clonefun(fun_mass, name);}
-    TF1* GetFun_swap(TString name="Fun_swap") const {if(!fparamfuns){return 0;} return clonefun(fun_swap, name);}
-    TF1* GetFun_background(TString name="Fun_background") const {if(!fparamfuns){return 0;} return clonefun(fun_background, name);}
-    TF1* GetFun_not_mass(TString name="Fun_not_mass") const {if(!fparamfuns){return 0;} return clonefun(fun_not_mass, name);}
-
-    void SetOption(Option_t* option="") {foption = option; resolveoption();}
-    void SetSignalregion(Double_t d_mass_signal_) {d_mass_signal =  d_mass_signal_; calvar();}
-    void SetSidebandL(Double_t d_mass_sideband_l_) {d_mass_sideband_l = d_mass_sideband_l_; calvar();}
-    void SetSidebandH(Double_t d_mass_sideband_h_) {d_mass_sideband_h = d_mass_sideband_h_; calvar();}
-    void SetTexLinespc(Double_t linespc=0) {texlinespc = linespc;}
+    std::vector<std::string> draw_result(float x = 0.25, float y = 0.86, float tsize = 0.035, float lspacescale = 1.15) const;
+    void draw_params(float x = 0.25, float y = 0.86, float tsize = 0.035, float lspacescale = 1.15) const;
+    void draw_fmc() const;
+    void draw_leg(float x1 = 0.65, float y2 = 0.88) { xjjroot::moveleg_n_draw(leg_, x1, y2); }
+    void draw_legmc(float x1 = 0.69, float y2 = 0.70) { xjjroot::moveleg_n_draw(legmc_, x1, y2); }
     
-    Double_t GetMassL() const {return min_hist_dzero;}
-    Double_t GetMassH() const {return max_hist_dzero;}
+    double yield() const { return yield_; }
+    double yieldErr() const { return yieldErr_; }
+    double S() const { return S_; }
+    double B() const { return B_; }
+    double chi2() const { return 2.*r_->MinFcnValue(); }
+    double ndf() const { return fun_f_->GetNDF(); }
+    double chi2prob() const { return TMath::Prob(chi2(), ndf()); }
+    std::pair<double, double> width_mc_match(double frac = 0.682689) const;
+    std::pair<double, double> alpha() const { return { fun_f_->GetParameter(11), fun_f_->GetParError(11) }; }
+
+    bool haskkpipi() const { return opt_haskkpipi_; }
+
+    TF1* f_f(const std::string& name) const;
+    TF1* f_match(const std::string& name = "") const;
+    TF1* f_swap(const std::string& name = "") const;
+    TF1* f_kk(const std::string& name = "") const;
+    TF1* f_pipi(const std::string& name = "") const;
+    TF1* f_background(const std::string& name = "") const;
+    TF1* f_notmatch(const std::string& name = "") const;
 
   private:
-    Double_t S;
-    Double_t B;
-    Double_t Sig;
-    Double_t yield;
-    Double_t yieldErr;
-    Double_t Chi2;
-    Double_t NDF;
-    Double_t Chi2Prob;
+    double S_;
+    double B_;
+    double yield_;
+    double yieldErr_;
 
-    TF1* fun_f;
-    TF1* fun_mass;
-    TF1* fun_swap;
-    TF1* fun_background;
-    TF1* fun_not_mass;
-
-    TFitResultPtr r;
-
-    TString foption;
-    Bool_t fparamfun_f;
-    Bool_t fparamfuns;
-    Bool_t f3gaus;
-    Bool_t fdrawyield;
-    Bool_t fdrawchi2;
-    Bool_t fdrawsignif;
-    Bool_t fdrawsigsid;
-    Bool_t ffitverbose;
-    Bool_t fdrawdetail;
-    Bool_t fsaveplot;
-
-    const Double_t setparam0 = 100.;
-    const Double_t setparam1 = 1.865;
-    const Double_t setparam2 = 0.03;
-    const Double_t setparam10 = 0.005;
-    const Double_t setparam13 = 0.002;
-    const Double_t setparam8 = 0.1;
-    const Double_t setparam9 = 0.1;
-    const Double_t setparam12 = 0.5;
-    const Double_t fixparam1 = 1.865;
-    Double_t fixparam7;
+    TF1* fun_f_;
+    TF1* fun_f_template_;
+    TF1* fun_mc_match_; // need this member to save the parameters before changing by fitting on data
+    TF1* fun_mc_swap_;
+    TF1* fun_mc_kk_;
+    TF1* fun_mc_pipi_;
+    std::vector<TF1*> vfun_mc_match_;
+    TLegend *leg_, *legmc_;
     
-    const Double_t mass_dzero = 1.8649;
-    Double_t d_mass_signal = 0.045;
-    Double_t d_mass_sideband_l = 0.07;
-    Double_t d_mass_sideband_h = 0.12;
+    TFitResultPtr r_;
 
-    Double_t mass_dzero_signal_l = mass_dzero - d_mass_signal;
-    Double_t mass_dzero_signal_h = mass_dzero + d_mass_signal;
-    Double_t mass_dzero_sideband_l_p = d_mass_signal + d_mass_sideband_l;
-    Double_t mass_dzero_sideband_h_p = d_mass_signal + d_mass_sideband_h;
-    Double_t mass_dzero_sideband_l_n = d_mass_signal - d_mass_sideband_l;
-    Double_t mass_dzero_sideband_h_n = d_mass_signal - d_mass_sideband_h;
-    
-    Double_t texlinespc = 0;
+    std::string option_;
+    bool opt_3gaus_;
+    bool opt_haskkpipi_;
+    bool opt_expbkg_;
+    bool opt_float_;
+    bool opt_sig_;
+    bool opt_verbose_;
 
-    void init();
-    void reset();
-    void createfun();
-    void deletefun();
-    void clearvar();
-    void calvar();
-    void resolveoption();
-    void setfunparameters();
-    void setfunstyle();
+    // status
+    bool fitted_;
 
-    TF1* clonefun(const TF1* fun, TString fun_name) const;
-    void sethist(TH1* h) const;
-    void drawCMS(TString collision, TString snn="5.02") const;
-    void drawtex(Double_t x, Double_t y, const char* text, Float_t tsize=0.04, Short_t align=12) const;
-    void drawleg(TH1* h) const;
-    void drawline(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color_t lcolor=kBlack, Style_t lstyle=1, Width_t lwidth=2) const;
-    void setgstyle() const;
+    const float tsize_ = 0.038;
+    double xmin_ = 0, xmax_ = 0, binwidth_ = 0;
+    double template_norm_match_ = 0, template_norm_swap_ = 0;
+    double template_norm_kk_ = 0, template_norm_pipi_ = 0;
+    double signal_region_l_ = 1.8649 - 0.045;
+    double signal_region_h_ = 1.8649 + 0.045;
+
+    void make_legs();
+    void calculate_SnB();
+    void parse_opt();
+    void parse_fmc();
+
+    TF1* clone_fun(const TF1* fun, const std::string& fun_name) const;
   };
 }
 
-void xjjroot::dfitter::resolveoption()
-{
-  f3gaus = false;
-  if(foption.Contains("3")) f3gaus = true;
-  fdrawyield = false;
-  if(foption.Contains("Y")) fdrawyield = true;
-  fdrawchi2 = false;
-  if(foption.Contains("C")) fdrawchi2 = true;
-  fdrawsigsid = false;
-  if(foption.Contains("L")) fdrawsigsid = true;
-  fdrawsignif = false;
-  if(foption.Contains("S")) fdrawsignif = true;
-  fdrawdetail = false;
-  if(foption.Contains("D")) {fdrawdetail = true; fdrawyield = true; fdrawchi2 = true; fdrawsigsid = true; fdrawsignif = true;}
-  ffitverbose = false;
-  if(foption.Contains("V")) ffitverbose = true;
-  fsaveplot = true;
-  if(foption.Contains("X")) fsaveplot = false;
+xjjroot::dfitter::dfitter(Option_t* option) :
+  option_(option), fun_f_(nullptr), fun_f_template_(nullptr), fun_mc_match_(nullptr), fun_mc_swap_(nullptr),
+  fun_mc_kk_(nullptr), fun_mc_pipi_(nullptr) {
+  vfun_mc_match_.clear();
+  parse_opt();
+  reset();
+  make_legs();
 }
 
-TF1* xjjroot::dfitter::fit(const TH1* hmass, const TH1* hmassMCSignal, const TH1* hmassMCSwapped, TString collisionsyst/*=""*/, TString outputname/*="cmass"*/, const std::vector<TString> &vtex/*=std::vector<TString>()*/)
-{
+void xjjroot::dfitter::parse_opt() {
+  opt_3gaus_ = xjjc::str_contains(option_, "3G");
+  opt_expbkg_ = xjjc::str_contains(option_, "Exp");
+  opt_float_ = xjjc::str_contains(option_, "Fwidth");
+  opt_haskkpipi_ = xjjc::str_contains(option_, "Peaky");
+  xjjc::print_tab(std::map<std::string, bool>{
+      {"Triple gaus", opt_3gaus_},
+      {"Expo bkg", opt_expbkg_},
+      {"Float width", opt_float_},
+      {"Has KK/pipi", opt_haskkpipi_},
+    }, 0);
+  opt_sig_ = xjjc::str_contains(option_, "Sig");
+  opt_verbose_ = xjjc::str_contains(option_, "V");
+}
+
+void xjjroot::dfitter::reset() {
+  fitted_ = false;
+  // for (auto& s : { S_, B_, yield_, yieldErr_ }) s = -1;
+  // for (auto& f : { fun_f_, fun_mc_match_, fun_mc_swap_, fun_mc_kk_, fun_mc_pipi_ }) f = nullptr;
+  S_ = -1;
+  B_ = -1;
+  yield_ = -1;
+  yieldErr_ = -1;
+  delete fun_f_; fun_f_ = nullptr;
+  delete fun_f_template_; fun_f_template_ = nullptr;
+  delete fun_mc_match_; fun_mc_match_ = nullptr;
+  delete fun_mc_swap_; fun_mc_swap_ = nullptr;
+  delete fun_mc_kk_; fun_mc_kk_ = nullptr;
+  delete fun_mc_pipi_; fun_mc_pipi_ = nullptr;
+  for (auto& f : vfun_mc_match_) delete f;
+  vfun_mc_match_.clear();
+}
+
+void xjjroot::dfitter::make_legs() {
+  leg_ = new TLegend(0.63, 0.865-tsize_*1.25*(opt_haskkpipi_ ? 7 : 5), 0.63+0.25, 0.865);
+  xjjroot::setleg(leg_, tsize_);
+  xjjroot::addentrybystyle(leg_, "Data", "pe", fstyle.at("h"));
+  xjjroot::addentrybystyle(leg_, "Fit", "l", fstyle.at("f"));
+  xjjroot::addentrybystyle(leg_, xjjroot::CMS::Dz + " +#scale[0.4]{ }" + xjjroot::CMS::Dzbar + " Signal", "f", fstyle.at("match"));
+  xjjroot::addentrybystyle(leg_, "K-#pi swapped", "f", fstyle.at("swap"));
+  if (opt_haskkpipi_) {
+    xjjroot::addentrybystyle(leg_, xjjroot::CMS::Dz + "(" + xjjroot::CMS::Dzbar + ")#scale[0.4]{ }#rightarrow KK", "f", fstyle.at("kk"));
+    xjjroot::addentrybystyle(leg_, xjjroot::CMS::Dz + "(" + xjjroot::CMS::Dzbar + ")#scale[0.4]{ }#rightarrow#scale[0.4]{ }#pi#pi", "f", fstyle.at("pipi"));
+  }
+  xjjroot::addentrybystyle(leg_, "Combinatorial", "l", fstyle.at("background"));
+  leg_->Draw();
+
+  legmc_ = new TLegend(0.66, 0.63-tsize_*1.25*(opt_haskkpipi_ ? 4 : 2), 0.66+0.2, 0.63);
+  xjjroot::setleg(legmc_, tsize_);
+  xjjroot::addentrybystyle(legmc_, "Signal", "pl", fstyle.at("matchtot"));
+  xjjroot::addentrybystyle(legmc_, "K-#pi swapped", "pl", fstyle.at("swap"));
+  if (opt_haskkpipi_) {
+    xjjroot::addentrybystyle(legmc_, xjjroot::CMS::Dz + "(" + xjjroot::CMS::Dzbar + ")#scale[0.4]{ }#rightarrow KK", "pl", fstyle.at("kk"));
+    xjjroot::addentrybystyle(legmc_, xjjroot::CMS::Dz + "(" + xjjroot::CMS::Dzbar + ")#scale[0.4]{ }#rightarrow#scale[0.4]{ }#pi#pi", "pl", fstyle.at("pipi"));
+  }
+  legmc_->Draw();
+}
+
+void xjjroot::dfitter::fit(const TH1* hmass, const TH1* hmassMCSignal, const TH1* hmassMCSwapped,
+                           const TH1* hmassMCKK, const TH1* hmassMCPiPi) {
+
   reset();
-  init();
 
-  TH1* h = (TH1*)hmass->Clone("h");
-  TH1* hMCSignal = (TH1*)hmassMCSignal->Clone("hMCSignal");
-  TH1* hMCSwapped = (TH1*)hmassMCSwapped->Clone("hMCSwapped");
-  sethist(h);
-  sethist(hMCSignal);
-  sethist(hMCSwapped);
+  if (!hmass || !hmassMCSignal || !hmassMCSwapped) {
+    __XJJLOG << "!! bad histograms" << std::endl;
+    return;
+  }
+  if (!hmassMCKK || !hmassMCPiPi) opt_haskkpipi_ = false;
+  xmin_ = hmass->GetXaxis()->GetXmin(); //
+  xmax_ = hmass->GetXaxis()->GetXmax(); //
+  binwidth_ = (xmax_ - xmin_) / hmass->GetXaxis()->GetNbins();
+  if (fabs(binwidth_ - hmass->GetBinWidth(1)) > 1.e-7) {
+    __XJJLOG << "!! bad bin width: xmin = " << xmin_
+             << ", xmax = " << xmax_
+             << ", binwidth = (xmax_ - xmin_) / hmass->GetXaxis()->GetNbins() = \e[1m" << binwidth_ << "\e[0m"
+             << "vs hmass->GetBinWidth(1) = \e[1m" << hmass->GetBinWidth(1) << "\e[0m"
+             << std::endl;
+    if (binwidth_ == 0) binwidth_ = hmass->GetBinWidth(1);
+  }
 
-  TString fitoption = ffitverbose?"L m":"L m q";
-  setgstyle();
-  TCanvas* c = new TCanvas("c", "" , 600, 600);
+  fitted_ = true;
+
+  const std::string str_fun_f_signal = "[9]*TMath::Gaus(x,[1],[2]*(1+[11]))/(sqrt(2*3.14159)*[2]*(1+[11])) + (1-[9])*( [12]*TMath::Gaus(x,[1],[10]*(1+[11]))/(sqrt(2*3.14159)*[10]*(1+[11])) + (1-[12])*TMath::Gaus(x,[1],[13]*(1+[11]))/(sqrt(2*3.14159)*[13]*(1+[11])))",
+    str_fun_f_swap = "TMath::Gaus(x,[14],[8]*(1+[11]))/(sqrt(2*3.14159)*[8]*(1+[11]))",
+    str_fun_f_KK = "ROOT::Math::crystalball_pdf(x,[19],[20],[18],[17])",
+    str_fun_f_pipi = "ROOT::Math::crystalball_pdf(-x,[23],[24],[22],-[21])";
+  const std::string str_fun_f_background = opt_expbkg_ ? " + [3] + [4]*exp(-x*[5]) + [6]" : " + [3] + [4]*x + [5]*x*x + [6]*x*x*x";
+  const std::string str_fun_f = "[0] * ([7]*("+str_fun_f_signal+") + [15]*("+str_fun_f_swap+") + [16]*("+str_fun_f_KK+") + (1-[7]-[15]-[16])*("+str_fun_f_pipi+"))" + str_fun_f_background;
   
-  fun_f->SetParLimits(4,  -1000, 1000);
-  fun_f->SetParLimits(10, 0.001, 0.05);
-  fun_f->SetParLimits(2,  0.01,  0.5);
-  fun_f->SetParLimits(8,  0.02,  0.2);
-  if(f3gaus) fun_f->SetParLimits(13, 0.002, 0.1);
-  fun_f->SetParLimits(7,  0,     1);
-  fun_f->SetParLimits(9,  0,     1);
-  if(f3gaus) fun_f->SetParLimits(12, 0, 1);
-    
+  fun_f_ = new TF1(Form("f_%s", xjjc::unique_str().c_str()), str_fun_f.c_str(), xmin_, xmax_);
+  fun_f_->SetNpx(2000);
+  xjjroot::setthgrstyle(fun_f_, fstyle.at("f"));
+  
+  auto* h = (TH1F*)hmass->Clone(Form("h_%s", xjjc::unique_str().c_str()));
+  set_hist(h);
+  auto* hMCSignal = (TH1F*)hmassMCSignal->Clone(Form("hMCSignal_%s", xjjc::unique_str().c_str()));
+  set_hist(hMCSignal);
+  auto* hMCSwapped = (TH1F*)hmassMCSwapped->Clone(Form("hMCSwapped_%s", xjjc::unique_str().c_str()));
+  set_hist(hMCSwapped);
+  auto* hMCKK = hmassMCKK ? (TH1F*)hmassMCKK->Clone(Form("hMCKK_%s", xjjc::unique_str().c_str())) : nullptr;
+  set_hist(hMCKK);
+  auto* hMCPiPi = hmassMCPiPi ? (TH1F*)hmassMCPiPi->Clone(Form("hMCPiPi_%s", xjjc::unique_str().c_str())) : nullptr;
+  set_hist(hMCPiPi);
+  const auto peak_mc_kk = hMCKK ? hMCKK->GetBinCenter(hMCKK->GetMaximumBin()) : (double)0;
+  const auto peak_mc_pipi = hMCPiPi ? hMCPiPi->GetBinCenter(hMCPiPi->GetMaximumBin()) : (double)0;
+
+  const char* fitopt = opt_verbose_?"L m":"L m q";
+  
+  const double param_init_0 = 100.,
+    param_init_1 = 1.8649,
+    param_init_14 = 1.8649,
+    param_init_2 = 0.03,
+    param_init_10 = 0.005,
+    param_init_13 = 0.002,
+    param_init_8 = 0.1,
+    param_init_9 = 0.1,
+    param_init_12 = 0.5,
+    param_init_17 = 1.75,
+    param_init_18 = 0.04,
+    param_init_19 = 1.5,
+    param_init_20 = 3.,
+    param_init_21 = 1.98,
+    param_init_22 = 0.04,
+    param_init_23 = 1.5,
+    param_init_24 = 3.;
+
+  //
+  fun_f_->FixParameter(8,  param_init_8);
+  fun_f_->FixParameter(17, param_init_17);
+  fun_f_->FixParameter(18, param_init_18);
+  fun_f_->FixParameter(19, param_init_19);
+  fun_f_->FixParameter(20, param_init_20);
+  fun_f_->FixParameter(21, param_init_21);
+  fun_f_->FixParameter(22, param_init_22);
+  fun_f_->FixParameter(23, param_init_23);
+  fun_f_->FixParameter(24, param_init_24);
+
   // -- fit MC
-  fun_f->FixParameter(3, 0);
-  fun_f->FixParameter(4, 0);
-  fun_f->FixParameter(5, 0);
-  fun_f->FixParameter(6, 0);
+  fun_f_->FixParameter(3, 0);
+  fun_f_->FixParameter(4, 0);
+  fun_f_->FixParameter(5, 0);
+  fun_f_->FixParameter(6, 0);
+  fun_f_->FixParameter(11, 0);
 
-  //  - fit signal 
-  fun_f->FixParameter(11, 0);
-  fun_f->FixParameter(1,  fixparam1);
-  fun_f->FixParameter(7,  1);
-  fun_f->FixParameter(8,  1);
-  fun_f->SetParameter(0,  setparam0);
-  fun_f->SetParameter(1,  setparam1);
-  fun_f->SetParameter(2,  setparam2);
-  fun_f->SetParameter(10, setparam10);
-  if(f3gaus) fun_f->SetParameter(13, setparam13);
-  fun_f->SetParameter(9,  setparam9);
-  if(f3gaus) fun_f->SetParameter(12, setparam12);
+  //  - fit signal
+  // std::cout<<"fit signal"<<std::endl;
+  fun_f_->FixParameter(7,  1);
+  fun_f_->FixParameter(15, 0);
+  fun_f_->FixParameter(16, 0);
+  //
+  fun_f_->FixParameter(1,  param_init_1);
+  fun_f_->FixParameter(14, param_init_14);
+  fun_f_->SetParameter(0,  param_init_0);
+  fun_f_->SetParameter(2,  param_init_2);
+  fun_f_->SetParLimits(2,  0.01,  0.5);
+  fun_f_->SetParameter(10, param_init_10);
+  fun_f_->SetParLimits(10, 0.001, 0.05);
+  fun_f_->SetParameter(13, param_init_13); // 3gaus
+  fun_f_->SetParLimits(13, 0.002, 0.1); // 3gaus
+  fun_f_->SetParameter(9,  param_init_9);
+  fun_f_->SetParLimits(9, 0, 1);
+  if (opt_3gaus_) {
+    fun_f_->SetParameter(12, param_init_12);
+    fun_f_->SetParLimits(12, 0, 1);
+  } else {
+    fun_f_->FixParameter(12, 1);
+  }
+  hMCSignal->Fit(fun_f_->GetName(), "q", "", xmin_, xmax_);
+  hMCSignal->Fit(fun_f_->GetName(), "q", "", xmin_, xmax_);
+  fun_f_->ReleaseParameter(1);
+  fun_f_->SetParLimits(1, 1.85, 1.9);
+  hMCSignal->Fit(fun_f_->GetName(), "L q", "", xmin_, xmax_);
+  hMCSignal->Fit(fun_f_->GetName(), "L q", "", xmin_, xmax_);
+  hMCSignal->Fit(fun_f_->GetName(), fitopt, "", xmin_, xmax_);
 
-  hMCSignal->Fit("fun_f", "q", "", min_hist_dzero, max_hist_dzero);
-  hMCSignal->Fit("fun_f", "q", "", min_hist_dzero, max_hist_dzero);
-  fun_f->ReleaseParameter(1);
-  hMCSignal->Fit("fun_f", "L q", "", min_hist_dzero, max_hist_dzero);
-  hMCSignal->Fit("fun_f", "L q", "", min_hist_dzero, max_hist_dzero);
-  hMCSignal->Fit("fun_f", fitoption, "", min_hist_dzero, max_hist_dzero);
+  fun_mc_match_ = f_match(Form("%s_match_mc", fun_f_->GetName()));
+  xjjroot::setthgrstyle(fun_mc_match_, -1, -1, -1, fstyle.at("match").lcolor, 1, fstyle.at("match").lwidth, 0, 0, 0);
 
-  fun_f->FixParameter(1, fun_f->GetParameter(1));
-  fun_f->FixParameter(2, fun_f->GetParameter(2));
-  fun_f->FixParameter(10, fun_f->GetParameter(10));
-  if(f3gaus) fun_f->FixParameter(13, fun_f->GetParameter(13));
-  fun_f->FixParameter(9, fun_f->GetParameter(9));
-  if(f3gaus) fun_f->FixParameter(12, fun_f->GetParameter(12));
-
-  fixparam7 = fun_f->GetParameter(0);
+  const auto norm_mc_match = fun_f_->GetParameter(0);
+  fun_f_->FixParameter(1, fun_f_->GetParameter(1));
+  fun_f_->FixParameter(2, fun_f_->GetParameter(2));
+  fun_f_->FixParameter(10, fun_f_->GetParameter(10));
+  fun_f_->FixParameter(13, fun_f_->GetParameter(13)); // 3gaus
+  fun_f_->FixParameter(9, fun_f_->GetParameter(9));
+  if (opt_3gaus_) fun_f_->FixParameter(12, fun_f_->GetParameter(12));
 
   //   - fit swapped
-  fun_f->FixParameter(7,0);
-  fun_f->ReleaseParameter(8);
-  fun_f->SetParameter(8,setparam8);
+  // std::cout<<"fit swap"<<std::endl;
+  fun_f_->FixParameter(7, 0);
+  fun_f_->FixParameter(15, 1);
+  fun_f_->FixParameter(16, 0);
+  fun_f_->ReleaseParameter(8);
+  fun_f_->SetParameter(8, param_init_8);
+  fun_f_->SetParLimits(8,  0.02,  0.2);
+  fun_f_->FixParameter(14, fun_f_->GetParameter(1));
+  //  
+  hMCSwapped->Fit(fun_f_->GetName(), "L q", "", xmin_, xmax_);
+  hMCSwapped->Fit(fun_f_->GetName(), "L q", "", xmin_, xmax_);
+  fun_f_->ReleaseParameter(14);
+  fun_f_->SetParLimits(14, 1.85, 1.9);
+  hMCSwapped->Fit(fun_f_->GetName(), "L q", "", xmin_, xmax_);
+  hMCSwapped->Fit(fun_f_->GetName(), fitopt,"", xmin_, xmax_);
   
-  hMCSwapped->Fit("fun_f", "L q", "", min_hist_dzero, max_hist_dzero);
-  hMCSwapped->Fit("fun_f", "L q", "", min_hist_dzero, max_hist_dzero);
-  hMCSwapped->Fit("fun_f", "L q", "", min_hist_dzero, max_hist_dzero);
-  hMCSwapped->Fit("fun_f",fitoption,"", min_hist_dzero, max_hist_dzero);
-  
-  fixparam7 = fixparam7/(fun_f->GetParameter(0)+fixparam7);
-  fun_f->FixParameter(7, fixparam7);
-  fun_f->FixParameter(8,fun_f->GetParameter(8));
+  fun_mc_swap_ = f_swap(Form("%s_mc_swap", fun_f_->GetName()));
+  xjjroot::setthgrstyle(fun_mc_swap_, -1, -1, -1, fstyle.at("swap").lcolor, 1, fstyle.at("swap").lwidth, 0, 0, 0);
 
+  const auto norm_mc_swap = fun_f_->GetParameter(0);
+  fun_f_->FixParameter(14, fun_f_->GetParameter(14)); // swap mean
+  fun_f_->FixParameter(8, fun_f_->GetParameter(8)); // swap width
+
+  //   - fit KK
+  if (opt_haskkpipi_) {
+    // std::cout<<"fit KK"<<std::endl;
+    fun_f_->FixParameter(7, 0);
+    fun_f_->FixParameter(15, 0);
+    fun_f_->FixParameter(16, 1);
+
+    fun_f_->ReleaseParameter(17);
+    fun_f_->ReleaseParameter(18);
+    fun_f_->ReleaseParameter(19);
+    fun_f_->ReleaseParameter(20);
+    fun_f_->SetParameter(17, peak_mc_kk);
+    fun_f_->SetParameter(18, param_init_18);
+    fun_f_->SetParameter(19, param_init_19);
+    fun_f_->SetParameter(20, param_init_20);
+    fun_f_->SetParLimits(17, std::max(xmin_, peak_mc_kk - 0.05), std::min(xmax_, peak_mc_kk + 0.05));
+    fun_f_->SetParLimits(18, 0.002, 0.2);
+    fun_f_->SetParLimits(19, 0.1,   10.);
+    fun_f_->SetParLimits(20, 1.01,  100.);
+
+    hMCKK->Fit(fun_f_->GetName(), "L q", "", xmin_, xmax_);
+    hMCKK->Fit(fun_f_->GetName(), "L q", "", xmin_, xmax_);
+    hMCKK->Fit(fun_f_->GetName(), "L q", "", xmin_, xmax_);
+    hMCKK->Fit(fun_f_->GetName(), fitopt,"", xmin_, xmax_);
+  } else {
+    fun_f_->SetParameter(0, 0);
+  }
+  fun_mc_kk_ = f_kk(Form("%s_mc_kk", fun_f_->GetName()));
+  xjjroot::setthgrstyle(fun_mc_kk_, fstyle.at("kk"));
+  const auto norm_mc_kk = fun_f_->GetParameter(0);
+  fun_f_->FixParameter(17, fun_f_->GetParameter(17));
+  fun_f_->FixParameter(18, fun_f_->GetParameter(18));
+  fun_f_->FixParameter(19, fun_f_->GetParameter(19));
+  fun_f_->FixParameter(20, fun_f_->GetParameter(20));
+
+  //   - fit pipi
+  if (opt_haskkpipi_) {
+    // std::cout<<"fit pipi"<<std::endl;
+    fun_f_->FixParameter(7, 0);
+    fun_f_->FixParameter(15, 0);
+    fun_f_->FixParameter(16, 0);
+
+    fun_f_->ReleaseParameter(21);
+    fun_f_->ReleaseParameter(22);
+    fun_f_->ReleaseParameter(23);
+    fun_f_->ReleaseParameter(24);
+    fun_f_->SetParameter(21, peak_mc_pipi);
+    fun_f_->SetParameter(22, param_init_22);
+    fun_f_->SetParameter(23, param_init_23);
+    fun_f_->SetParameter(24, param_init_24);
+    fun_f_->SetParLimits(21, std::max(xmin_, peak_mc_pipi - 0.05), std::min(xmax_, peak_mc_pipi + 0.05));
+    fun_f_->SetParLimits(22, 0.002, 0.2);
+    fun_f_->SetParLimits(23, 0.1,   10.);
+    fun_f_->SetParLimits(24, 1.01,  100.);
+
+    hMCPiPi->Fit(fun_f_->GetName(), "L q", "", xmin_, xmax_);
+    hMCPiPi->Fit(fun_f_->GetName(), "L q", "", xmin_, xmax_);
+    hMCPiPi->Fit(fun_f_->GetName(), "L q", "", xmin_, xmax_);
+    hMCPiPi->Fit(fun_f_->GetName(), fitopt,"", xmin_, xmax_);
+  } else {
+    fun_f_->SetParameter(0, 0);
+  }
+  fun_mc_pipi_ = f_pipi(Form("%s_mc_pipi", fun_f_->GetName()));
+  xjjroot::setthgrstyle(fun_mc_pipi_, fstyle.at("pipi"));
+  const auto norm_mc_pipi = fun_f_->GetParameter(0);
+  fun_f_->FixParameter(21, fun_f_->GetParameter(21));
+  fun_f_->FixParameter(22, fun_f_->GetParameter(22));
+  fun_f_->FixParameter(23, fun_f_->GetParameter(23));
+  fun_f_->FixParameter(24, fun_f_->GetParameter(24));
+
+  parse_fmc();
+
+  // Keep the exact state produced by all template fits.  The following data
+  // fit is deliberately left unchanged below; toy studies can restore this
+  // snapshot through fit_data_only().
+  fun_f_template_ = new TF1(*fun_f_);
+  fun_f_template_->SetName(Form("f_template_%s", xjjc::unique_str().c_str()));
+  fun_f_template_->AddToGlobalList(false);
+  template_norm_match_ = norm_mc_match;
+  template_norm_swap_ = norm_mc_swap;
+  template_norm_kk_ = norm_mc_kk;
+  template_norm_pipi_ = norm_mc_pipi;
+  
   //  -- fit data
-  fun_f->ReleaseParameter(3);
-  fun_f->ReleaseParameter(4);
-  fun_f->ReleaseParameter(5);
-  fun_f->ReleaseParameter(6);
+  const auto norm_mc_total = norm_mc_match + norm_mc_swap + norm_mc_kk + norm_mc_pipi;
+  fun_f_->FixParameter(7, norm_mc_match/norm_mc_total);
+  fun_f_->FixParameter(15, norm_mc_swap/norm_mc_total);
+  fun_f_->FixParameter(16, norm_mc_kk/norm_mc_total);
+  fun_f_->ReleaseParameter(3);
+  fun_f_->ReleaseParameter(4);
+  fun_f_->ReleaseParameter(5);
+  fun_f_->ReleaseParameter(6);
+  if (opt_expbkg_) fun_f_->FixParameter(6, 0);
   
-  h->Fit("fun_f", "q", "", min_hist_dzero, max_hist_dzero);
-  h->Fit("fun_f", "q", "", min_hist_dzero, max_hist_dzero);
-  fun_f->ReleaseParameter(1);
-  fun_f->SetParLimits(1, 1.86, 1.87);
-  fun_f->ReleaseParameter(11);
-  fun_f->SetParLimits(11, -0.5, 0.5);
-  h->Fit("fun_f", "L q", "", min_hist_dzero, max_hist_dzero);
-  h->Fit("fun_f", "L q", "", min_hist_dzero, max_hist_dzero);
-  h->Fit("fun_f", "L q", "", min_hist_dzero, max_hist_dzero);
-  r = h->Fit("fun_f", Form("%s S",fitoption.Data()),"", min_hist_dzero, max_hist_dzero);
+  h->Fit(fun_f_->GetName(), "q", "", xmin_, xmax_);
+  h->Fit(fun_f_->GetName(), "q", "", xmin_, xmax_);
+  fun_f_->ReleaseParameter(1);
+  fun_f_->SetParLimits(1, 1.86, 1.87);
+  h->Fit(fun_f_->GetName(), "L q", "", xmin_, xmax_);
+  if (opt_float_) {
+    fun_f_->ReleaseParameter(11);
+    fun_f_->SetParLimits(11, -0.5, 0.5);    
+  }
+  h->Fit(fun_f_->GetName(), "L q", "", xmin_, xmax_);
+  h->Fit(fun_f_->GetName(), "L q", "", xmin_, xmax_);
+  r_ = h->Fit(fun_f_->GetName(), Form("%s S", fitopt),"", xmin_, xmax_);
 
-  fparamfun_f = true;
-  setfunparameters();
-  calvar();
+  auto* fun_background = f_background();
+  auto* fun_match = f_match();
+  auto* fun_swap = f_swap();
+  auto* fun_kk = f_kk();
+  auto* fun_pipi = f_pipi();
+  auto* fun_notmatch = f_notmatch();
+
+  yield_ = fun_match->Integral(xmin_, xmax_)/binwidth_;
+  yieldErr_ = fun_match->Integral(xmin_, xmax_)/binwidth_*fun_match->GetParError(0)/fun_match->GetParameter(0);
+
+  const auto width_sigma = width_mc_match(xjjana::frac_1sigma);
+  const auto mean = fun_f_->GetParameter(1);
+  signal_region_l_ = mean - 3*width_sigma.first;
+  signal_region_h_ = mean + 3*width_sigma.first;
+
+  calculate_SnB();
   
-  h->Draw("e");
-  fun_background->Draw("same");   
-  fun_mass->Draw("same");
+  h->Draw("pe1");
+  fun_match->Draw("same");
+  fun_background->Draw("same");
   fun_swap->Draw("same");
-  if(fdrawsigsid || fdrawsignif)
-    {
-      fun_not_mass->SetRange(mass_dzero_signal_l,mass_dzero_signal_h);
-      fun_not_mass->Draw("same");
-      drawline(mass_dzero_signal_l, 0, mass_dzero_signal_l, fun_f->Eval(mass_dzero_signal_l), fun_not_mass->GetLineColor(), fun_not_mass->GetLineStyle(), fun_not_mass->GetLineWidth());
-      drawline(mass_dzero_signal_h, 0, mass_dzero_signal_h, fun_f->Eval(mass_dzero_signal_h), fun_not_mass->GetLineColor(), fun_not_mass->GetLineStyle(), fun_not_mass->GetLineWidth());
-    }
-  if(fdrawsigsid)
-    {
-      drawline(mass_dzero_sideband_l_p, 0, mass_dzero_sideband_l_p, fun_f->Eval(mass_dzero_sideband_l_p), fun_not_mass->GetLineColor(), fun_not_mass->GetLineStyle(), fun_not_mass->GetLineWidth());
-      drawline(mass_dzero_sideband_h_p, 0, mass_dzero_sideband_h_p, fun_f->Eval(mass_dzero_sideband_h_p), fun_not_mass->GetLineColor(), fun_not_mass->GetLineStyle(), fun_not_mass->GetLineWidth());
-      drawline(mass_dzero_sideband_l_n, 0, mass_dzero_sideband_l_n, fun_f->Eval(mass_dzero_sideband_l_n), fun_not_mass->GetLineColor(), fun_not_mass->GetLineStyle(), fun_not_mass->GetLineWidth());
-      drawline(mass_dzero_sideband_h_n, 0, mass_dzero_sideband_h_n, fun_f->Eval(mass_dzero_sideband_h_n), fun_not_mass->GetLineColor(), fun_not_mass->GetLineStyle(), fun_not_mass->GetLineWidth());
-    }
-  fun_f->Draw("same");
-
-  drawleg(h);
-  drawCMS(collisionsyst);
-
-  Float_t texxpos = 0.22, texypos = 0.90, texdypos = 0.053;
-  if(!vtex.empty())
-    {
-      texypos+=texlinespc;
-      for(std::vector<TString>::const_iterator it=vtex.begin(); it!=vtex.end(); it++) 
-        drawtex(texxpos, texypos=(texypos-texdypos-texlinespc), *it);
-    }
-  if(fdrawyield) drawtex(texxpos, texypos=(texypos-texdypos), Form("N = %.0f #pm %.0f",yield,yieldErr));
-  if(fdrawchi2) 
-    {
-      drawtex(texxpos, texypos=(texypos-texdypos), Form("#chi^{2} / ndf = %.1f / %.0f",Chi2,NDF));
-      drawtex(texxpos, texypos=(texypos-texdypos), Form("Prob = %.2f%s",Chi2Prob*100,"%"));
-    }
-  if(fdrawsignif)
-    {
-      drawtex(texxpos, texypos=(texypos-texdypos), Form("S = %.0f, B = %.0f",S,B));
-      drawtex(texxpos, (texypos=(texypos-texdypos)) + 0.01, Form("S/#sqrt{S+B} = %.1f",S/TMath::Sqrt(S+B)));
-    }
-  if(fdrawdetail)
-    {
-      drawtex(texxpos, texypos=(texypos-texdypos), Form("N#scale[0.6]{#lower[0.7]{sig}}/(N#scale[0.6]{#lower[0.7]{sig}}+N#scale[0.6]{#lower[0.7]{swap}}) = %.2f",fun_f->GetParameter(7)));
-    }
-  
-  if(fsaveplot) c->SaveAs(Form("%s.pdf",outputname.Data()));
-
-  delete c;
-  delete h;
-  delete hMCSignal;
-  delete hMCSwapped;
-
-  return clonefun(fun_mass, "Fun_mass");
+  if (opt_haskkpipi_) {
+    fun_kk->Draw("same");
+    fun_pipi->Draw("same");
+  }
+  if (opt_sig_) {
+    fun_notmatch->SetRange(signal_region_l_, signal_region_h_);
+    fun_notmatch->Draw("same");
+    xjjroot::drawline(signal_region_l_, 0, signal_region_l_, fun_f_->Eval(signal_region_l_), fun_notmatch->GetLineColor(), fun_notmatch->GetLineStyle(), fun_notmatch->GetLineWidth());
+    xjjroot::drawline(signal_region_h_, 0, signal_region_h_, fun_f_->Eval(signal_region_h_), fun_notmatch->GetLineColor(), fun_notmatch->GetLineStyle(), fun_notmatch->GetLineWidth());
+  }
+  fun_f_->Draw("same");
 }
 
-void xjjroot::dfitter::reset()
-{
-  clearvar();
-  deletefun();
+void xjjroot::dfitter::fit_data_only(const TH1* hmass) {
+  if (!fun_f_template_ || !hmass) { fitted_ = false; return; }
+  delete fun_f_; fun_f_ = new TF1(*fun_f_template_);
+  fun_f_->SetName(Form("f_toy_%s", xjjc::unique_str().c_str()));
+  gROOT->GetListOfFunctions()->Add(fun_f_);
+  const auto xmin = xmin_, xmax = xmax_;
+  const auto norm_mc_total = template_norm_match_ + template_norm_swap_ + template_norm_kk_ + template_norm_pipi_;
+  if (norm_mc_total == 0) { fitted_ = false; return; }
+  fun_f_->FixParameter(7, template_norm_match_/norm_mc_total);
+  fun_f_->FixParameter(15, template_norm_swap_/norm_mc_total);
+  fun_f_->FixParameter(16, template_norm_kk_/norm_mc_total);
+  fun_f_->ReleaseParameter(3); fun_f_->ReleaseParameter(4);
+  fun_f_->ReleaseParameter(5); fun_f_->ReleaseParameter(6);
+  if (opt_expbkg_) fun_f_->FixParameter(6, 0);
+  auto* h = static_cast<TH1F*>(hmass->Clone(Form("h_toy_%s", xjjc::unique_str().c_str())));
+  h->SetDirectory(nullptr); set_hist(h);
+  h->Fit(fun_f_->GetName(), "q", "", xmin, xmax);
+  h->Fit(fun_f_->GetName(), "q", "", xmin, xmax);
+  fun_f_->ReleaseParameter(1); fun_f_->SetParLimits(1, 1.86, 1.87);
+  h->Fit(fun_f_->GetName(), "L q", "", xmin, xmax);
+  h->Fit(fun_f_->GetName(), "L q", "", xmin, xmax);
+  h->Fit(fun_f_->GetName(), "L q", "", xmin, xmax);
+  r_ = h->Fit(fun_f_->GetName(), Form("%s S", opt_verbose_ ? "L m" : "L m q"), "", xmin, xmax);
+  auto* fun_match = f_match();
+  yield_ = fun_match->Integral(xmin, xmax)/binwidth_;
+  yieldErr_ = yield_ * fun_match->GetParError(0)/fun_match->GetParameter(0);
+  delete fun_match; delete h;
+  fitted_ = true;
 }
 
-void xjjroot::dfitter::init()
-{
-  clearvar();
-  createfun();
-  setfunstyle();
+std::vector<std::string> xjjroot::dfitter::draw_result(float x, float y, float tsize, float lspacescale) const {
+  std::vector<std::string> text = {
+    Form("N = %.0f#scale[0.5]{ }#pm %.0f", yield_, yieldErr_),
+    Form("#chi^{2} / ndf = %.1f / %.0f", chi2(), ndf()),
+    Form("Prob = %.2f%s", chi2prob()*100, "%"),
+    Form("#bar{m} = %.3f%s", fun_f_->GetParameter(1), (fun_f_->GetParError(1)==0 ? " (fixed)" : Form("#scale[0.4]{ }#pm %.3f", fun_f_->GetParError(1)))),
+  };
+  std::vector<Color_t> color(text.size(), kBlack);
+  if (opt_sig_) {
+    text.push_back(Form("S = %.0f, B = %.0f", S_, B_));
+    text.push_back(Form("S/#sqrt{S+B} = %.1f", S_/TMath::Sqrt(S_ + B_)));
+    xjjc::vec_append(color, std::vector<Color_t>(2, fstyle.at("notmatch").lcolor));
+  }
+  xjjroot::drawtexgroup(x, y, text, tsize, 13, 42, lspacescale,
+                        1, 0.2, color);
+
+  // if (fdrawdetail) {
+  //   drawtex(texxpos, texypos=(texypos-texdypos), Form("N#scale[0.6]{#lower[0.7]{sig}}/(N#scale[0.6]{#lower[0.7]{sig}}+N#scale[0.6]{#lower[0.7]{swap}}) = %.2f",fun_f_->GetParameter(7)));
+  // }
+  return text;
 }
 
-void xjjroot::dfitter::clearvar()
-{
-  S = 0;
-  B = 0;
-  Sig = 0;
-  yield = 0;
-  yieldErr = 0;
-  Chi2 = 0;
-  NDF = 0;
-  Chi2Prob = 0;
+void xjjroot::dfitter::draw_fmc() const {
+  fun_mc_swap_->Draw("same");
+  fun_mc_match_->Draw("same");
+  for (const auto& f : vfun_mc_match_)
+    f->Draw("same");
+  if (opt_haskkpipi_) {
+    fun_mc_kk_->Draw("same");
+    fun_mc_pipi_->Draw("same");
+  }
 }
 
-void xjjroot::dfitter::calvar()
-{
-  mass_dzero_signal_l = mass_dzero - d_mass_signal;
-  mass_dzero_signal_h = mass_dzero + d_mass_signal;
-  mass_dzero_sideband_l_p = mass_dzero + d_mass_sideband_l;
-  mass_dzero_sideband_h_p = mass_dzero + d_mass_sideband_h;
-  mass_dzero_sideband_l_n = mass_dzero - d_mass_sideband_l;
-  mass_dzero_sideband_h_n = mass_dzero - d_mass_sideband_h;
-
-  if(!fparamfuns) return;
-  S = fun_mass->Integral(mass_dzero_signal_l,mass_dzero_signal_h)/binwid_hist_dzero;
-  B = fun_background->Integral(mass_dzero_signal_l,mass_dzero_signal_h)/binwid_hist_dzero + fun_swap->Integral(mass_dzero_signal_h,mass_dzero_signal_h)/binwid_hist_dzero;
-  Sig = S/TMath::Sqrt(S+B);
-  yield = fun_mass->Integral(min_hist_dzero,max_hist_dzero)/binwid_hist_dzero;
-  yieldErr = fun_mass->Integral(min_hist_dzero,max_hist_dzero)/binwid_hist_dzero*fun_mass->GetParError(0)/fun_mass->GetParameter(0);
-  Chi2 = 2.*r->MinFcnValue();
-  NDF = fun_f->GetNDF();
-  Chi2Prob = TMath::Prob(Chi2,NDF);
+void xjjroot::dfitter::calculate_SnB() {
+  if (!fitted_) {
+    __XJJLOG << "!! not fitted yet" << std::endl;
+    return;
+  }
+  auto* fun_match = f_match(Form("fun_match_%s", xjjc::unique_str().c_str()));
+  S_ = fun_match->Integral(signal_region_l_, signal_region_h_)/binwidth_;
+  delete fun_match;
+  auto* fun_notmatch = f_notmatch(Form("fun_notmatch_%s", xjjc::unique_str().c_str()));
+  B_ = fun_notmatch->Integral(signal_region_l_, signal_region_h_)/binwidth_;
+  delete fun_notmatch;
 }
 
-void xjjroot::dfitter::createfun()
-{
-  TString str_fun_f = f3gaus?
-    "[0]*([7]*([9]*TMath::Gaus(x,[1],[2]*(1+[11]))/(sqrt(2*3.14159)*[2]*(1+[11]))+(1-[9])*([12]*TMath::Gaus(x,[1],[10]*(1+[11]))/(sqrt(2*3.14159)*[10]*(1+[11]))+(1-[12])*TMath::Gaus(x,[1],[13]*(1+[11]))/(sqrt(2*3.14159)*[13]*(1+[11]))))+(1-[7])*TMath::Gaus(x,[1],[8]*(1+[11]))/(sqrt(2*3.14159)*[8]*(1+[11])))+[3]+[4]*x+[5]*x*x+[6]*x*x*x":
-    "[0]*([7]*([9]*TMath::Gaus(x,[1],[2]*(1+[11]))/(sqrt(2*3.14159)*[2]*(1+[11]))+(1-[9])*TMath::Gaus(x,[1],[10]*(1+[11]))/(sqrt(2*3.14159)*[10]*(1+[11])))+(1-[7])*TMath::Gaus(x,[1],[8]*(1+[11]))/(sqrt(2*3.14159)*[8]*(1+[11])))+[3]+[4]*x+[5]*x*x+[6]*x*x*x";
-  TString str_fun_mass = f3gaus?
-    "[0]*([3]*([4]*TMath::Gaus(x,[1],[2]*(1+[6]))/(sqrt(2*3.14159)*[2]*(1+[6]))+(1-[4])*([7]*TMath::Gaus(x,[1],[5]*(1+[6]))/(sqrt(2*3.14159)*[5]*(1+[6]))+(1-[7])*TMath::Gaus(x,[1],[8]*(1+[6]))/(sqrt(2*3.14159)*[8]*(1+[6])))))":
-    "[0]*([3]*([4]*TMath::Gaus(x,[1],[2]*(1+[6]))/(sqrt(2*3.14159)*[2]*(1+[6]))+(1-[4])*TMath::Gaus(x,[1],[5]*(1+[6]))/(sqrt(2*3.14159)*[5]*(1+[6]))))";
-  fun_f = new TF1("fun_f", str_fun_f.Data(), min_hist_dzero, max_hist_dzero);  
-  fun_mass = new TF1("fun_mass", str_fun_mass.Data(), min_hist_dzero, max_hist_dzero);
-  fun_background = new TF1("fun_background", "[0]+[1]*x+[2]*x*x+[3]*x*x*x", min_hist_dzero, max_hist_dzero);
-  fun_swap = new TF1("fun_swap", "[0]*(1-[2])*TMath::Gaus(x,[1],[3]*(1+[4]))/(sqrt(2*3.14159)*[3]*(1+[4]))", min_hist_dzero, max_hist_dzero);
-  fun_not_mass = new TF1("fun_not_mass", "[0]*(1-[2])*TMath::Gaus(x,[1],[3]*(1+[4]))/(sqrt(2*3.14159)*[3]*(1+[4]))+[5]+[6]*x+[7]*x*x+[8]*x*x*x", min_hist_dzero, max_hist_dzero);
+TF1* xjjroot::dfitter::f_match(const std::string& name) const {
+  if (!fitted_) {
+    __XJJLOG << "!! not fitted yet" << std::endl;
+    return nullptr;
+  }
+  std::string fname = name.empty() ? Form("%s_match", fun_f_->GetName()) : name;
+  std::string str_fun_match = "[0]*([3]*([4]*TMath::Gaus(x,[1],[2]*(1+[6]))/(sqrt(2*3.14159)*[2]*(1+[6]))+(1-[4])*([7]*TMath::Gaus(x,[1],[5]*(1+[6]))/(sqrt(2*3.14159)*[5]*(1+[6]))+(1-[7])*TMath::Gaus(x,[1],[8]*(1+[6]))/(sqrt(2*3.14159)*[8]*(1+[6])))))";
+  auto* fun = new TF1(fname.c_str(), str_fun_match.c_str(), fun_f_->GetXmin(), fun_f_->GetXmax());
+  std::map<int, int> params = {
+    { 0, 0 }, { 1, 1 }, { 2, 2 }, { 3, 7 }, { 4, 9 }, { 5, 10 }, { 6, 11 }, { 7, 12 }, { 8, 13 }
+  };
+  for (const auto& p : params) {
+    fun->SetParameter(p.first, fun_f_->GetParameter(p.second));
+    fun->SetParError(p.first, fun_f_->GetParError(p.second));
+  }
+  fun->SetNpx(2000);
+  xjjroot::setthgrstyle(fun, fstyle.at("match"));
 
-  fparamfun_f = false;
-  fparamfuns = false;
+  return fun;
 }
 
-void xjjroot::dfitter::deletefun()
-{
-  delete fun_f;
-  delete fun_background;
-  delete fun_mass;
-  delete fun_swap;
-  delete fun_not_mass;
+TF1* xjjroot::dfitter::f_swap(const std::string& name) const {
+  if (!fitted_) {
+    __XJJLOG << "!! not fitted yet" << std::endl;
+    return nullptr;
+  }
+  std::string fname = name.empty() ? Form("%s_swap", fun_f_->GetName()) : name;
+  auto* fun = new TF1(fname.c_str(), "[0]*[2]*TMath::Gaus(x,[1],[3]*(1+[4]))/(sqrt(2*3.14159)*[3]*(1+[4]))", fun_f_->GetXmin(), fun_f_->GetXmax());
+  std::map<int, int> params = {
+    { 0, 0 }, { 1, 14 }, { 2, 15 }, { 3, 8 }, { 4, 11 }
+  };
+  for (const auto& p : params) {
+    fun->SetParameter(p.first, fun_f_->GetParameter(p.second));
+    fun->SetParError(p.first, fun_f_->GetParError(p.second));
+  }
+  xjjroot::setthgrstyle(fun, fstyle.at("swap"));
 
-  fparamfun_f = false;
-  fparamfuns = false;
+  return fun;
 }
 
-void xjjroot::dfitter::setfunstyle()
-{
-  fun_f->SetNpx(2000);
-  fun_f->SetLineColor(2);
-  fun_f->SetLineStyle(1);
-  fun_f->SetLineWidth(3);
+TF1* xjjroot::dfitter::f_kk(const std::string& name) const {
+  if (!fitted_) {
+    __XJJLOG << "!! not fitted yet" << std::endl;
+    return nullptr;
+  }
+  std::string fname = name.empty() ? Form("%s_kk", fun_f_->GetName()) : name;
+  auto* fun = new TF1(fname.c_str(), "[0]*[1]*ROOT::Math::crystalball_pdf(x,[4],[5],[3],[2])", fun_f_->GetXmin(), fun_f_->GetXmax());
+  std::map<int, int> params = {
+    { 0, 0 }, { 1, 16 }, { 2, 17 }, { 3, 18 }, { 4, 19 }, { 5, 20 }
+  };
+  for (const auto& p : params) {
+    fun->SetParameter(p.first, fun_f_->GetParameter(p.second));
+    fun->SetParError(p.first, fun_f_->GetParError(p.second));
+  }
+  xjjroot::setthgrstyle(fun, fstyle.at("kk"));
 
-  fun_background->SetNpx(2000);
-  fun_background->SetLineColor(4);
-  fun_background->SetLineStyle(2);
-  fun_background->SetLineWidth(3);
-
-  fun_mass->SetNpx(2000);
-  fun_mass->SetLineColor(kOrange-3);
-  fun_mass->SetLineStyle(2);
-  fun_mass->SetLineWidth(3);
-  fun_mass->SetFillColor(kOrange-3);
-  fun_mass->SetFillStyle(3002);
-
-  fun_swap->SetNpx(2000);
-  fun_swap->SetLineColor(kGreen+4);
-  fun_swap->SetLineStyle(1);
-  fun_swap->SetLineWidth(3);
-  fun_swap->SetFillColor(kGreen+4);
-  fun_swap->SetFillStyle(3005);
-
-  fun_not_mass->SetLineColor(12);
-  fun_not_mass->SetLineStyle(2);
-  fun_not_mass->SetLineWidth(3);
+  return fun;
 }
 
-void xjjroot::dfitter::setfunparameters()
-{
-  fun_background->SetParameters(fun_f->GetParameter(3), fun_f->GetParameter(4), fun_f->GetParameter(5), fun_f->GetParameter(6));
-  fun_background->SetParError(0,fun_f->GetParError(3));
-  fun_background->SetParError(1,fun_f->GetParError(4));
-  fun_background->SetParError(2,fun_f->GetParError(5));
-  fun_background->SetParError(3,fun_f->GetParError(6));
-  
-  fun_mass->SetParameters(fun_f->GetParameter(0),fun_f->GetParameter(1),fun_f->GetParameter(2),fun_f->GetParameter(7),fun_f->GetParameter(9),fun_f->GetParameter(10),fun_f->GetParameter(11));
-  fun_mass->SetParError(0,fun_f->GetParError(0));
-  fun_mass->SetParError(1,fun_f->GetParError(1));
-  fun_mass->SetParError(2,fun_f->GetParError(2));
-  fun_mass->SetParError(3,fun_f->GetParError(7));
-  fun_mass->SetParError(4,fun_f->GetParError(9));
-  fun_mass->SetParError(5,fun_f->GetParError(10));
-  fun_mass->SetParError(6,fun_f->GetParError(11));
-  if(f3gaus)
-    {
-      fun_mass->SetParameter(7, fun_f->GetParameter(12));
-      fun_mass->SetParameter(8, fun_f->GetParameter(13));
-      fun_mass->SetParError(7, fun_f->GetParError(12));
-      fun_mass->SetParError(8, fun_f->GetParError(13));
-    }   
- 
-  fun_swap->SetParameters(fun_f->GetParameter(0),fun_f->GetParameter(1),fun_f->GetParameter(7),fun_f->GetParameter(8),fun_f->GetParameter(11));
-  fun_swap->SetParError(0,fun_f->GetParError(0));
-  fun_swap->SetParError(1,fun_f->GetParError(1));
-  fun_swap->SetParError(2,fun_f->GetParError(7));
-  fun_swap->SetParError(3,fun_f->GetParError(8));
-  fun_swap->SetParError(4,fun_f->GetParError(11));
+TF1* xjjroot::dfitter::f_pipi(const std::string& name) const {
+  if (!fitted_) {
+    __XJJLOG << "!! not fitted yet" << std::endl;
+    return nullptr;
+  }
+  std::string fname = name.empty() ? Form("%s_pipi", fun_f_->GetName()) : name;
+  auto* fun = new TF1(fname.c_str(), "[0]*(1-[1]-[2]-[3])*ROOT::Math::crystalball_pdf(-x,[6],[7],[5],-[4])", fun_f_->GetXmin(), fun_f_->GetXmax());
+  std::map<int, int> params = {
+    { 0, 0 }, { 1, 7 }, { 2, 15 }, { 3, 16 }, { 4, 21 }, { 5, 22 }, { 6, 23 }, { 7, 24 }
+  };
+  for (const auto& p : params) {
+    fun->SetParameter(p.first, fun_f_->GetParameter(p.second));
+    fun->SetParError(p.first, fun_f_->GetParError(p.second));
+  }
+  xjjroot::setthgrstyle(fun, fstyle.at("pipi"));
 
-  fun_not_mass->SetParameters(fun_swap->GetParameter(0),fun_swap->GetParameter(1),fun_swap->GetParameter(2),fun_swap->GetParameter(3),fun_swap->GetParameter(4),
-                              fun_background->GetParameter(0),fun_background->GetParameter(1),fun_background->GetParameter(2),fun_background->GetParameter(3));
-  fun_not_mass->SetParError(0,fun_swap->GetParError(0));
-  fun_not_mass->SetParError(1,fun_swap->GetParError(1));
-  fun_not_mass->SetParError(2,fun_swap->GetParError(2));
-  fun_not_mass->SetParError(3,fun_swap->GetParError(3));
-  fun_not_mass->SetParError(4,fun_swap->GetParError(4));
-  fun_not_mass->SetParError(5,fun_background->GetParError(0));
-  fun_not_mass->SetParError(6,fun_background->GetParError(1));
-  fun_not_mass->SetParError(7,fun_background->GetParError(2));
-  fun_not_mass->SetParError(8,fun_background->GetParError(3));
-
-  fparamfuns = true;
+  return fun;
 }
 
-TF1* xjjroot::dfitter::clonefun(const TF1* fun, TString fun_name) const
-{
-  TF1* newfun = new TF1(*fun);
-  newfun->SetName(fun_name);
+TF1* xjjroot::dfitter::f_background(const std::string& name) const {
+  if (!fitted_) {
+    __XJJLOG << "!! not fitted yet" << std::endl;
+    return nullptr;
+  }
+  const std::string fname = name.empty() ? Form("%s_background", fun_f_->GetName()) : name;
+  const std::string str_fun_f_background = opt_expbkg_ ? "[0] + [1]*exp(-x*[2]) + [3]" : "[0] + [1]*x + [2]*x*x + [3]*x*x*x";  
+  auto* fun = new TF1(fname.c_str(), str_fun_f_background.c_str(), fun_f_->GetXmin(), fun_f_->GetXmax());
+  std::map<int, int> params = {
+    { 0, 3 }, { 1, 4 }, { 2, 5 }, { 3, 6 }
+  };
+  for (const auto& p : params) {
+    fun->SetParameter(p.first, fun_f_->GetParameter(p.second));
+    fun->SetParError(p.first, fun_f_->GetParError(p.second));
+  }
+  xjjroot::setthgrstyle(fun, fstyle.at("background"));
+
+  return fun;
+}
+
+TF1* xjjroot::dfitter::f_notmatch(const std::string& name) const {
+  if (!fitted_) {
+    __XJJLOG << "!! not fitted yet" << std::endl;
+    return nullptr;
+  }
+  const std::string fname = name.empty() ? Form("%s_notmatch", fun_f_->GetName()) : name;
+  const std::string str_fun_f_background = opt_expbkg_ ? "[5] + [6]*exp(-x*[7]) + [8]" : "[5] + [6]*x + [7]*x*x + [8]*x*x*x";
+  auto* fun = new TF1(fname.c_str(), Form("[0]*([2]*TMath::Gaus(x,[1],[3]*(1+[4]))/(sqrt(2*3.14159)*[3]*(1+[4]))+[9]*ROOT::Math::crystalball_pdf(x,[12],[13],[11],[10])+(1-[14]-[2]-[9])*ROOT::Math::crystalball_pdf(-x,[17],[18],[16],-[15])) + %s", str_fun_f_background.c_str()), fun_f_->GetXmin(), fun_f_->GetXmax());
+  std::map<int, int> params = {
+    { 0, 0 }, { 1, 14 }, { 2, 15 }, { 3, 8 }, { 4, 11 },
+    { 5, 3 }, { 6, 4 }, { 7, 5 }, { 8, 6 },
+    { 9, 16 }, { 10, 17 }, { 11, 18 }, { 12, 19 }, { 13, 20 },
+    { 14, 7 }, { 15, 21 }, { 16, 22 }, { 17, 23 }, { 18, 24 }
+  };
+  for (const auto& p : params) {
+    fun->SetParameter(p.first, fun_f_->GetParameter(p.second));
+    fun->SetParError(p.first, fun_f_->GetParError(p.second));
+  }
+  xjjroot::setthgrstyle(fun, fstyle.at("notmatch"));
+
+  return fun;
+}
+
+std::pair<double, double> xjjroot::dfitter::width_mc_match(double frac) const {
+  auto width = xjjana::tf_width(fun_mc_match_, fun_mc_match_->GetParameter(1), frac, { 0, 1, 3, 4, 6, 7 });
+  return width;
+}
+
+TF1* xjjroot::dfitter::clone_fun(const TF1* fun, const std::string& name) const {
+  auto* newfun = new TF1(*fun);
+  newfun->SetName(name.c_str());
   return newfun;
 }
 
-void xjjroot::dfitter::sethist(TH1* h) const
-{
+void xjjroot::dfitter::set_hist(TH1* h) {
+  if (!h) return;
+  h->SetXTitle("m_{#piK} [GeV/c^{2}]");
+  h->SetYTitle(Form("Entries / (%.0f MeV/c^{2})", h->GetBinWidth(1)*1.e+3));
+  xjjroot::sethempty(h, 0., 0.5);
+  xjjroot::setthgrstyle(h, fstyle.at("h"));
   h->SetMaximum(-1111);
-  h->SetXTitle("m_{#piK} (GeV/c^{2})");
-  h->SetYTitle(Form("Entries / (%.0f MeV/c^{2})", binwid_hist_dzero*1.e+3));
-  h->GetXaxis()->CenterTitle();
-  h->GetYaxis()->CenterTitle();
-  h->SetAxisRange(0,h->GetMaximum()*1.4*1.2,"Y");
-  h->GetXaxis()->SetTitleOffset(1.3);
-  h->GetYaxis()->SetTitleOffset(1.8);
-  h->GetXaxis()->SetLabelOffset(0.007);
-  h->GetYaxis()->SetLabelOffset(0.007);
-  h->GetXaxis()->SetTitleSize(0.045);
-  h->GetYaxis()->SetTitleSize(0.045);
-  h->GetXaxis()->SetTitleFont(42);
-  h->GetYaxis()->SetTitleFont(42);
-  h->GetXaxis()->SetLabelFont(42);
-  h->GetYaxis()->SetLabelFont(42);
-  h->GetXaxis()->SetLabelSize(0.04);
-  h->GetYaxis()->SetLabelSize(0.04);
-  h->SetMarkerSize(0.8);
-  h->SetMarkerStyle(20);
-  h->SetStats(0);
+  h->SetAxisRange(0, h->GetMaximum()*1.4*1.2, "Y");
 }
 
-void xjjroot::dfitter::drawleg(TH1* h) const
-{
-  TLegend* leg = new TLegend(0.65, 0.58, 0.85, 0.88, NULL,"brNDC");
-  leg->SetBorderSize(0);
-  leg->SetFillStyle(0);
-  leg->SetTextFont(42);
-  leg->SetTextSize(0.04);
-
-  leg->AddEntry(h,"Data", "pl");
-  leg->AddEntry(fun_f,"Fit", "l");
-  leg->AddEntry(fun_mass,"D^{0}+#bar{D^{#lower[0.2]{0}}} Signal", "f");
-  leg->AddEntry(fun_swap,"K-#pi swapped", "f");
-  leg->AddEntry(fun_background,"Combinatorial", "l");
-
-  leg->Draw("same");
+void xjjroot::dfitter::parse_fmc() {
+  std::string str_fun_match = "[0]*([3]*([4]*TMath::Gaus(x,[1],[2]*(1+[6]))/(sqrt(2*3.14159)*[2]*(1+[6]))+(1-[4])*([7]*TMath::Gaus(x,[1],[5]*(1+[6]))/(sqrt(2*3.14159)*[5]*(1+[6]))+(1-[7])*TMath::Gaus(x,[1],[8]*(1+[6]))/(sqrt(2*3.14159)*[8]*(1+[6])))))";
+  std::vector<std::vector<double>> params = {
+    { fun_mc_match_->GetParameter(0)*fun_mc_match_->GetParameter(3)*fun_mc_match_->GetParameter(4), fun_mc_match_->GetParameter(1), fun_mc_match_->GetParameter(2) },
+    { fun_mc_match_->GetParameter(0)*fun_mc_match_->GetParameter(3)*(1-fun_mc_match_->GetParameter(4))*fun_mc_match_->GetParameter(7), fun_mc_match_->GetParameter(1), fun_mc_match_->GetParameter(5) },
+  };
+  std::vector<std::vector<double>> parerrors = {
+    { fun_mc_match_->GetParError(0)*fun_mc_match_->GetParameter(3)*fun_mc_match_->GetParameter(4), fun_mc_match_->GetParError(1), fun_mc_match_->GetParError(2) },
+    { fun_mc_match_->GetParError(0)*fun_mc_match_->GetParameter(3)*(1-fun_mc_match_->GetParameter(4))*fun_mc_match_->GetParameter(7), fun_mc_match_->GetParError(1), fun_mc_match_->GetParError(5) },    
+  };
+  if (opt_3gaus_) {
+    params.push_back( { fun_mc_match_->GetParameter(0)*fun_mc_match_->GetParameter(3)*(1-fun_mc_match_->GetParameter(4))*(1-fun_mc_match_->GetParameter(7)), fun_mc_match_->GetParameter(1), fun_mc_match_->GetParameter(8) } );
+    parerrors.push_back( { fun_mc_match_->GetParError(0)*fun_mc_match_->GetParameter(3)*(1-fun_mc_match_->GetParameter(4))*(1-fun_mc_match_->GetParameter(7)), fun_mc_match_->GetParError(1), fun_mc_match_->GetParError(8) } );
+  }
+  for (int i=0; i<params.size(); i++) {
+    auto* f1 = new TF1(Form("%s-%d", fun_mc_match_->GetName(), i), "[0]*TMath::Gaus(x,[1],[2])/(sqrt(2*3.14159)*[2])", xmin_, xmax_);
+    for (int j=0; j<params.at(i).size(); j++) {
+      f1->SetParameter(j, params.at(i).at(j));
+      f1->SetParError(j, parerrors.at(i).at(j));
+    }
+    xjjroot::setlinestyle(f1, fun_mc_match_->GetLineColor(), 2, fun_mc_match_->GetLineWidth());
+    f1->SetNpx(2000);
+    vfun_mc_match_.push_back(f1);
+  }
 }
 
-void xjjroot::dfitter::drawCMS(TString collision, TString snn/*="5.02"*/) const
-{
-  TLatex* texCms = new TLatex(0.18,0.93, "#scale[1.25]{CMS} Preliminary");
-  texCms->SetNDC();
-  texCms->SetTextAlign(12);
-  texCms->SetTextSize(0.04);
-  texCms->SetTextFont(42);
-  TLatex* texCol = new TLatex(0.96,0.93, Form("%s #sqrt{s_{NN}} = %s TeV", collision.Data(), snn.Data()));
-  texCol->SetNDC();
-  texCol->SetTextAlign(32);
-  texCol->SetTextSize(0.04);
-  texCol->SetTextFont(42);
-
-  texCms->Draw();
-  texCol->Draw();
+void xjjroot::dfitter::draw_params(float x, float y, float tsize, float lspacescale) const {
+  float norm = 0;
+  std::vector<std::pair<double, double>> params_match;
+  for (const auto& f : vfun_mc_match_) {
+    params_match.push_back( { f->GetParameter(2), f->GetParameter(0) } );
+    norm += f->GetParameter(0);
+  }
+  std::sort(params_match.begin(), params_match.end(), [](std::pair<double, double> a, std::pair<double, double> b) {
+    return a.first < b.first; // width
+  });
+  std::string sigma_match, frac_match;
+  for (auto& p : params_match) {
+    sigma_match += std::string(Form("%s%.3f", (sigma_match.empty() ? "" : ", "), p.first));
+    p.second /= norm;
+    frac_match += std::string(Form("%s%.2f", (frac_match.empty() ? "" : ", "), p.second));
+  }
+  const auto norm_masswin = fun_mc_match_->Integral(xmin_, xmax_) + fun_mc_swap_->Integral(xmin_, xmax_) + fun_mc_kk_->Integral(xmin_, xmax_) + fun_mc_pipi_->Integral(xmin_, xmax_);
+  std::vector<std::string> rtex = {
+    // "Mean (data) = " + std::string(Form("%.3f%s", fun_f_->GetParameter(1), (fun_f_->GetParError(1)==0 ? " (fixed)" : Form("#scale[0.4]{ }#pm %.3f", fun_f_->GetParError(1))))),
+    "Mean = " + std::string(Form("%.3f (signal), %.3f (swap)", fun_mc_match_->GetParameter(1), fun_mc_swap_->GetParameter(1))),
+    "Signal#scale[0.5]{ }#sigma in MC = " + sigma_match,
+    "Fraction of each gaus = " + frac_match,
+    "#sigma_{data}/#sigma_{MC} - 1 = " + std::string(Form("%.2f %s", fun_f_->GetParameter(11), (fun_f_->GetParError(11)==0 ? "(fixed)" : Form("#pm %.2f", fun_f_->GetParError(11))))),
+    Form("N#scale[0.7]{sig} / (N#scale[0.7]{sig} + N#scale[0.7]{swap}) = %.2f", fun_f_->GetParameter(7)/(fun_f_->GetParameter(7)+fun_f_->GetParameter(15))),
+  };
+  if (fun_f_->GetParError(11)==0) rtex.erase(rtex.begin() + 3);
+  if (opt_haskkpipi_) {
+    xjjc::vec_append(rtex, {
+        "In mass window:",
+        Form("#rightarrow Signal %.2f", fun_mc_match_->Integral(xmin_, xmax_) / norm_masswin),
+        Form("#rightarrow Swap %.2f", fun_mc_swap_->Integral(xmin_, xmax_) / norm_masswin),
+        Form("#rightarrow KK %.2f", fun_mc_kk_->Integral(xmin_, xmax_) / norm_masswin),
+        Form("#rightarrow#scale[0.4]{ }#pi#pi %.2f", fun_mc_pipi_->Integral(xmin_, xmax_) / norm_masswin),
+        // Form("Fractions: sig %.2f, swap %.2f, KK %.2f, #pi#pi %.2f",
+        //      fun_f_->GetParameter(7), fun_f_->GetParameter(14), fun_f_->GetParameter(15),
+        //      1. - fun_f_->GetParameter(7) - fun_f_->GetParameter(14) - fun_f_->GetParameter(15)),
+      });
+  }
+  xjjroot::drawtexgroup(x, y, rtex, tsize, 13, 42, lspacescale);
 }
-
-void xjjroot::dfitter::drawtex(Double_t x, Double_t y, const char* text, Float_t tsize/*=0.04*/, Short_t align/*=12*/) const
-{
-  TLatex* tex = new TLatex(x, y, text);
-  tex->SetNDC();
-  tex->SetTextFont(42);
-  tex->SetTextAlign(align);
-  tex->SetTextSize(tsize);
-  tex->Draw();
-}
-
-void xjjroot::dfitter::drawline(Double_t x1, Double_t y1, Double_t x2, Double_t y2, Color_t lcolor/*=kBlack*/, Style_t lstyle/*=1*/, Width_t lwidth/*=2*/) const
-{
-  TLine* l = new TLine(x1, y1, x2, y2);
-  l->SetLineColor(lcolor);
-  l->SetLineStyle(lstyle);
-  l->SetLineWidth(lwidth);
-  l->Draw();
-}
-
-void xjjroot::dfitter::setgstyle() const
-{
-  gStyle->SetOptTitle(0);
-  gStyle->SetOptStat(0);
-  gStyle->SetEndErrorSize(0);
-  gStyle->SetTextSize(0.05);
-  gStyle->SetTextFont(42);
-  gStyle->SetPadRightMargin(0.043);
-  gStyle->SetPadLeftMargin(0.18);
-  gStyle->SetPadTopMargin(0.1);
-  gStyle->SetPadBottomMargin(0.145);
-  gStyle->SetTitleX(.0f);
-}
-
-#endif
